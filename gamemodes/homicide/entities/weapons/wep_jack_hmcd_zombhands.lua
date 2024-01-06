@@ -44,16 +44,18 @@ end
 function SWEP:Initialize()
 	self:SetNextIdle(CurTime() + 5)
 	self:SetHoldType(self.HoldType)
-	--[[
-	if(SERVER)then
-		timer.Simple(1,function()
-			if((IsValid(self))and(IsValid(self:GetOwner())))then
-				self:GetOwner():SetHealth(200)
-				self:GetOwner():SetMaxHealth(200)
+	if SERVER then
+		timer.Simple(
+			1,
+			function()
+				if IsValid(self) and IsValid(self:GetOwner()) then
+					self:GetOwner():SetHealth(200)
+					self:GetOwner():SetMaxHealth(200)
+				end
 			end
-		end)
+		)
 	end
-	--]]
+
 	self.PrintName = translate and translate.hands or "Hands"
 	self.Instructions = translate.weaponZombHandsDesc
 end

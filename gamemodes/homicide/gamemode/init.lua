@@ -94,19 +94,12 @@ local function SpecSHTF(ply, cmd, args)
 		return
 	end
 
-	-- Epta
-	if args[1] == "2" then
-		GAMEMODE.SHTF_MODE_ENGAGED = true
-		GAMEMODE.DEATHMATCH_MODE_ENGAGED = true
-		GAMEMODE.PUSSY_MODE_ENGAGED = false
-		GAMEMODE.EPIC_MODE_ENGAGED = false
-		GAMEMODE.ISLAM_MODE_ENGAGED = false
-	elseif args[1] == "1" then
+	if args[1] >= "1" then
 		GAMEMODE.SHTF_MODE_ENGAGED = true
 		GAMEMODE.PUSSY_MODE_ENGAGED = false
 		GAMEMODE.EPIC_MODE_ENGAGED = false
 		GAMEMODE.ISLAM_MODE_ENGAGED = false
-	elseif args[1] == "0" then
+	elseif args[1] <= "0" then
 		GAMEMODE.SHTF_MODE_ENGAGED = false
 		GAMEMODE.DEATHMATCH_MODE_ENGAGED = false
 		GAMEMODE.ZOMBIE_MODE_ENGAGED = false

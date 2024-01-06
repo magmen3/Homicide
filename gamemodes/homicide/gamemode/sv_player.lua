@@ -1506,6 +1506,7 @@ function PlayerMeta:AntiCheat()
 
 	local Health = self:Health()
 	if Health and (Health > 105) then
+		if GAMEMODE.ZOMBIE and ply.Murderer then return end
 		self:SetHealth(100)
 		self:PrintMessage(HUD_PRINTTALK, translate.notAllowedAdditionalHealth)
 	end

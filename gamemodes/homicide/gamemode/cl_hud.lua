@@ -483,7 +483,7 @@ function GM:DrawGameHUD(ply)
 	if shouldDraw ~= false then
 		if LocalPlayer() == ply and ply:FlashlightIsOn() then
 			local col = color_white
-			surface.SetDrawColor(255, 255, 255, 255)
+			surface.SetDrawColor(color_white)
 			surface.SetTexture(FlashTex)
 			surface.DrawTexturedRect(W * .3 - 150, H * .85, 128, 128)
 			--drawTextShadow(math.Round(charge*100).."%","MersRadialSmall",W*.3-140,H*.85+50,col,0,TEXT_ALIGN_TOP)
@@ -492,10 +492,8 @@ function GM:DrawGameHUD(ply)
 
 	if ply.AmmoShow and (ply.AmmoShow > CurTime()) then
 		local Wep, TimeLeft, Opacity = ply:GetActiveWeapon(), ply.AmmoShow - CurTime(), 255
-		if TimeLeft < 1 then
-			Opacity = 150
-		end
-
+		if Opacity <= 0 then return end
+		Opacity = TimeLeft * 255
 		if Wep.CanAmmoShow then
 			surface.SetTexture(RoundTextures[Wep.AmmoType])
 			surface.SetDrawColor(Color(255, 255, 255, Opacity))
@@ -637,7 +635,7 @@ function GM:RenderScreenspaceEffects()
 				if Wep.Scoped then
 					if Wep:GetAiming() >= 99 then
 						local W, H = ScrW(), ScrH()
-						surface.SetDrawColor(255, 255, 255, 255)
+						surface.SetDrawColor(color_white)
 						surface.SetTexture(ScpMat)
 						surface.DrawTexturedRect(-1, -1, W + 1, H + 1)
 						surface.SetDrawColor(0, 0, 0, 255)

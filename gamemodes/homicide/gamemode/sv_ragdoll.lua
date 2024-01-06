@@ -338,7 +338,7 @@ function EntityMeta:SetAccessory(acc)
 		function()
 			net.Start("hmcd_player_accessory")
 			net.WriteEntity(ent)
-			net.WriteString(sex)
+			net.WriteString(sex) -- Homicide sex update
 			net.WriteString(acc)
 			net.Send(player.GetAll())
 		end

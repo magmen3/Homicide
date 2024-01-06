@@ -20,7 +20,7 @@ elseif CLIENT then
 		local Tr = util.QuickTrace(self:GetOwner():GetShootPos(), self:GetOwner():GetAimVector() * 65, {self:GetOwner()})
 		if self:CanNail(Tr) then
 			surface.SetTexture(NailMat)
-			surface.SetDrawColor(255, 255, 255, 255)
+			surface.SetDrawColor(color_white)
 			surface.DrawTexturedRect(ScrW() / 2, ScrH() / 2 - 32, 64, 64)
 		end
 	end
@@ -61,14 +61,14 @@ SWEP.Secondary.NumShots = 1
 SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = false
+SWEP.Secondary.Automatic = true
 SWEP.Secondary.Ammo = "none"
 SWEP.ENT = "ent_jack_hmcd_hammer"
 SWEP.DownAmt = 0
 SWEP.HomicideSWEP = true
 SWEP.AmmoType = "AirboatGun"
 SWEP.CanAmmoShow = true
-SWEP.UnNailables = {MAT_METAL, MAT_SAND, MAT_SLOSH, MAT_GLASS}
+SWEP.UnNailables = {MAT_SAND, MAT_SLOSH, MAT_GLASS}
 SWEP.CarryWeight = 1000
 function SWEP:CanNail(Tr)
 	return (self:GetOwner():GetAmmoCount(self.Primary.Ammo) > 0) and Tr.Hit and Tr.Entity and (IsValid(Tr.Entity) or Tr.Entity:IsWorld()) and not (Tr.Entity:IsPlayer() or Tr.Entity:IsNPC()) and not table.HasValue(self.UnNailables, Tr.MatType)
@@ -81,10 +81,6 @@ function SWEP:Initialize()
 	self.Instructions = translate.weaponHammerDesc
 end
 
-function SWEP:SetupDataTables()
-end
-
---
 function SWEP:PrimaryAttack()
 	if not IsFirstTimePredicted() then
 		self:DoBFSAnimation("midslash2")

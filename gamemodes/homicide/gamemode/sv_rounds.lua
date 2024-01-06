@@ -2,22 +2,13 @@ util.AddNetworkString("SetRound")
 util.AddNetworkString("DeclareWinner")
 util.AddNetworkString("hmcd_mode")
 --util.AddNetworkString("Polizei")
-local ForceZombi, ForceJihad, ForceDM = false, false, false
+local ForceZombi, ForceJihad = false, false
 concommand.Add(
 	"homicide_forcejihad",
 	function(ply, cmd, args)
 		if IsValid(ply) and not ply:IsSuperAdmin() then return end
 		ForceJihad = true
 		print("jihad forced for next round")
-	end
-)
-
-concommand.Add(
-	"homicide_forcedeathmatch",
-	function(ply, cmd, args)
-		if IsValid(ply) and not ply:IsSuperAdmin() then return end
-		ForceDM = true
-		print("deathmatch forced for next round")
 	end
 )
 
@@ -607,12 +598,6 @@ function GM:StartNewRound()
 					print("Homicide: map does not have enough AI nodes for Zombie Outbreak")
 				end
 			end
-		end
-
-		if ForceDM then
-			ForceDM = false
-			self.DEATHMATCH_MODE_ENGAGED = true
-			self.ZOMBIE_MODE_ENGAGED = false
 		end
 
 		if ForceZombi then
