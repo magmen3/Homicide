@@ -1,11 +1,9 @@
-VertexLitGeneric
+"VertexLitGeneric"
 {
-$baseTexture "models\w_models\eq_molotov/w_eq_molotov_bottle"
+	$baseTexture "models\w_models\eq_molotov/w_eq_molotov_bottle"
 
-$bumpmap "models\v_models\Weapons\eq_molotov/v_eq_molotov_bottle_normal"
-$phong 1
-$phongexponent 120
-$phongfresnelranges "[1 0.5 8]"
-$phongboost 5
-
+	$phong 1
+	$phongexponent 120
+	$phongfresnelranges "[1 0.5 8]"
+	$phongboost 5
 }

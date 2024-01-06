@@ -1,145 +1,128 @@
-if(SERVER)then
+if SERVER then
 	AddCSLuaFile()
-elseif(CLIENT)then
-	SWEP.DrawAmmo=false
-	SWEP.DrawCrosshair=false
-
-	SWEP.ViewModelFOV=55
-
-	SWEP.Slot=3
-	SWEP.SlotPos=3
-
+elseif CLIENT then
+	SWEP.DrawAmmo = false
+	SWEP.DrawCrosshair = false
+	SWEP.ViewModelFOV = 75
+	SWEP.Slot = 3
+	SWEP.SlotPos = 3
 	killicon.AddFont("wep_jack_hmcd_medkit", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
-
-	function SWEP:Initialize()
-		--wat
-	end
-
-	function SWEP:DrawViewModel()	
+	function SWEP:DrawViewModel()
 		return false
 	end
 
-	function SWEP:DrawWorldModel()	
+	function SWEP:DrawWorldModel()
 		self:DrawModel()
-	end
-
-	function SWEP:DrawHUD()
-		--
 	end
 end
 
-SWEP.Base="weapon_base"
+SWEP.Base = "weapon_base"
+SWEP.ViewModel = "models/w_models/weapons/w_eq_medkit.mdl"
+SWEP.WorldModel = "models/w_models/weapons/w_eq_medkit.mdl"
+if CLIENT then
+	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_medkit")
+	SWEP.BounceWeaponIcon = false
+end
 
-SWEP.ViewModel="models/w_models/weapons/w_eq_medkit.mdl"
-SWEP.WorldModel="models/w_models/weapons/w_eq_medkit.mdl"
-if(CLIENT)then SWEP.WepSelectIcon=surface.GetTextureID("vgui/wep_jack_hmcd_medkit");SWEP.BounceWeaponIcon=false end
-SWEP.PrintName=translate.weaponMedkit
-SWEP.Instructions	= translate.weaponMedkitDesc
-SWEP.Author			= ""
-SWEP.Contact		= ""
-SWEP.Purpose		= ""
-SWEP.BobScale=3
-SWEP.SwayScale=3
-SWEP.Weight	= 3
-SWEP.AutoSwitchTo		= true
-SWEP.AutoSwitchFrom		= false
-
-SWEP.CommandDroppable=true
-
-SWEP.Spawnable			= true
-SWEP.AdminOnly			= true
-
-SWEP.Primary.Delay			= 0.5
-SWEP.Primary.Recoil			= 3
-SWEP.Primary.Damage			= 120
-SWEP.Primary.NumShots		= 1	
-SWEP.Primary.Cone			= 0.04
-SWEP.Primary.ClipSize		= -1
-SWEP.Primary.Force			= 900
-SWEP.Primary.DefaultClip	= -1
-SWEP.Primary.Automatic   	= true
-SWEP.Primary.Ammo         	= "none"
-
-SWEP.Secondary.Delay		= 0.9
-SWEP.Secondary.Recoil		= 0
-SWEP.Secondary.Damage		= 0
-SWEP.Secondary.NumShots		= 1
-SWEP.Secondary.Cone			= 0
-SWEP.Secondary.ClipSize		= -1
-SWEP.Secondary.DefaultClip	= -1
-SWEP.Secondary.Automatic   	= false
-SWEP.Secondary.Ammo        ="none"
-
-SWEP.ENT="ent_jack_hmcd_medkit"
-SWEP.DownAmt=0
-SWEP.HomicideSWEP=true
-SWEP.CarryWeight=1800
-
+SWEP.PrintName = translate.weaponMedkit
+SWEP.Instructions = translate.weaponMedkitDesc
+SWEP.BobScale = 3
+SWEP.SwayScale = 3
+SWEP.Weight = 3
+SWEP.AutoSwitchTo = true
+SWEP.AutoSwitchFrom = false
+SWEP.CommandDroppable = true
+SWEP.Spawnable = true
+SWEP.AdminOnly = true
+SWEP.Primary.Delay = 0.5
+SWEP.Primary.Recoil = 3
+SWEP.Primary.Damage = 120
+SWEP.Primary.NumShots = 1
+SWEP.Primary.Cone = 0.04
+SWEP.Primary.ClipSize = -1
+SWEP.Primary.Force = 900
+SWEP.Primary.DefaultClip = -1
+SWEP.Primary.Automatic = true
+SWEP.Primary.Ammo = "none"
+SWEP.Secondary.Delay = 0.9
+SWEP.Secondary.Recoil = 0
+SWEP.Secondary.Damage = 0
+SWEP.Secondary.NumShots = 1
+SWEP.Secondary.Cone = 0
+SWEP.Secondary.ClipSize = -1
+SWEP.Secondary.DefaultClip = -1
+SWEP.Secondary.Automatic = false
+SWEP.Secondary.Ammo = "none"
+SWEP.ENT = "ent_jack_hmcd_medkit"
+SWEP.DownAmt = 0
+SWEP.HomicideSWEP = true
+SWEP.CarryWeight = 1800
 function SWEP:Initialize()
 	self:SetHoldType("slam")
-	self.DownAmt=20
-	self.PrintName=translate.weaponMedkit
-	self.Instructions	= translate.weaponMedkitDesc
+	self.DownAmt = 20
+	self.PrintName = translate.weaponMedkit
+	self.Instructions = translate.weaponMedkitDesc
 end
 
 function SWEP:SetupDataTables()
-	--
 end
 
+--
 function SWEP:PrimaryAttack()
-	if(self.Owner:KeyDown(IN_SPEED))then return end
-	self.Owner:SetAnimation(PLAYER_ATTACK1)
-	if(SERVER)then
-		if((self.Owner.Bleedout<=0)and(self.Owner:Health()>99))then return end
-		sound.Play("snd_jack_hmcd_bandage.wav",self.Owner:GetShootPos(),60,math.random(90,110))
-		self.Owner:ViewPunch(Angle(-10,0,0))
-		self.Owner.Bleedout=math.Clamp(self.Owner.Bleedout-50,0,1000)
-		local Boost=math.Clamp(self.Owner.FoodBoost-CurTime(),0,1000)
-		Boost=Boost+90
-		self.Owner.FoodBoost=CurTime()+Boost
-		umsg.Start("HMCD_FoodBoost",self.Owner)
+	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
+	if SERVER then
+		if (self:GetOwner().Bleedout <= 0) and (self:GetOwner():Health() > 99) then return end
+		sound.Play("snd_jack_hmcd_bandage.wav", self:GetOwner():GetShootPos(), 60, math.random(90, 110))
+		self:GetOwner():ViewPunch(Angle(-10, 0, 0))
+		self:GetOwner().Bleedout = math.Clamp(self:GetOwner().Bleedout - 50, 0, 1000)
+		local Boost = math.Clamp(self:GetOwner().FoodBoost - CurTime(), 0, 1000)
+		Boost = Boost + 90
+		self:GetOwner().FoodBoost = CurTime() + Boost
+		umsg.Start("HMCD_FoodBoost", self:GetOwner())
 		umsg.Short(Boost)
 		umsg.End()
-		local Boost2=math.Clamp(self.Owner.PainBoost-CurTime(),0,1000)
-		Boost2=Boost2+90
-		self.Owner.PainBoost=CurTime()+Boost2
-		umsg.Start("HMCD_PainBoost",self.Owner)
+		local Boost2 = math.Clamp(self:GetOwner().PainBoost - CurTime(), 0, 1000)
+		Boost2 = Boost2 + 90
+		self:GetOwner().PainBoost = CurTime() + Boost2
+		umsg.Start("HMCD_PainBoost", self:GetOwner())
 		umsg.Short(Boost2)
 		umsg.End()
-		self.Owner:SetHealth(math.Clamp(self.Owner:Health()+1,0,100))
-		self.Owner:RemoveAllDecals()
+		self:GetOwner():SetHealth(math.Clamp(self:GetOwner():Health() + 1, 0, 100))
+		self:GetOwner():RemoveAllDecals()
 		self:Remove()
 	end
 end
 
 function SWEP:Deploy()
-	self:SetNextPrimaryFire(CurTime()+1)
-	self.DownAmt=20
+	self:SetNextPrimaryFire(CurTime() + 1)
+	self.DownAmt = 20
+
 	return true
 end
 
 function SWEP:SecondaryAttack()
-	if(self.Owner:KeyDown(IN_SPEED))then return end
-	self.Owner:SetAnimation(PLAYER_ATTACK1)
-	if(SERVER)then
-		local Dude,Pos=HMCD_WhomILookinAt(self.Owner,.3,50)
-		if((IsValid(Dude))and(Dude:IsPlayer())and((Dude.Bleedout>0)or(Dude:Health()<100)))then
-			sound.Play("snd_jack_hmcd_bandage.wav",Pos,60,math.random(90,110))
-			Dude:ViewPunch(Angle(-10,0,0))
-			Dude.Bleedout=math.Clamp(Dude.Bleedout-70,0,1000)
-			local Boost=math.Clamp(Dude.FoodBoost-CurTime(),0,1000)
-			Boost=Boost+120
-			Dude.FoodBoost=CurTime()+Boost
-			umsg.Start("HMCD_FoodBoost",Dude)
+	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
+	if SERVER then
+		local Dude, Pos = HMCD_WhomILookinAt(self:GetOwner(), .3, 50)
+		if IsValid(Dude) and Dude:IsPlayer() and ((Dude.Bleedout > 0) or (Dude:Health() < 100)) then
+			sound.Play("snd_jack_hmcd_bandage.wav", Pos, 60, math.random(90, 110))
+			Dude:ViewPunch(Angle(-10, 0, 0))
+			Dude.Bleedout = math.Clamp(Dude.Bleedout - 70, 0, 1000)
+			local Boost = math.Clamp(Dude.FoodBoost - CurTime(), 0, 1000)
+			Boost = Boost + 120
+			Dude.FoodBoost = CurTime() + Boost
+			umsg.Start("HMCD_FoodBoost", Dude)
 			umsg.Short(Boost)
 			umsg.End()
-			local Boost2=math.Clamp(Dude.PainBoost-CurTime(),0,1000)
-			Boost2=Boost2+120
-			Dude.PainBoost=CurTime()+Boost2
-			umsg.Start("HMCD_PainBoost",Dude)
+			local Boost2 = math.Clamp(Dude.PainBoost - CurTime(), 0, 1000)
+			Boost2 = Boost2 + 120
+			Dude.PainBoost = CurTime() + Boost2
+			umsg.Start("HMCD_PainBoost", Dude)
 			umsg.Short(Boost2)
 			umsg.End()
-			Dude:SetHealth(math.Clamp(Dude:Health()+5,0,100))
+			Dude:SetHealth(math.Clamp(Dude:Health() + 5, 0, 100))
 			Dude:RemoveAllDecals()
 			self:Remove()
 		end
@@ -147,57 +130,65 @@ function SWEP:SecondaryAttack()
 end
 
 function SWEP:Think()
-	if(SERVER)then
-		local HoldType="slam"
-		if(self.Owner:KeyDown(IN_SPEED))then
-			HoldType="normal"
+	if SERVER then
+		local HoldType = "slam"
+		if self:GetOwner():KeyDown(IN_SPEED) then
+			HoldType = "normal"
 		end
+
 		self:SetHoldType(HoldType)
 	end
 end
 
 function SWEP:Reload()
-	--
 end
 
+--
 function SWEP:OnDrop()
-	local Ent=ents.Create(self.ENT)
-	Ent.HmcdSpawned=self.HmcdSpawned
+	local Ent = ents.Create(self.ENT)
+	Ent.HmcdSpawned = self.HmcdSpawned
 	Ent:SetPos(self:GetPos())
 	Ent:SetAngles(self:GetAngles())
 	Ent:Spawn()
 	Ent:Activate()
-	Ent:GetPhysicsObject():SetVelocity(self:GetVelocity()/2)
+	Ent:GetPhysicsObject():SetVelocity(self:GetVelocity() / 2)
 	self:Remove()
 end
 
-if(CLIENT)then
-	function SWEP:PreDrawViewModel(vm,ply,wep)
-		--
+if CLIENT then
+	function SWEP:PreDrawViewModel(vm, ply, wep)
 	end
-	function SWEP:GetViewModelPosition(pos,ang)
-		if not(self.DownAmt)then self.DownAmt=0 end
-		if(self.Owner:KeyDown(IN_SPEED))then
-			self.DownAmt=math.Clamp(self.DownAmt+.2,0,20)
-		else
-			self.DownAmt=math.Clamp(self.DownAmt-.2,0,20)
+
+	--
+	function SWEP:GetViewModelPosition(pos, ang)
+		if not self.DownAmt then
+			self.DownAmt = 0
 		end
-		pos=pos-ang:Up()*(self.DownAmt+8)+ang:Forward()*25+ang:Right()*12
-		ang:RotateAroundAxis(ang:Forward(),-90)
-		return pos,ang
+
+		if self:GetOwner():KeyDown(IN_SPEED) then
+			self.DownAmt = math.Clamp(self.DownAmt + .2, 0, 20)
+		else
+			self.DownAmt = math.Clamp(self.DownAmt - .2, 0, 20)
+		end
+
+		pos = pos - ang:Up() * (self.DownAmt + 8) + ang:Forward() * 25 + ang:Right() * 12
+		ang:RotateAroundAxis(ang:Forward(), -90)
+
+		return pos, ang
 	end
+
 	function SWEP:DrawWorldModel()
-		local Pos,Ang=self.Owner:GetBonePosition(self.Owner:LookupBone("ValveBiped.Bip01_R_Hand"))
-		if(self.DatWorldModel)then
-			if((Pos)and(Ang)and(GAMEMODE:ShouldDrawWeaponWorldModel(self)))then
-				self.DatWorldModel:SetRenderOrigin(Pos+Ang:Forward()*3)
-				Ang:RotateAroundAxis(Ang:Up(),90)
-				Ang:RotateAroundAxis(Ang:Right(),90)
+		local Pos, Ang = self:GetOwner():GetBonePosition(self:GetOwner():LookupBone("ValveBiped.Bip01_R_Hand"))
+		if self.DatWorldModel then
+			if Pos and Ang and GAMEMODE:ShouldDrawWeaponWorldModel(self) then
+				self.DatWorldModel:SetRenderOrigin(Pos + Ang:Forward() * 3)
+				Ang:RotateAroundAxis(Ang:Up(), 90)
+				Ang:RotateAroundAxis(Ang:Right(), 90)
 				self.DatWorldModel:SetRenderAngles(Ang)
 				self.DatWorldModel:DrawModel()
 			end
 		else
-			self.DatWorldModel=ClientsideModel("models/w_models/weapons/w_eq_medkit.mdl")
+			self.DatWorldModel = ClientsideModel("models/w_models/weapons/w_eq_medkit.mdl")
 			self.DatWorldModel:SetPos(self:GetPos())
 			self.DatWorldModel:SetParent(self)
 			self.DatWorldModel:SetNoDraw(true)

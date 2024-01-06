@@ -1,48 +1,42 @@
 AddCSLuaFile()
-ENT.Type="anim"
-ENT.Base="base_anim"
-ENT.PrintName		= "Zyklon B"
-ENT.Author			= ""
-ENT.Contact			= ""
-ENT.Purpose			= ""
-ENT.Instructions	= ""
-if(SERVER)then
-	local function DebugPos(pos)
-		local Sp=EffectData()
-		Sp:SetOrigin(pos)
-		util.Effect("WaterSplash",Sp,true,true)
-	end
+ENT.Type = "anim"
+ENT.Base = "base_anim"
+ENT.PrintName = "Zyklon B"
+if SERVER then
 	function ENT:Initialize()
-		self.Entity:SetModel("models/jordfood/jtun.mdl")
-		self:PhysicsInit( SOLID_VPHYSICS )
-		self:SetMoveType( MOVETYPE_VPHYSICS )
-		self:SetSolid( SOLID_VPHYSICS )
+		self:SetModel("models/jordfood/jtun.mdl")
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
 		self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 		self:SetUseType(SIMPLE_USE)
 		self:DrawShadow(true)
-		local phys=self:GetPhysicsObject()
+		local phys = self:GetPhysicsObject()
 		if IsValid(phys) then
 			phys:SetMass(10)
 			phys:Wake()
 			phys:EnableMotion(true)
 		end
-		self.Life=100
-		self.DieTime=CurTime()+self.Life
-		self.GasTime=CurTime()+5
+
+		self.Life = 100
+		self.DieTime = CurTime() + self.Life
+		self.GasTime = CurTime() + 5
 	end
+
 	function ENT:Use(ply)
 		ply:PickupObject(self)
 	end
+
 	function ENT:Think()
-		local Time,SelfPos=CurTime(),self:GetPos()+vector_up
-		if(self.DieTime<Time)then return end
-		if((self.DieTime+self.Life*2)<Time)then return end
-		if(self.GasTime>Time)then return end
-		if(self:WaterLevel()>0)then return end
-		local Part=ents.Create("ent_jack_hmcd_gasparticle")
+		local Time, SelfPos = CurTime(), self:GetPos() + vector_up
+		if self.DieTime < Time then return end
+		if (self.DieTime + self.Life * 2) < Time then return end
+		if self.GasTime > Time then return end
+		if self:WaterLevel() > 0 then return end
+		local Part = ents.Create("ent_jack_hmcd_gasparticle")
 		Part:SetPos(SelfPos)
-		Part.HmcdSpawned=self.HmcdSpawned
-		Part.Owner=self.Owner
+		Part.HmcdSpawned = self.HmcdSpawned
+		Part.Owner = self.Owner
 		Part:Spawn()
 		Part:Activate()
 		Part:GetPhysicsObject():SetVelocity(self:GetPhysicsObject():GetVelocity())
@@ -73,36 +67,21 @@ if(SERVER)then
 			self:Burst(Fr4,Spread)
 		end
 		--]]
-		self:NextThink(Time+math.Rand(.8,1.2))
+		self:NextThink(Time + math.Rand(.8, 1.2))
+
 		return true
 	end
-	--[[
-	function ENT:RandVec(pos,spread)
-		local Vec=VectorRand()*math.Rand(1,50*spread)
-		Vec.x=Vec.x*1.5
-		Vec.y=Vec.y*1.5
-		return pos+Vec
-	end
-	function ENT:Burst(pos,spread)
-		DebugPos(pos)
-		local Tr,Chance=util.TraceLine({start=pos,endpos=self:GetPos()+vector_up,filter={self}}),15
-		if(Tr.Hit)then Chance=3 end
-		if not(math.random(1,Chance)==3)then return end
-		for key,playa in pairs(ents.FindInSphere(pos,200*spread))do
-			if((playa:IsPlayer())and(playa:Team()==2)and(playa:Alive()))then
-				local Tr=util.TraceLine({start=pos,endpos=playa:GetShootPos(),filter={self,playa}})
-				if not(Tr.Hit)then HMCD_Poison(playa,self.Owner,true) end --playa:TakeDamage(1,nil,nil)
-			end
+
+	function ENT:PhysicsCollide(data, ent)
+		if data.DeltaTime > .1 then
+			sound.Play("physics/metal/soda_can_impact_soft" .. math.random(2, 3) .. ".wav", self:GetPos(), 55, math.random(90, 110))
 		end
 	end
-	--]]
-	function ENT:PhysicsCollide(data,ent)
-		if(data.DeltaTime>.1)then sound.Play("physics/metal/soda_can_impact_soft"..math.random(2,3)..".wav",self:GetPos(),55,math.random(90,110)) end
-	end
-elseif(CLIENT)then
+elseif CLIENT then
 	function ENT:Initialize()
-		--
 	end
+
+	--
 	function ENT:Draw()
 		self:DrawModel()
 	end

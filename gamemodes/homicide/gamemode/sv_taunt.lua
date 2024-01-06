@@ -1,51 +1,59 @@
-HMCD_Taunts=HMCD_Taunts or {}
-
-function GM:PlayerShouldTaunt(ply,actid)
+HMCD_Taunts = HMCD_Taunts or {}
+function GM:PlayerShouldTaunt(ply, actid)
 	return true
 end
 
-function GM:PlayerStartTaunt(ply,act,length)
+function GM:PlayerStartTaunt(ply, act, length)
 	ply:Freeze(true)
-	timer.Simple(length,function()
-		ply:Freeze(false)
-	end)
+	timer.Simple(
+		length,
+		function()
+			ply:Freeze(false)
+		end
+	)
 end
 
-local function addTaunt(cat, soundFile, sex, act) -- mechanical, why the hell was this a global function? You ass
-	if !HMCD_Taunts[cat] then
-		HMCD_Taunts[cat]={}
+-- mechanical, why the hell was this a global function? You ass
+local function addTaunt(cat, soundFile, sex, act)
+	if not HMCD_Taunts[cat] then
+		HMCD_Taunts[cat] = {}
 	end
-	if !HMCD_Taunts[cat][sex] then
-		HMCD_Taunts[cat][sex]={}
+
+	if not HMCD_Taunts[cat][sex] then
+		HMCD_Taunts[cat][sex] = {}
 	end
-	local t={}
-	t.sound=soundFile
-	t.sex=sex
-	t.category=cat
-	if(act)then t.act=act else t.act=nil end
-	table.insert(HMCD_Taunts[cat][sex],t)
+
+	local t = {}
+	t.sound = soundFile
+	t.sex = sex
+	t.category = cat
+	if act then
+		t.act = act
+	else
+		t.act = nil
+	end
+
+	table.insert(HMCD_Taunts[cat][sex], t)
 end
 
-// male
-addTaunt("hero","snd_jack_hmcd_g_1.wav","male")
-addTaunt("hero","snd_jack_hmcd_g_2.wav","male")
-addTaunt("hero","snd_jack_hmcd_g_3.wav","male")
-addTaunt("hero","snd_jack_hmcd_g_4.wav","male")
-addTaunt("hero","snd_jack_hmcd_g_5.wav","male")
-addTaunt("hero","snd_jack_hmcd_g_6.wav","male")
-addTaunt("hero","snd_jack_hmcd_g_7.wav","male")
-addTaunt("hero","snd_jack_hmcd_g_8.wav","male")
-
-addTaunt("villain","snd_jack_hmcd_m_1.mp3","male")
-addTaunt("villain","snd_jack_hmcd_m_2.mp3","male")
-addTaunt("villain","snd_jack_hmcd_m_3.mp3","male")
-addTaunt("villain","snd_jack_hmcd_m_4.mp3","male")
-addTaunt("villain","snd_jack_hmcd_m_5.mp3","male")
-addTaunt("villain","snd_jack_hmcd_m_6.mp3","male")
-addTaunt("villain","snd_jack_hmcd_m_7.mp3","male")
-addTaunt("villain","snd_jack_hmcd_m_8.mp3","male")
-addTaunt("villain","snd_jack_hmcd_m_9.mp3","male")
-
+-- male
+addTaunt("hero", "snd_jack_hmcd_g_1.wav", "male")
+addTaunt("hero", "snd_jack_hmcd_g_2.wav", "male")
+addTaunt("hero", "snd_jack_hmcd_g_3.wav", "male")
+addTaunt("hero", "snd_jack_hmcd_g_4.wav", "male")
+addTaunt("hero", "snd_jack_hmcd_g_5.wav", "male")
+addTaunt("hero", "snd_jack_hmcd_g_6.wav", "male")
+addTaunt("hero", "snd_jack_hmcd_g_7.wav", "male")
+addTaunt("hero", "snd_jack_hmcd_g_8.wav", "male")
+addTaunt("villain", "snd_jack_hmcd_m_1.mp3", "male")
+addTaunt("villain", "snd_jack_hmcd_m_2.mp3", "male")
+addTaunt("villain", "snd_jack_hmcd_m_3.mp3", "male")
+addTaunt("villain", "snd_jack_hmcd_m_4.mp3", "male")
+addTaunt("villain", "snd_jack_hmcd_m_5.mp3", "male")
+addTaunt("villain", "snd_jack_hmcd_m_6.mp3", "male")
+addTaunt("villain", "snd_jack_hmcd_m_7.mp3", "male")
+addTaunt("villain", "snd_jack_hmcd_m_8.mp3", "male")
+addTaunt("villain", "snd_jack_hmcd_m_9.mp3", "male")
 addTaunt("help", "vo/npc/male01/help01.wav", "male")
 addTaunt("help", "vo/npc/male01/runforyourlife01.wav", "male")
 addTaunt("help", "vo/npc/male01/runforyourlife02.wav", "male")
@@ -57,7 +65,6 @@ addTaunt("help", "vo/npc/male01/headsup01.wav", "male")
 addTaunt("help", "vo/npc/male01/headsup02.wav", "male")
 addTaunt("help", "vo/npc/male01/thehacks01.wav", "male")
 addTaunt("help", "vo/npc/male01/uhoh.wav", "male")
-
 addTaunt("morose", "vo/npc/male01/question31.wav", "male")
 addTaunt("morose", "vo/npc/male01/question30.wav", "male")
 addTaunt("morose", "vo/npc/male01/question20.wav", "male")
@@ -86,7 +93,6 @@ addTaunt("morose", "vo/npc/male01/gordead_ques14.wav", "male")
 addTaunt("morose", "vo/npc/male01/question03.wav", "male")
 addTaunt("morose", "vo/npc/male01/question12.wav", "male")
 addTaunt("morose", "vo/npc/male01/question18.wav", "male")
-
 addTaunt("random", "vo/npc/male01/doingsomething.wav", "male")
 addTaunt("random", "vo/npc/male01/busy02.wav", "male")
 addTaunt("random", "vo/npc/male01/question06.wav", "male")
@@ -124,7 +130,6 @@ addTaunt("random", "vo/npc/male01/excuseme02.wav", "male")
 addTaunt("random", "vo/npc/male01/littlecorner01.wav", "male")
 addTaunt("random", "vo/npc/male01/hi01.wav", "male")
 addTaunt("random", "vo/npc/male01/hi02.wav", "male")
-
 addTaunt("response", "vo/npc/male01/fantastic01.wav", "male")
 addTaunt("response", "vo/npc/male01/fantastic02.wav", "male")
 addTaunt("response", "vo/npc/male01/answer02.wav", "male")
@@ -162,7 +167,6 @@ addTaunt("response", "vo/npc/male01/no01.wav", "male")
 addTaunt("response", "vo/npc/male01/no02.wav", "male")
 addTaunt("response", "vo/npc/male01/yougotit02.wav", "male")
 addTaunt("response", "vo/npc/male01/nice01.wav", "male")
-
 addTaunt("happy", "vo/npc/barney/ba_laugh01.wav", "male", "laugh")
 addTaunt("happy", "vo/npc/barney/ba_laugh02.wav", "male", "laugh")
 addTaunt("happy", "vo/npc/barney/ba_laugh04.wav", "male", "laugh")
@@ -171,43 +175,35 @@ addTaunt("happy", "vo/ravenholm/madlaugh01.wav", "male", "laugh")
 addTaunt("happy", "vo/ravenholm/madlaugh02.wav", "male", "laugh")
 addTaunt("happy", "vo/ravenholm/madlaugh03.wav", "male", "laugh")
 addTaunt("happy", "vo/ravenholm/madlaugh04.wav", "male", "laugh")
-
 addTaunt("happy", "vo/npc/barney/ba_laugh03.wav", "male", "cheer")
 addTaunt("happy", "vo/npc/barney/ba_yell.wav", "male", "cheer")
 addTaunt("happy", "vo/coast/odessa/male01/nlo_cheer01.wav", "male", "cheer")
 addTaunt("happy", "vo/coast/odessa/male01/nlo_cheer02.wav", "male", "cheer")
 addTaunt("happy", "vo/coast/odessa/male01/nlo_cheer03.wav", "male", "cheer")
 addTaunt("happy", "vo/coast/odessa/male01/nlo_cheer04.wav", "male", "cheer")
-
 addTaunt("happy", "vo/ravenholm/firetrap_welldone.wav", "male", "salute")
-
 addTaunt("happy", "vo/npc/vortigaunt/yes.wav", "male", "agree")
-
 addTaunt("happy", "", "male", "dance")
 addTaunt("happy", "", "male", "muscle")
 addTaunt("happy", "", "male", "robot")
-
 addTaunt("happy", "", "male", "wave")
-
-// female
-addTaunt("hero","snd_jack_hmcd_g_1.wav","female")
-addTaunt("hero","snd_jack_hmcd_g_2.wav","female")
-addTaunt("hero","snd_jack_hmcd_g_3.wav","female")
-addTaunt("hero","snd_jack_hmcd_g_4.wav","female")
-addTaunt("hero","snd_jack_hmcd_g_5.wav","female")
-addTaunt("hero","snd_jack_hmcd_g_6.wav","female")
-addTaunt("hero","snd_jack_hmcd_g_7.wav","female")
-
-addTaunt("villain","snd_jack_hmcd_m_1.mp3","female")
-addTaunt("villain","snd_jack_hmcd_m_2.mp3","female")
-addTaunt("villain","snd_jack_hmcd_m_3.mp3","female")
-addTaunt("villain","snd_jack_hmcd_m_4.mp3","female")
-addTaunt("villain","snd_jack_hmcd_m_5.mp3","female")
-addTaunt("villain","snd_jack_hmcd_m_6.mp3","female")
-addTaunt("villain","snd_jack_hmcd_m_7.mp3","female")
-addTaunt("villain","snd_jack_hmcd_m_8.mp3","female")
-addTaunt("villain","snd_jack_hmcd_m_9.mp3","female")
-
+-- female
+addTaunt("hero", "snd_jack_hmcd_g_1.wav", "female")
+addTaunt("hero", "snd_jack_hmcd_g_2.wav", "female")
+addTaunt("hero", "snd_jack_hmcd_g_3.wav", "female")
+addTaunt("hero", "snd_jack_hmcd_g_4.wav", "female")
+addTaunt("hero", "snd_jack_hmcd_g_5.wav", "female")
+addTaunt("hero", "snd_jack_hmcd_g_6.wav", "female")
+addTaunt("hero", "snd_jack_hmcd_g_7.wav", "female")
+addTaunt("villain", "snd_jack_hmcd_m_1.mp3", "female")
+addTaunt("villain", "snd_jack_hmcd_m_2.mp3", "female")
+addTaunt("villain", "snd_jack_hmcd_m_3.mp3", "female")
+addTaunt("villain", "snd_jack_hmcd_m_4.mp3", "female")
+addTaunt("villain", "snd_jack_hmcd_m_5.mp3", "female")
+addTaunt("villain", "snd_jack_hmcd_m_6.mp3", "female")
+addTaunt("villain", "snd_jack_hmcd_m_7.mp3", "female")
+addTaunt("villain", "snd_jack_hmcd_m_8.mp3", "female")
+addTaunt("villain", "snd_jack_hmcd_m_9.mp3", "female")
 addTaunt("help", "vo/npc/female01/help01.wav", "female")
 addTaunt("help", "vo/npc/female01/runforyourlife01.wav", "female")
 addTaunt("help", "vo/npc/female01/runforyourlife02.wav", "female")
@@ -218,7 +214,6 @@ addTaunt("help", "vo/npc/female01/headsup01.wav", "female")
 addTaunt("help", "vo/npc/female01/headsup02.wav", "female")
 addTaunt("help", "vo/npc/female01/thehacks01.wav", "female")
 addTaunt("help", "vo/npc/female01/uhoh.wav", "female")
-
 addTaunt("morose", "vo/npc/fefemale01/question31.wav", "female")
 addTaunt("morose", "vo/npc/female01/question30.wav", "female")
 addTaunt("morose", "vo/npc/female01/question20.wav", "female")
@@ -247,7 +242,6 @@ addTaunt("morose", "vo/npc/female01/gordead_ques14.wav", "female")
 addTaunt("morose", "vo/npc/female01/question03.wav", "female")
 addTaunt("morose", "vo/npc/female01/question12.wav", "female")
 addTaunt("morose", "vo/npc/female01/question18.wav", "female")
-
 addTaunt("random", "vo/npc/female01/doingsomething.wav", "female")
 addTaunt("random", "vo/npc/female01/busy02.wav", "female")
 addTaunt("random", "vo/npc/female01/question06.wav", "female")
@@ -292,7 +286,6 @@ addTaunt("random", "vo/npc/female01/pain06.wav", "female")
 addTaunt("random", "vo/npc/female01/pain07.wav", "female")
 addTaunt("random", "vo/npc/female01/pain08.wav", "female")
 addTaunt("random", "vo/npc/female01/pain09.wav", "female")
-
 addTaunt("response", "vo/npc/female01/fantastic01.wav", "female")
 addTaunt("response", "vo/npc/female01/fantastic02.wav", "female")
 addTaunt("response", "vo/npc/female01/answer02.wav", "female")
@@ -331,49 +324,50 @@ addTaunt("response", "vo/npc/female01/no02.wav", "female")
 addTaunt("response", "vo/npc/female01/yougotit02.wav", "female")
 addTaunt("response", "vo/npc/female01/nice01.wav", "female")
 addTaunt("response", "vo/npc/female01/nice02.wav", "female")
-
 addTaunt("happy", "vo/eli_lab/al_laugh01", "female", "laugh")
 addTaunt("happy", "vo/eli_lab/al_laugh02", "female", "laugh")
 addTaunt("happy", "vo/coast/odessa/female01/nlo_cheer02.wav", "female", "cheer")
 addTaunt("happy", "vo/coast/odessa/female01/nlo_cheer03.wav", "female", "cheer")
-
 addTaunt("happy", "vo/k_lab2/al_goodboy.wav", "female", "salute")
-
 addTaunt("happy", "", "female", "agree")
-
 addTaunt("happy", "", "female", "dance")
 addTaunt("happy", "", "female", "muscle")
 addTaunt("happy", "", "female", "robot")
-
 addTaunt("happy", "", "female", "wave")
+concommand.Add(
+	"hmcd_taunt",
+	function(ply, com, args, full)
+		local Time = CurTime()
+		if not ply.NextTaunt then
+			ply.NextTaunt = 0
+		end
 
-concommand.Add("hmcd_taunt", function (ply, com, args, full)
-	local Time=CurTime()
-	if not(ply.NextTaunt)then ply.NextTaunt=0 end
-	if(ply.NextTaunt>Time)then return end
-	if !ply:Alive() then return end
-	if ply:Team() != 2 then return end
+		if ply.NextTaunt > Time then return end
+		if not ply:Alive() then return end
+		if ply:Team() ~= 2 then return end
+		if #args < 1 then return end
+		local cat = args[1]:lower()
+		if not HMCD_Taunts[cat] then return end -- if he's not TAUNTING THE CAT then return end
+		local sex = string.lower(ply.ModelSex or "male")
+		if not HMCD_Taunts[cat][sex] then return end
+		local taunt = table.Random(HMCD_Taunts[cat][sex]) -- random table cat taunt sex, sounds kinky
+		if GAMEMODE.ZOMBIE and ply.Murderer then
+			ply:EmitSound("npc/zombie/zombie_voice_idle" .. math.random(14) .. ".wav", 75, math.random(90, 110))
+			if (math.random(1, 2) == 2) and taunt.act then
+				taunt.act = "zombie"
+			end
+		else
+			ply:EmitSound(taunt.sound)
+		end
 
-	if #args < 1 then return end
-	local cat=args[1]:lower()
-	if !HMCD_Taunts[cat] then return end -- if he's not TAUNTING THE CAT then return end
+		--PrintTable(taunt)
+		if taunt.act and not ply:InVehicle() and not ply.ContainingContainer then
+			net.Start("HMCD_PlayerAct")
+			net.WriteString(taunt.act)
+			net.Send(ply)
+		end
 
-	local sex=string.lower(ply.ModelSex or "male")
-	if !HMCD_Taunts[cat][sex] then return end
-
-	local taunt=table.Random(HMCD_Taunts[cat][sex]) -- random table cat taunt sex, sounds kinky
-	if((GAMEMODE.ZOMBIE)and(ply.Murderer))then
-		ply:EmitSound("npc/zombie/zombie_voice_idle"..math.random(14)..".wav",75,math.random(90,110))
-		if((math.random(1,2)==2)and(taunt.act))then taunt.act="zombie" end
-	else
-		ply:EmitSound(taunt.sound)
+		local Dur = math.Clamp(SoundDuration(taunt.sound), 1.5, 5) -- apparently SoundDuration doesn't work on Linux, which is what most gmod servers are
+		ply.NextTaunt = Time + Dur -- DURRRRRR
 	end
-	--PrintTable(taunt)
-	if((taunt.act)and not(ply:InVehicle())and not(ply.ContainingContainer))then
-		umsg.Start("HMCD_PlayerAct",ply)
-		umsg.String(taunt.act)
-		umsg.End()
-	end
-	local Dur=math.Clamp(SoundDuration(taunt.sound),1.5,5) -- apparently SoundDuration doesn't work on Linux, which is what most gmod servers are
-	ply.NextTaunt=Time+Dur -- DURRRRRR
-end)
+)
