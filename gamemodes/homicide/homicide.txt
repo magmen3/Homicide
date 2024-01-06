@@ -1,9 +1,9 @@
-"Gamemode"
+"homicide"
 {
-	"base"		"base"
-	"title"		"Homicide"
-	"maps"		"^md_|^mu_|^murder_"
+	"base"			"base"
+	"title"			"Homicide"
+	"maps"			"^md_|^mu_|^murder_|^hmcd_"
+	"category"		"pvp"
 	"menusystem"	"1"
-	"workshopid"    "488953849"
-	"version"	"22"
+	"version"		"1"
 }
