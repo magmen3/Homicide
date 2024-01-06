@@ -2,7 +2,6 @@ local PlayerMeta=FindMetaTable("Player")
 local EntityMeta=FindMetaTable("Entity")
 
 util.AddNetworkString("hmcd_tker")
-
 function PlayerMeta:SetTKer(bool)
 	--if not(GAMEMODE.TeamKillPenalties)then return end
 	-- wat
