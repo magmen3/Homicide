@@ -6,43 +6,29 @@ util.AddNetworkString("hmcd_flashlightpickup")
 util.AddNetworkString("hmcd_openammomenu")
 util.AddNetworkString("hmcd_openappearancemenu")
 function GM:PlayerConnect(name, ip)
-	timer.Simple(
-		.1,
-		function()
-			for key, found in ipairs(player.GetAll()) do
-				if found:Nick() == name then
-					net.Start("HMCD_Identity")
-					net.Send(found)
-					net.Broadcast()
-				end
+	timer.Simple(.1, function()
+		for key, found in ipairs(player.GetAll()) do
+			if found:Nick() == name then
+				net.Start("HMCD_Identity")
+				net.Send(found)
+				net.Broadcast()
 			end
 		end
-	)
+	end)
 end
 
 function GM:PlayerInitialSpawn(ply)
 	if not (ply and IsValid(ply)) then return end
-	timer.Simple(
-		.1,
-		function()
-			if ply and IsValid(ply) then
-				net.Start("HMCD_Identity")
-				net.Send(ply)
-				net.Broadcast()
-			end
+	timer.Simple(.1, function()
+		if ply and IsValid(ply) then
+			net.Start("HMCD_Identity")
+			net.Send(ply)
+			net.Broadcast()
 		end
-	)
+	end)
 
 	ply.LootCollected = 0
-	timer.Simple(
-		0,
-		function()
-			if IsValid(ply) then
-				ply:KillSilent()
-			end
-		end
-	)
-
+	timer.Simple(0, function() if IsValid(ply) then ply:KillSilent() end end)
 	ply.HasMoved = true
 	ply:SetTeam(2)
 	self:NetworkRound(ply)
@@ -56,10 +42,7 @@ function GM:PlayerSpawn(ply)
 	-- then spawn him as a spectator
 	local DatTeam = ply:Team()
 	if DatTeam == 1 then
-		if not ply.RoundsSpectator then
-			ply.RoundsSpectator = 0
-		end
-
+		if not ply.RoundsSpectator then ply.RoundsSpectator = 0 end
 		ply.RoundSpectator = ply.RoundsSpectator + 1
 		if ply.RoundsSpectator >= 3 then
 			if not ply:IsListenServerHost() then
@@ -67,7 +50,6 @@ function GM:PlayerSpawn(ply)
 			else
 				ply:Kill()
 			end
-
 			return
 		end
 	else
@@ -76,7 +58,6 @@ function GM:PlayerSpawn(ply)
 
 	if Team == 1 or Team == TEAM_UNASSIGNED then
 		GAMEMODE:PlayerSpawnAsSpectator(ply)
-
 		return
 	end
 
@@ -127,10 +108,7 @@ function GM:PlayerSpawn(ply)
 	player_manager.RunClass(ply, "Spawn")
 	hook.Call("PlayerSetModel", GAMEMODE, ply)
 	local oldhands = ply:GetHands()
-	if IsValid(oldhands) then
-		oldhands:Remove()
-	end
-
+	if IsValid(oldhands) then oldhands:Remove() end
 	local hands = ents.Create("gmod_hands")
 	hands.HmcdSpawned = true
 	if IsValid(hands) then
@@ -160,91 +138,71 @@ function GM:PlayerSpawn(ply)
 	end
 
 	for i = 1, 4 do
-		timer.Simple(
-			i * 2,
-			function()
-				if IsValid(ply) and ply:GetPhysicsObject() then
-					if ply:GetPhysicsObject():IsPenetrating() then
-						print(tostring(ply) .. " spawned stuck in something. Repositioning")
-						local spawnPoint = self:PlayerSelectTeamSpawn(ply:Team(), ply)
-						if IsValid(spawnPoint) then
-							ply:SetPos(spawnPoint:GetPos())
-							ply.HMCD_SpawnPos = spawnPoint:GetPos()
-						end
+		timer.Simple(i * 2, function()
+			if IsValid(ply) and ply:GetPhysicsObject() then
+				if ply:GetPhysicsObject():IsPenetrating() then
+					print(tostring(ply) .. " spawned stuck in something. Repositioning")
+					local spawnPoint = self:PlayerSelectTeamSpawn(ply:Team(), ply)
+					if IsValid(spawnPoint) then
+						ply:SetPos(spawnPoint:GetPos())
+						ply.HMCD_SpawnPos = spawnPoint:GetPos()
 					end
 				end
 			end
-		)
+		end)
 	end
 
 	-- fuck you garry
-	timer.Simple(
-		1,
-		function()
-			-- fuck you robot boy
-			if IsValid(ply) and ply:Alive() then
-				umsg.Start("HMCD_FixViewModelGlitch", ply) -- fuck all of you
-				umsg.End() -- why do i have to do this
-			end
+	timer.Simple(1, function()
+		-- fuck you robot boy
+		if IsValid(ply) and ply:Alive() then
+			umsg.Start("HMCD_FixViewModelGlitch", ply) -- fuck all of you
+			umsg.End() -- why do i have to do this
 		end
-	)
+	end)
 
 	-- this is so fucking hacky
 	-- you pricks, just make your game work properly
-	timer.Simple(
-		10,
-		function()
-			if ply and IsValid(ply) and ply:Alive() and ply.Murderer then
-				local mins = math.ceil((self.PoliceTime - CurTime()) / 60)
-				if self.SHTF then
-					local argh = Translator:AdvVarTranslate(
-						translate.guardIn,
-						{
-							mins = {
-								text = mins
-							}
-						}
-					)
+	timer.Simple(10, function()
+		if ply and IsValid(ply) and ply:Alive() and ply.Murderer then
+			local mins = math.ceil((self.PoliceTime - CurTime()) / 60)
+			if self.SHTF then
+				local argh = Translator:AdvVarTranslate(translate.guardIn, {
+					mins = {
+						text = mins
+					}
+				})
 
-					aargh = ""
-					for k, msg in pairs(argh) do
-						aargh = aargh .. msg.text
-					end
-
-					ply:PrintMessage(HUD_PRINTTALK, aargh)
-				else
-					local argh = Translator:AdvVarTranslate(
-						translate.policeIn,
-						{
-							mins = {
-								text = mins
-							}
-						}
-					)
-
-					aargh = ""
-					for k, msg in pairs(argh) do
-						aargh = aargh .. msg.text
-					end
-
-					ply:PrintMessage(HUD_PRINTTALK, aargh)
+				aargh = ""
+				for k, msg in pairs(argh) do
+					aargh = aargh .. msg.text
 				end
+
+				ply:PrintMessage(HUD_PRINTTALK, aargh)
+			else
+				local argh = Translator:AdvVarTranslate(translate.policeIn, {
+					mins = {
+						text = mins
+					}
+				})
+
+				aargh = ""
+				for k, msg in pairs(argh) do
+					aargh = aargh .. msg.text
+				end
+
+				ply:PrintMessage(HUD_PRINTTALK, aargh)
 			end
 		end
-	)
+	end)
 
 	hook.Call("PlayerLoadout", GAMEMODE, ply)
-	timer.Simple(
-		1,
-		function()
-			if IsValid(ply) and ply:Alive() then
-				-- some maps do some weird override thing
-				if not ply:HasWeapon("wep_jack_hmcd_hands") then
-					GAMEMODE:PlayerLoadout(ply)
-				end
-			end
+	timer.Simple(1, function()
+		if IsValid(ply) and ply:Alive() then
+			-- some maps do some weird override thing
+			if not ply:HasWeapon("wep_jack_hmcd_hands") then GAMEMODE:PlayerLoadout(ply) end
 		end
-	)
+	end)
 end
 
 function GM:PlayerLoadout(ply)
@@ -269,15 +227,12 @@ function GM:PlayerLoadout(ply)
 				ply:Give("wep_jack_hmcd_bandage")
 				ply:Give("wep_jack_hmcd_walkietalkie")
 				ply.HasFlashlight = true
-				timer.Simple(
-					math.Rand(1, 5),
-					function()
-						if IsValid(ply) then
-							ply:SetHeadArmor("ACH")
-							ply:SetChestArmor("Level IIIA")
-						end
+				timer.Simple(math.Rand(1, 5), function()
+					if IsValid(ply) then
+						ply:SetHeadArmor("ACH")
+						ply:SetChestArmor("Level IIIA")
 					end
-				)
+				end)
 			else
 				-- DAT MURDERER CAME PREPARED TO MURDER, DIDN'E?
 				if ply.Murderer then
@@ -348,9 +303,7 @@ function GM:PlayerLoadout(ply)
 	end
 
 	for key, wep in pairs(ply:GetWeapons()) do
-		if wep.HomicideSWEP then
-			wep.HmcdSpawned = true
-		end
+		if wep.HomicideSWEP then wep.HmcdSpawned = true end
 	end
 
 	net.Start("hmcd_flashlightpickup")
@@ -387,14 +340,8 @@ end
 
 function GM:DoPlayerDeath(ply, attacker, dmginfo)
 	local Infl = dmginfo:GetInflictor()
-	if Infl and Infl:IsVehicle() and Infl:GetDriver() then
-		attacker = Infl:GetDriver()
-	end
-
-	if IsValid(Infl) and (Infl:GetClass() == "ent_jack_hmcd_grapl") then
-		attacker = Infl.Owner
-	end
-
+	if Infl and Infl:IsVehicle() and Infl:GetDriver() then attacker = Infl:GetDriver() end
+	if IsValid(Infl) and (Infl:GetClass() == "ent_jack_hmcd_grapl") then attacker = Infl.Owner end
 	if (self:GetRound() == 1) and not ply:IsBot() then
 		if IsValid(attacker) and attacker:IsPlayer() and not (attacker == ply) then
 			local Slash, Blast, Bullet, Buckshot, Burn, Club, Crush, Poison, Bleed = dmginfo:IsDamageType(DMG_SLASH), dmginfo:IsDamageType(DMG_BLAST), dmginfo:IsDamageType(DMG_BULLET), dmginfo:IsDamageType(DMG_BUCKSHOT), dmginfo:IsDamageType(DMG_BURN), dmginfo:IsDamageType(DMG_CLUB), dmginfo:IsDamageType(DMG_CRUSH), dmginfo:IsDamageType(DMG_POISON), dmginfo:IsDamageType(DMG_GENERIC)
@@ -404,10 +351,7 @@ function GM:DoPlayerDeath(ply, attacker, dmginfo)
 			else
 				if attacker.Murderer then
 					local Mul = 1
-					if Poison then
-						Mul = Mul * 2
-					end
-
+					if Poison then Mul = Mul * 2 end
 					attacker:AddMerit(1 * Mul)
 				elseif ply.Murderer then
 					attacker:AddMerit(3)
@@ -428,9 +372,7 @@ function GM:DoPlayerDeath(ply, attacker, dmginfo)
 	end
 
 	for k, weapon in pairs(ply:GetWeapons()) do
-		if weapon.DeathDroppable then
-			ply:DropWeapon(weapon)
-		end
+		if weapon.DeathDroppable then ply:DropWeapon(weapon) end
 	end
 
 	ply:UnMurdererDisguise()
@@ -440,9 +382,7 @@ function GM:DoPlayerDeath(ply, attacker, dmginfo)
 	if IsValid(ent) then
 		ply:CSpectate(OBS_MODE_CHASE, ent)
 		ent:SetBystanderName(ply:GetBystanderName())
-		if ply:IsOnFire() then
-			ent:Ignite(10)
-		end
+		if ply:IsOnFire() then ent:Ignite(10) end
 	end
 
 	ply:Extinguish()
@@ -457,26 +397,18 @@ function GM:DoPlayerDeath(ply, attacker, dmginfo)
 					attacker.MultiKill = attacker.MultiKill + 1
 					if attacker.MultiKill > 1 then
 						local KillNum = attacker.MultiKill
-						timer.Simple(
-							.5,
-							function()
-								if IsValid(attacker) and (KillNum == attacker.MultiKill) then
-									umsg.Start("HMCD_SurfaceSound", attacker)
-									umsg.String("snd_jack_hmcd_mk_" .. KillNum .. ".wav")
-									umsg.End()
-								end
+						timer.Simple(.5, function()
+							if IsValid(attacker) and (KillNum == attacker.MultiKill) then
+								umsg.Start("HMCD_SurfaceSound", attacker)
+								umsg.String("snd_jack_hmcd_mk_" .. KillNum .. ".wav")
+								umsg.End()
 							end
-						)
+						end)
 
-						timer.Simple(
-							4.5,
-							function()
-								-- if multikill streak timer expires, award extra points for total streak
-								if IsValid(attacker) and (KillNum == attacker.MultiKill) then
-									attacker:AddMerit(KillNum)
-								end
-							end
-						)
+						timer.Simple(4.5, function()
+							-- if multikill streak timer expires, award extra points for total streak
+							if IsValid(attacker) and (KillNum == attacker.MultiKill) then attacker:AddMerit(KillNum) end
+						end)
 					end
 				else
 					attacker.MultiKill = 1
@@ -541,14 +473,8 @@ function plyMeta:CalculateSpeed()
 		run = run * .5
 	end
 
-	if self.Murderer then
-		run = run * 1.1
-	end
-
-	if GAMEMODE.SHTF then
-		run = run * 1.1
-	end
-
+	if self.Murderer then run = run * 1.1 end
+	if GAMEMODE.SHTF then run = run * 1.1 end
 	if IsValid(wep) then
 		if wep.GetCarrying and IsValid(wep:GetCarrying()) and IsValid(wep:GetCarrying():GetPhysicsObject()) then
 			if wep:GetCarrying():GetPhysicsObject():GetMass() > 30 then
@@ -577,55 +503,30 @@ function plyMeta:CalculateSpeed()
 		end
 	end
 
-	if not self.NextWeightCalcTime then
-		self.NextWeightCalcTime = 0
-	end
-
+	if not self.NextWeightCalcTime then self.NextWeightCalcTime = 0 end
 	if self.NextWeightCalcTime < Time then
 		self.NextWeightCalcTime = Time + 1
 		local Weight = 0
 		for key, wep in pairs(self:GetWeapons()) do
-			if wep.CarryWeight then
-				Weight = Weight + wep.CarryWeight
-			end
+			if wep.CarryWeight then Weight = Weight + wep.CarryWeight end
 		end
 
 		for typ, wght in pairs(HMCD_AmmoWeights) do
 			local Amt = self:GetAmmoCount(typ)
-			if Amt > 0 then
-				Weight = Weight + Amt * wght
-			end
+			if Amt > 0 then Weight = Weight + Amt * wght end
 		end
 
-		if self.HasFlashlight then
-			Weight = Weight + 800
-		end
-
-		if self.ChestArmor and (self.ChestArmor == "Level III") then
-			Weight = Weight + 10000
-		end
-
-		if self.ChestArmor and (self.ChestArmor == "Level IIIA") then
-			Weight = Weight + 2000
-		end
-
-		if self.HeadArmor and (self.HeadArmor == "ACH") then
-			Weight = Weight + 2000
-		end
-
+		if self.HasFlashlight then Weight = Weight + 800 end
+		if self.ChestArmor and (self.ChestArmor == "Level III") then Weight = Weight + 10000 end
+		if self.ChestArmor and (self.ChestArmor == "Level IIIA") then Weight = Weight + 2000 end
+		if self.HeadArmor and (self.HeadArmor == "ACH") then Weight = Weight + 2000 end
 		self.CarryWeightSpeedMul = math.Clamp(1 - (Weight / 100000), 0, 1)
 		self.CarryWeightStaminaMul = math.Clamp(1 - (Weight / 100000), 0, 1)
 	end
 
 	local Helths, wMul = self:Health(), self.CarryWeightSpeedMul or 1
-	if self.HighOnDrugs then
-		Helths = 100
-	end
-
-	if self.PainBoost > CurTime() then
-		Helths = math.Clamp(Helths, 99, 100)
-	end
-
+	if self.HighOnDrugs then Helths = 100 end
+	if self.PainBoost > CurTime() then Helths = math.Clamp(Helths, 99, 100) end
 	local mul = math.Clamp((self.Stamina / 100) * ((Helths * .5 + 50) / 100) * self.TempSpeedMul, .1, 1)
 	if ground and ballsToWall and self:KeyDown(IN_FORWARD) then
 		DSM = math.Clamp(DSM + 16, 1, 100)
@@ -659,7 +560,6 @@ local function generateSpawnEntities(spawnList)
 		t.pos = pos
 		table.insert(tbl, t)
 	end
-
 	return tbl
 end
 
@@ -667,24 +567,18 @@ function GM:IsSpawnpointSuitable(ply, spawnpointent, bMakeSuitable)
 	local Pos = spawnpointent:GetPos()
 	local Ents = ents.FindInBox(Pos + Vector(-16, -16, 0), Pos + Vector(16, 16, 72))
 	local Tem = 2
-	if ply:IsPlayer() then
-		Tem = ply:Team()
-	end
-
+	if ply:IsPlayer() then Tem = ply:Team() end
 	if Tem == TEAM_SPECTATOR or Tem == TEAM_UNASSIGNED then return true end
 	local Blockers = 0
 	for k, v in pairs(Ents) do
 		if IsValid(v) and v:GetClass() == "player" and v:Alive() then
 			Blockers = Blockers + 1
-			if bMakeSuitable then
-				v:SetPos(v:GetPos() + Vector(math.random(-100, 100), math.random(-100, 100), 0))
-			end
+			if bMakeSuitable then v:SetPos(v:GetPos() + Vector(math.random(-100, 100), math.random(-100, 100), 0)) end
 		end
 	end
 
 	if bMakeSuitable then return true end
 	if Blockers > 0 then return false end
-
 	return true
 end
 
@@ -702,7 +596,6 @@ function GM:PlayerSelectTeamSpawn(TeamID, pl)
 		ChosenSpawnPoint = table.Random(SpawnPoints)
 		if self:IsSpawnpointSuitable(pl, ChosenSpawnPoint, true) then return ChosenSpawnPoint end
 	end
-
 	return ChosenSpawnPoint
 end
 
@@ -757,9 +650,7 @@ function GM:ScalePlayerDamage(ply, hitgroup, dmginfo)
 		if ply.ChestArmor and (ply.ChestArmor ~= "") then
 			if Bullet or Shrapnel then
 				if ply.ChestArmor == "Level IIIA" then
-					if Dam < 65 then
-						Mul = Mul / 20
-					end
+					if Dam < 65 then Mul = Mul / 20 end
 				elseif ply.ChestArmor == "Level III" then
 					sound.Play("SolidMetal.BulletImpact", ply:GetPos(), 55, 120)
 					if Dam < 65 then
@@ -783,9 +674,7 @@ function GM:ScalePlayerDamage(ply, hitgroup, dmginfo)
 				Mul = Mul / 3
 			elseif Bullet then
 				if ply.ChestArmor == "Level IIIA" then
-					if Dam < 65 then
-						Mul = Mul / 20
-					end
+					if Dam < 65 then Mul = Mul / 20 end
 				elseif ply.ChestArmor == "Level III" then
 					sound.Play("SolidMetal.BulletImpact", ply:GetPos(), 55, 120)
 					if Dam < 65 then
@@ -798,22 +687,13 @@ function GM:ScalePlayerDamage(ply, hitgroup, dmginfo)
 		end
 	end
 
-	if not dmginfo:IsDamageType(DMG_GENERIC) then
-		ply.LastHitLocation = hitgroup
-	end
-
+	if not dmginfo:IsDamageType(DMG_GENERIC) then ply.LastHitLocation = hitgroup end
 	dmginfo:ScaleDamage(Mul)
 end
 
 function GM:PlayerDeath(ply, Inflictor, attacker)
-	if Inflictor and Inflictor:IsVehicle() and Inflictor:GetDriver() then
-		attacker = Inflictor:GetDriver()
-	end
-
-	if IsValid(Inflictor) and (Inflictor:GetClass() == "ent_jack_hmcd_grapl") then
-		attacker = Inflictor.Owner
-	end
-
+	if Inflictor and Inflictor:IsVehicle() and Inflictor:GetDriver() then attacker = Inflictor:GetDriver() end
+	if IsValid(Inflictor) and (Inflictor:GetClass() == "ent_jack_hmcd_grapl") then attacker = Inflictor.Owner end
 	self:DoRoundDeaths(ply, attacker)
 	if attacker.ModelSex == "male" then
 		s = translate.ms
@@ -826,9 +706,7 @@ function GM:PlayerDeath(ply, Inflictor, attacker)
 		local murderer
 		local players = team.GetPlayers(2)
 		for k, v in pairs(players) do
-			if v.Murderer then
-				murderer = v
-			end
+			if v.Murderer then murderer = v end
 		end
 
 		if IsValid(attacker) and attacker:IsPlayer() then
@@ -838,36 +716,7 @@ function GM:PlayerDeath(ply, Inflictor, attacker)
 				local col, msgs, col2 = attacker:GetPlayerColor(), nil, ply:GetPlayerColor()
 				if ply.Innocent then
 					if self.SHTF then
-						msgs = Translator:AdvVarTranslate(
-							translate.killedTeamKillInnocent,
-							{
-								player = {
-									text = attacker:GetBystanderName(),
-									color = Color(col.x * 255, col.y * 255, col.z * 255)
-								},
-								s = {
-									text = s
-								}
-							}
-						)
-					else
-						msgs = Translator:AdvVarTranslate(
-							translate.killedTeamKill,
-							{
-								player = {
-									text = attacker:GetBystanderName(),
-									color = Color(col.x * 255, col.y * 255, col.z * 255)
-								},
-								s = {
-									text = s
-								}
-							}
-						)
-					end
-				else
-					msgs = Translator:AdvVarTranslate(
-						translate.killedTeamKillAggressive,
-						{
+						msgs = Translator:AdvVarTranslate(translate.killedTeamKillInnocent, {
 							player = {
 								text = attacker:GetBystanderName(),
 								color = Color(col.x * 255, col.y * 255, col.z * 255)
@@ -875,27 +724,44 @@ function GM:PlayerDeath(ply, Inflictor, attacker)
 							s = {
 								text = s
 							}
+						})
+					else
+						msgs = Translator:AdvVarTranslate(translate.killedTeamKill, {
+							player = {
+								text = attacker:GetBystanderName(),
+								color = Color(col.x * 255, col.y * 255, col.z * 255)
+							},
+							s = {
+								text = s
+							}
+						})
+					end
+				else
+					msgs = Translator:AdvVarTranslate(translate.killedTeamKillAggressive, {
+						player = {
+							text = attacker:GetBystanderName(),
+							color = Color(col.x * 255, col.y * 255, col.z * 255)
+						},
+						s = {
+							text = s
 						}
-					)
+					})
 				end
 
 				if self.DEATHMATCH then
-					msgs = Translator:AdvVarTranslate(
-						translate.killedDM,
-						{
-							player = {
-								text = attacker:GetBystanderName(),
-								color = Color(col.x * 255, col.y * 255, col.z * 255)
-							},
-							ded = {
-								text = ply:GetBystanderName(),
-								color = Color(col2.x * 255, col2.y * 255, col2.z * 255)
-							},
-							s = {
-								text = s
-							}
+					msgs = Translator:AdvVarTranslate(translate.killedDM, {
+						player = {
+							text = attacker:GetBystanderName(),
+							color = Color(col.x * 255, col.y * 255, col.z * 255)
+						},
+						ded = {
+							text = ply:GetBystanderName(),
+							color = Color(col2.x * 255, col2.y * 255, col2.z * 255)
+						},
+						s = {
+							text = s
 						}
-					)
+					})
 				end
 
 				if self:GetRound() == 1 then
@@ -912,92 +778,74 @@ function GM:PlayerDeath(ply, Inflictor, attacker)
 			local msgs, RealName, GameName = nil, attacker:Nick(), attacker:GetBystanderName()
 			if RealName == GameName then
 				if self.ZOMBIE then
-					msgs = Translator:AdvVarTranslate(
-						translate.killedZombie,
-						{
-							player = {
-								text = GameName,
-								color = Color(col.x * 255, col.y * 255, col.z * 255)
-							},
-							s = {
-								text = s
-							}
-						}
-					)
-				elseif self.SHTF then
-					msgs = Translator:AdvVarTranslate(
-						translate.killedTraitor,
-						{
-							player = {
-								text = GameName,
-								color = Color(col.x * 255, col.y * 255, col.z * 255)
-							},
-							s = {
-								text = s
-							}
-						}
-					)
-				else
-					msgs = Translator:AdvVarTranslate(
-						translate.killedMurderer,
-						{
-							player = {
-								text = GameName,
-								color = Color(col.x * 255, col.y * 255, col.z * 255)
-							},
-							s = {
-								text = s
-							}
-						}
-					)
-				end
-			else
-				if self.SHTF then
-					msgs = Translator:AdvVarTranslate(
-						translate.killedTraitor,
-						{
-							player = {
-								text = RealName .. ", " .. GameName,
-								color = Color(col.x * 255, col.y * 255, col.z * 255)
-							},
-							s = {
-								text = translate.ms
-							}
-						}
-					)
-				else
-					msgs = Translator:AdvVarTranslate(
-						translate.killedMurderer,
-						{
-							player = {
-								text = RealName .. ", " .. GameName,
-								color = Color(col.x * 255, col.y * 255, col.z * 255)
-							},
-							s = {
-								text = translate.ms
-							}
-						}
-					)
-				end
-			end
-
-			if self.DEATHMATCH then
-				msgs = Translator:AdvVarTranslate(
-					translate.killedDM,
-					{
+					msgs = Translator:AdvVarTranslate(translate.killedZombie, {
 						player = {
-							text = attacker:GetBystanderName(),
+							text = GameName,
 							color = Color(col.x * 255, col.y * 255, col.z * 255)
-						},
-						ded = {
-							text = ply:GetBystanderName(),
-							color = Color(col2.x * 255, col2.y * 255, col2.z * 255)
 						},
 						s = {
 							text = s
 						}
+					})
+				elseif self.SHTF then
+					msgs = Translator:AdvVarTranslate(translate.killedTraitor, {
+						player = {
+							text = GameName,
+							color = Color(col.x * 255, col.y * 255, col.z * 255)
+						},
+						s = {
+							text = s
+						}
+					})
+				else
+					msgs = Translator:AdvVarTranslate(translate.killedMurderer, {
+						player = {
+							text = GameName,
+							color = Color(col.x * 255, col.y * 255, col.z * 255)
+						},
+						s = {
+							text = s
+						}
+					})
+				end
+			else
+				if self.SHTF then
+					msgs = Translator:AdvVarTranslate(translate.killedTraitor, {
+						player = {
+							text = RealName .. ", " .. GameName,
+							color = Color(col.x * 255, col.y * 255, col.z * 255)
+						},
+						s = {
+							text = translate.ms
+						}
+					})
+				else
+					msgs = Translator:AdvVarTranslate(translate.killedMurderer, {
+						player = {
+							text = RealName .. ", " .. GameName,
+							color = Color(col.x * 255, col.y * 255, col.z * 255)
+						},
+						s = {
+							text = translate.ms
+						}
+					})
+				end
+			end
+
+			if self.DEATHMATCH then
+				msgs = Translator:AdvVarTranslate(translate.killedDM, {
+					player = {
+						text = attacker:GetBystanderName(),
+						color = Color(col.x * 255, col.y * 255, col.z * 255)
+					},
+					ded = {
+						text = ply:GetBystanderName(),
+						color = Color(col2.x * 255, col2.y * 255, col2.z * 255)
+					},
+					s = {
+						text = s
 					}
-				)
+				})
 			end
 
 			local ct = ChatText()
@@ -1035,9 +883,7 @@ function GM:PlayerDeath(ply, Inflictor, attacker)
 	umsg.End()
 	if Inflictor and Inflictor == attacker and (Inflictor:IsPlayer() or Inflictor:IsNPC()) then
 		Inflictor = Inflictor:GetActiveWeapon()
-		if not Inflictor or Inflictor == NULL then
-			Inflictor = attacker
-		end
+		if not Inflictor or Inflictor == NULL then Inflictor = attacker end
 	end
 
 	self:RagdollSetDeathDetails(ply, Inflictor, attacker)
@@ -1085,13 +931,11 @@ function GM:PlayerCanPickupWeapon(ply, ent)
 		-- bystanders can't have the knife
 		if not ply.Murderer then return false end
 	end
-
 	return true
 end
 
 function GM:PlayerCanHearPlayersVoice(listener, talker)
 	if not IsValid(talker) then return false end
-
 	return self:PlayerCanHearChatVoice(listener, talker, "voice")
 end
 
@@ -1101,22 +945,12 @@ function GM:PlayerCanHearChatVoice(listener, talker, typ)
 	if not talker:Alive() or talker:Team() ~= 2 then return not listener:Alive() or listener:Team() ~= 2 end
 	local ply = listener
 	-- listen as if spectatee when spectating
-	if listener:IsCSpectating() and IsValid(listener:GetCSpectatee()) then
-		ply = listener:GetCSpectatee()
-	end
-
+	if listener:IsCSpectating() and IsValid(listener:GetCSpectatee()) then ply = listener:GetCSpectatee() end
 	local Wep = talker:GetActiveWeapon()
-	if IsValid(Wep) and (Wep:GetClass() == "wep_jack_hmcd_walkietalkie") then
-		if ply and ply.Alive and ply:Alive() and ply.HasWeapon and ply:HasWeapon("wep_jack_hmcd_walkietalkie") then return true end
-	end
-
+	if IsValid(Wep) and (Wep:GetClass() == "wep_jack_hmcd_walkietalkie") then if ply and ply.Alive and ply:Alive() and ply.HasWeapon and ply:HasWeapon("wep_jack_hmcd_walkietalkie") then return true end end
 	local dis, MaxDist = ply:GetPos():Distance(talker:GetPos()), 1500
-	if not (talker:Visible(ply) or ply:Visible(talker)) then
-		MaxDist = 500
-	end
-
+	if not (talker:Visible(ply) or ply:Visible(talker)) then MaxDist = 500 end
 	if dis < MaxDist then return true end
-
 	return false
 end
 
@@ -1125,102 +959,82 @@ function GM:PlayerDisconnected(ply)
 end
 
 function GM:PlayerOnChangeTeam(ply, newTeam, oldTeam)
-	if oldTeam == 2 then
-		self:PlayerLeavePlay(ply)
-	end
-
+	if oldTeam == 2 then self:PlayerLeavePlay(ply) end
 	ply:SetMurderer(false)
 	if newteam == 1 then end
 	ply.HasMoved = true
 	ply:KillSilent()
 end
 
-concommand.Add(
-	"mu_jointeam",
-	function(ply, com, args)
-		local newTeam = tonumber(args[1] or "") or 0
-		if ply.LastChangeTeam and ply.LastChangeTeam + 5 > CurTime() then return end
-		ply.LastChangeTeam = CurTime()
-		local curTeam = ply:Team()
-		if newTeam >= 1 and newTeam <= 2 and newTeam ~= curTeam then
-			ply:SetTeam(newTeam)
-			GAMEMODE:PlayerOnChangeTeam(ply, newTeam, curTeam)
-			local msgs = Translator:AdvVarTranslate(
-				translate.changeTeam,
-				{
-					player = {
-						text = ply:Nick(),
-						color = team.GetColor(curTeam)
-					},
-					team = {
-						text = team.GetName(newTeam),
-						color = team.GetColor(newTeam)
-					}
-				}
-			)
+concommand.Add("mu_jointeam", function(ply, com, args)
+	local newTeam = tonumber(args[1] or "") or 0
+	if ply.LastChangeTeam and ply.LastChangeTeam + 5 > CurTime() then return end
+	ply.LastChangeTeam = CurTime()
+	local curTeam = ply:Team()
+	if newTeam >= 1 and newTeam <= 2 and newTeam ~= curTeam then
+		ply:SetTeam(newTeam)
+		GAMEMODE:PlayerOnChangeTeam(ply, newTeam, curTeam)
+		local msgs = Translator:AdvVarTranslate(translate.changeTeam, {
+			player = {
+				text = ply:Nick(),
+				color = team.GetColor(curTeam)
+			},
+			team = {
+				text = team.GetName(newTeam),
+				color = team.GetColor(newTeam)
+			}
+		})
 
-			local ct = ChatText()
-			ct:AddParts(msgs)
-			ct:SendAll()
-		end
+		local ct = ChatText()
+		ct:AddParts(msgs)
+		ct:SendAll()
 	end
-)
+end)
 
-concommand.Add(
-	"hmcd_movetospectate",
-	function(ply, com, args)
-		if not ply:IsAdmin() then return end
-		if #args < 1 then return end
-		local ent = Entity(tonumber(args[1]) or -1)
-		if not IsValid(ent) or not ent:IsPlayer() then return end
-		local curTeam = ent:Team()
-		if 1 ~= curTeam then
-			ent:SetTeam(1)
-			GAMEMODE:PlayerOnChangeTeam(ent, 1, curTeam)
-			local msgs = Translator:AdvVarTranslate(
-				translate.teamMoved,
-				{
-					player = {
-						text = ent:Nick(),
-						color = team.GetColor(curTeam)
-					},
-					team = {
-						text = team.GetName(1),
-						color = team.GetColor(1)
-					}
-				}
-			)
+concommand.Add("hmcd_movetospectate", function(ply, com, args)
+	if not ply:IsAdmin() then return end
+	if #args < 1 then return end
+	local ent = Entity(tonumber(args[1]) or -1)
+	if not IsValid(ent) or not ent:IsPlayer() then return end
+	local curTeam = ent:Team()
+	if 1 ~= curTeam then
+		ent:SetTeam(1)
+		GAMEMODE:PlayerOnChangeTeam(ent, 1, curTeam)
+		local msgs = Translator:AdvVarTranslate(translate.teamMoved, {
+			player = {
+				text = ent:Nick(),
+				color = team.GetColor(curTeam)
+			},
+			team = {
+				text = team.GetName(1),
+				color = team.GetColor(1)
+			}
+		})
 
-			local ct = ChatText()
-			ct:AddParts(msgs)
-			ct:SendAll()
-		end
+		local ct = ChatText()
+		ct:AddParts(msgs)
+		ct:SendAll()
 	end
-)
+end)
 
-concommand.Add(
-	"mu_spectate",
-	function(ply, com, args)
-		if not ply:IsAdmin() then return end
-		if #args < 1 then return end
-		local ent = Entity(tonumber(args[1]) or -1)
-		if not IsValid(ent) or not ent:IsPlayer() then return end
-		if ply:Alive() and ply:Team() ~= 1 then
-			local ct = ChatText()
-			ct:Add(translate.spectateFailed)
-			ct:Send(ply)
-
-			return
-		end
-
-		ply:CSpectate(OBS_MODE_IN_EYE, ent)
+concommand.Add("mu_spectate", function(ply, com, args)
+	if not ply:IsAdmin() then return end
+	if #args < 1 then return end
+	local ent = Entity(tonumber(args[1]) or -1)
+	if not IsValid(ent) or not ent:IsPlayer() then return end
+	if ply:Alive() and ply:Team() ~= 1 then
+		local ct = ChatText()
+		ct:Add(translate.spectateFailed)
+		ct:Send(ply)
+		return
 	end
-)
+
+	ply:CSpectate(OBS_MODE_IN_EYE, ent)
+end)
 
 function GM:PlayerCanSeePlayersChat(text, teamOnly, listener, speaker)
 	if not IsValid(speaker) then return false end
 	local canhear = self:PlayerCanHearChatVoice(listener, speaker)
-
 	return canhear
 end
 
@@ -1232,14 +1046,10 @@ function GM:PlayerSay(ply, text, teem)
 			local Wep = ply:GetActiveWeapon()
 			if IsValid(Wep) and Wep.CommandDroppable and not (self.SHTF and Wep.SHTF_NoDrop) then
 				ply:DropWeapon(Wep)
-
 				return ""
 			end
 		elseif string.lower(text) == "*unstick" then
-			if not ply.HMCD_SpawnPos then
-				ply.HMCD_SpawnPos = ply:GetPos()
-			end
-
+			if not ply.HMCD_SpawnPos then ply.HMCD_SpawnPos = ply:GetPos() end
 			if ply.Unstickable then
 				local Wall, Playa, Still, SelfPos = ply:GetPhysicsObject():IsPenetrating(), nil, ply.HMCD_SpawnPos == ply:GetPos() or (ply.HMCD_SpawnPos - ply:GetPos()):Length() == 31, ply:GetPos()
 				for key, playa in pairs(team.GetPlayers(2)) do
@@ -1261,23 +1071,19 @@ function GM:PlayerSay(ply, text, teem)
 				if (Wall or Playa or Still) and not ply:InVehicle() and not ply.HiddenInContainer then
 					ply.Unstickable = false
 					ply:PrintMessage(HUD_PRINTTALK, translate.stuck)
-					local Tr = util.TraceLine(
-						{
-							start = ply:GetShootPos(),
-							endpos = ply:GetShootPos() + ply:GetAimVector() * 500,
-							filter = {ply, Playa}
-						}
-					)
+					local Tr = util.TraceLine({
+						start = ply:GetShootPos(),
+						endpos = ply:GetShootPos() + ply:GetAimVector() * 500,
+						filter = {ply, Playa}
+					})
 
 					if Tr.Hit then
 						local Stert = Tr.HitPos + Tr.HitNormal * 25
-						local DownTr = util.TraceLine(
-							{
-								start = Stert,
-								endpos = Stert + Vector(0, 0, -1000),
-								filter = {ply, Playa}
-							}
-						)
+						local DownTr = util.TraceLine({
+							start = Stert,
+							endpos = Stert + Vector(0, 0, -1000),
+							filter = {ply, Playa}
+						})
 
 						if DownTr.Hit then
 							ply:SetPos(DownTr.HitPos + DownTr.HitNormal * 10)
@@ -1315,10 +1121,7 @@ function GM:PlayerSay(ply, text, teem)
 		end
 
 		local Wep, WalkieTalkie = ply:GetActiveWeapon(), false
-		if IsValid(Wep) and (Wep:GetClass() == "wep_jack_hmcd_walkietalkie") then
-			WalkieTalkie = true
-		end
-
+		if IsValid(Wep) and (Wep:GetClass() == "wep_jack_hmcd_walkietalkie") then WalkieTalkie = true end
 		local col = ply:GetPlayerColor()
 		for k, ply2 in pairs(player.GetAll()) do
 			local can = hook.Call("PlayerCanSeePlayersChat", GAMEMODE, text, teem, ply2, ply)
@@ -1332,24 +1135,15 @@ function GM:PlayerSay(ply, text, teem)
 
 				ct:Add(": " .. text, color_white)
 				ct:Send(ply2)
-				if WalkieTalkie then
-					sound.Play("snd_jack_hmcd_walkietalkie.wav", ply2:GetShootPos(), 50, 100)
-				end
+				if WalkieTalkie then sound.Play("snd_jack_hmcd_walkietalkie.wav", ply2:GetShootPos(), 50, 100) end
 			end
 		end
 
 		local Extra = ""
-		if WalkieTalkie then
-			Extra = translate.radio
-		end
-
-		if SERVER then
-			print(ply:Nick() .. ": " .. text .. Extra)
-		end
-
+		if WalkieTalkie then Extra = translate.radio end
+		if SERVER then print(ply:Nick() .. ": " .. text .. Extra) end
 		return false
 	end
-
 	return true
 end
 
@@ -1371,14 +1165,12 @@ function GM:PlayerUse(ply, ent)
 	if ent.ContactPoisoned then
 		if ply.Murderer then
 			ply:PrintMessage(HUD_PRINTTALK, translate.poisoned)
-
 			return false
 		else
 			ent.ContactPoisoned = false
 			HMCD_Poison(ply, ent.Poisoner)
 		end
 	end
-
 	return true
 end
 
@@ -1393,25 +1185,19 @@ function GM:KeyPress(ply, key)
 				local Dist = tr.HitPos:Distance(tr.StartPos)
 				if ply.Murderer then
 					local Class = tr.Entity:GetClass()
-					if Class == "prop_ragdoll" and Dist < 65 and not self.ZOMBIE then
-						ply:MurdererDisguise(tr.Entity)
-					end
+					if Class == "prop_ragdoll" and Dist < 65 and not self.ZOMBIE then ply:MurdererDisguise(tr.Entity) end
 				end
 
 				if tr.Entity.GetModel and ply:KeyDown(IN_ATTACK2) and (Dist < 65) then
 					local Mod = string.lower(tr.Entity:GetModel())
-					if Mod and table.HasValue(HMCD_PersonContainers, Mod) then
-						ply:EnterContainer(tr.Entity)
-					end
+					if Mod and table.HasValue(HMCD_PersonContainers, Mod) then ply:EnterContainer(tr.Entity) end
 				end
 			end
 		end
 	end
 
 	local Ground = ply:GetGroundEntity()
-	if (key == IN_JUMP) and (IsValid(Ground) or Ground:IsWorld()) then
-		HMCD_StaminaPenalize(ply, 8)
-	end
+	if (key == IN_JUMP) and (IsValid(Ground) or Ground:IsWorld()) then HMCD_StaminaPenalize(ply, 8) end
 end
 
 function PlayerMeta:EnterContainer(ent)
@@ -1427,16 +1213,11 @@ function PlayerMeta:EnterContainer(ent)
 		self:Freeze(true)
 		self:SetDSP(30, true)
 		self:SetPos(ent:LocalToWorld(ent:OBBCenter()) - Vector(0, 0, 20))
-		timer.Simple(
-			.1,
-			function()
-				self:DropObject()
-				local Wep = self:GetWeapon("wep_jack_hmcd_hands")
-				if IsValid(Wep) then
-					Wep:SetCarrying()
-				end
-			end
-		)
+		timer.Simple(.1, function()
+			self:DropObject()
+			local Wep = self:GetWeapon("wep_jack_hmcd_hands")
+			if IsValid(Wep) then Wep:SetCarrying() end
+		end)
 
 		ent:GetPhysicsObject():SetMass((ent:GetPhysicsObject():GetMass() or 1) + 50)
 	end
@@ -1453,16 +1234,11 @@ function PlayerMeta:ExitContainer()
 	self:SetViewEntity(self)
 	self:Freeze(false)
 	self:SetDSP(0, true)
-	timer.Simple(
-		.1,
-		function()
-			self:DropObject()
-			local Wep = self:GetWeapon("wep_jack_hmcd_hands")
-			if IsValid(Wep) then
-				Wep:SetCarrying()
-			end
-		end
-	)
+	timer.Simple(.1, function()
+		self:DropObject()
+		local Wep = self:GetWeapon("wep_jack_hmcd_hands")
+		if IsValid(Wep) then Wep:SetCarrying() end
+	end)
 
 	local Center, Size = Ent:LocalToWorld(Ent:OBBCenter()), Ent:OBBMaxs():Length()
 	self:SetPos(Center)
@@ -1506,7 +1282,7 @@ function PlayerMeta:AntiCheat()
 
 	local Health = self:Health()
 	if Health and (Health > 105) then
-		if GAMEMODE.ZOMBIE and ply.Murderer then return end
+		if GAMEMODE.ZOMBIE and self.Murderer then return end
 		self:SetHealth(100)
 		self:PrintMessage(HUD_PRINTTALK, translate.notAllowedAdditionalHealth)
 	end
@@ -1535,24 +1311,13 @@ function PlayerMeta:MurdererDisguise(copyent)
 	local WillSwitchArmor, WillSwitchHelmet = false, false
 	if copyent.ChestArmor then
 		if copyent.ChestArmor == "Level III" then
-			if not self.ChestArmor or (self.ChestArmor == "") or (self.ChestArmor == "Level IIIA") then
-				WillSwitchArmor = true
-			end
+			if not self.ChestArmor or (self.ChestArmor == "") or (self.ChestArmor == "Level IIIA") then WillSwitchArmor = true end
 		elseif copyent.ChestArmor == "Level IIIA" then
-			if not self.ChestArmor or (self.ChestArmor == "") then
-				WillSwitchArmor = true
-			end
+			if not self.ChestArmor or (self.ChestArmor == "") then WillSwitchArmor = true end
 		end
 	end
 
-	if copyent.HeadArmor then
-		if copyent.HeadArmor == "ACH" then
-			if not self.HeadArmor then
-				WillSwitchHelmet = true
-			end
-		end
-	end
-
+	if copyent.HeadArmor then if copyent.HeadArmor == "ACH" then if not self.HeadArmor then WillSwitchHelmet = true end end end
 	self.Disguised = true
 	self.DisguisedStart = CurTime()
 	--self:SetBystanderName(copyent:GetBystanderName())
@@ -1560,30 +1325,20 @@ function PlayerMeta:MurdererDisguise(copyent)
 	self:SetPlayerColor(copyent:GetPlayerColor())
 	self:SetClothing(copyent.ClothingType)
 	self:SetAccessory(copyent.Accessory)
-	if WillSwitchArmor then
-		self:SetChestArmor(copyent.ChestArmor)
-	end
-
-	if WillSwitchHelmet then
-		self:SetHeadArmor(copyent.HeadArmor)
-	end
-
+	if WillSwitchArmor then self:SetChestArmor(copyent.ChestArmor) end
+	if WillSwitchHelmet then self:SetHeadArmor(copyent.HeadArmor) end
 	copyent:SetClothing(OrigClothes)
 	copyent:SetPlayerColor(OrigColor)
 	copyent:SetAccessory(OrigAccessory)
-	if WillSwitchArmor then
-		copyent:SetChestArmor(OrigArmor)
-	end
-
-	if WillSwitchHelmet then
-		copyent:SetHeadArmor(OrigHelmet)
-	end
-
+	if WillSwitchArmor then copyent:SetChestArmor(OrigArmor) end
+	if WillSwitchHelmet then copyent:SetHeadArmor(OrigHelmet) end
 	sound.Play("snd_jack_hmcd_disguise.wav", copyent:GetPos(), 60, math.random(90, 110))
 end
 
 function PlayerMeta:UnMurdererDisguise()
-	if self.Disguised then end -- fuck you sonny boy
+	if self.Disguised then -- fuck you sonny boy
+	end
+
 	self.Disguised = false
 end
 
@@ -1593,10 +1348,7 @@ end
 
 function PlayerMeta:SetHighOnDrugs(high)
 	self.HighOnDrugs = high
-	if high then
-		self.Stamina = 100
-	end
-
+	if high then self.Stamina = 100 end
 	umsg.Start("HMCD_DrugsHigh", self)
 	umsg.Bool(high)
 	umsg.End()
@@ -1607,39 +1359,15 @@ function PlayerMeta:InvoluntaryEvent()
 	local Event, Ma, Fe, Pos = math.random(1, 4), self.ModelSex == "male", self.ModelSex == "female", self:GetShootPos()
 	if Event == 1 then
 		self:ViewPunch(Angle(5, 0, 0))
-		timer.Simple(
-			.5,
-			function()
-				if IsValid(self) then
-					self:ViewPunch(Angle(2, 0, 0))
-				end
-			end
-		)
-
+		timer.Simple(.5, function() if IsValid(self) then self:ViewPunch(Angle(2, 0, 0)) end end)
 		if Ma then
 			self:EmitSound("snd_jack_hmcd_cough_male.wav", 60, 100)
 		elseif Fe then
 			self:EmitSound("snd_jack_hmcd_cough_female.wav", 60, 100)
 		end
 	elseif Event == 2 then
-		timer.Simple(
-			.9,
-			function()
-				if IsValid(self) then
-					self:ViewPunch(Angle(-5, 0, 0))
-				end
-			end
-		)
-
-		timer.Simple(
-			1.1,
-			function()
-				if IsValid(self) then
-					self:ViewPunch(Angle(20, 0, 0))
-				end
-			end
-		)
-
+		timer.Simple(.9, function() if IsValid(self) then self:ViewPunch(Angle(-5, 0, 0)) end end)
+		timer.Simple(1.1, function() if IsValid(self) then self:ViewPunch(Angle(20, 0, 0)) end end)
 		if Ma then
 			self:EmitSound("snd_jack_hmcd_sneeze_male.wav", 60, 100)
 		elseif Fe then
@@ -1715,13 +1443,11 @@ local function AnyoneCanSee(pos)
 		if ply:Alive() then
 			local PlyPos = ply:GetShootPos()
 			if PlyPos:Distance(pos) < 50 then return true end
-			local Tr = util.TraceLine(
-				{
-					start = PlyPos,
-					endpos = pos,
-					filter = {ply}
-				}
-			)
+			local Tr = util.TraceLine({
+				start = PlyPos,
+				endpos = pos,
+				filter = {ply}
+			})
 
 			if not Tr.Hit then
 				local Vec = (PlyPos - pos):GetNormalized()
@@ -1730,7 +1456,6 @@ local function AnyoneCanSee(pos)
 			end
 		end
 	end
-
 	return false
 end
 
@@ -1745,22 +1470,15 @@ local function SpawnDeathProp(ply, tab, pos, vel)
 	Obj:GetPhysicsObject():EnableDrag(false)
 	Obj.Collided = false
 	local playa, prop = ply, Obj
-	Obj:AddCallback(
-		"PhysicsCollide",
-		function(self, colData)
-			if not prop.Collided then
-				prop.Collided = true
-				if colData.HitEntity == playa then
-					sound.Play("Flesh.ImpactHard", playa:GetPos(), 75, 100)
-				end
-			end
+	Obj:AddCallback("PhysicsCollide", function(self, colData)
+		if not prop.Collided then
+			prop.Collided = true
+			if colData.HitEntity == playa then sound.Play("Flesh.ImpactHard", playa:GetPos(), 75, 100) end
 		end
-	)
+	end)
 
 	for key, other in pairs(team.GetPlayers(2)) do
-		if other ~= ply then
-			constraint.NoCollide(other, Obj, 0, 0)
-		end
+		if other ~= ply then constraint.NoCollide(other, Obj, 0, 0) end
 	end
 
 	SafeRemoveEntityDelayed(Obj, 200)
@@ -1815,9 +1533,7 @@ function PlayerMeta:GodCheck()
 				CanGo = not AnyoneCanSee(GoPos)
 			end
 
-			if CanGo then
-				SpawnDeathProp(self, HMCD_BigProjectileJunkModels, GoPos, GoVel)
-			end
+			if CanGo then SpawnDeathProp(self, HMCD_BigProjectileJunkModels, GoPos, GoVel) end
 		elseif DeathType == 3 then
 			-- flying object
 			local BackTr = util.QuickTrace(SelfPos, -SelfDir * 500, self)
@@ -1853,9 +1569,7 @@ function PlayerMeta:GodCheck()
 				CanGo = not AnyoneCanSee(GoPos)
 			end
 
-			if CanGo then
-				SpawnDeathProp(self, HMCD_ProjectileJunkModels, GoPos, GoVel)
-			end
+			if CanGo then SpawnDeathProp(self, HMCD_ProjectileJunkModels, GoPos, GoVel) end
 		elseif DeathType == 4 then
 			-- seizure
 			if not self.Seizuring then
@@ -1867,177 +1581,139 @@ function PlayerMeta:GodCheck()
 				self:PrintMessage(HUD_PRINTTALK, translate.youAreHavingASeizure)
 				self:PrintMessage(HUD_PRINTCENTER, translate.seizure)
 				local LifeID = self.LifeID
-				timer.Simple(
-					30,
-					function()
-						if self then
-							net.Start("hmcd_seizure")
-							net.WriteBit(false)
-							net.Send(self)
-							self.Seizuring = false
-							if self.LifeID == LifeID then
-								local Dam = DamageInfo()
-								Dam:SetDamage(110)
-								Dam:SetDamageType(DMG_GENERIC)
-								Dam:SetDamagePosition(SelfPos)
-								Dam:SetDamageForce(vector_up)
-								Dam:SetAttacker(game.GetWorld())
-								Dam:SetInflictor(game.GetWorld())
-								self:TakeDamageInfo(Dam)
-							end
+				timer.Simple(30, function()
+					if self then
+						net.Start("hmcd_seizure")
+						net.WriteBit(false)
+						net.Send(self)
+						self.Seizuring = false
+						if self.LifeID == LifeID then
+							local Dam = DamageInfo()
+							Dam:SetDamage(110)
+							Dam:SetDamageType(DMG_GENERIC)
+							Dam:SetDamagePosition(SelfPos)
+							Dam:SetDamageForce(vector_up)
+							Dam:SetAttacker(game.GetWorld())
+							Dam:SetInflictor(game.GetWorld())
+							self:TakeDamageInfo(Dam)
 						end
 					end
-				)
+				end)
 			end
 		end
 
-		if CanGo then
-			self.HMCD_MarkedForDeath = false
-		end
+		if CanGo then self.HMCD_MarkedForDeath = false end
 	end
 end
 
-concommand.Add(
-	"hmcd_dropwep",
-	function(ply, cmd, args)
-		if not ply then return end
-		local Wep = ply:GetActiveWeapon()
-		if IsValid(Wep) and Wep.CommandDroppable and not (GAMEMODE.SHTF and Wep.SHTF_NoDrop) then
-			ply:DropWeapon(Wep)
-
-			return ""
-		end
+concommand.Add("hmcd_dropwep", function(ply, cmd, args)
+	if not ply then return end
+	local Wep = ply:GetActiveWeapon()
+	if IsValid(Wep) and Wep.CommandDroppable and not (GAMEMODE.SHTF and Wep.SHTF_NoDrop) then
+		ply:DropWeapon(Wep)
+		return ""
 	end
-)
+end)
 
-concommand.Add(
-	"hmcd_dropequipment",
-	function(ply, cmd, args)
-		if not ply then return end
-		sound.Play("snd_jack_hmcd_disguise.wav", ply:GetPos(), 65, 80)
-		if ply.HeadArmor and (ply.HeadArmor ~= "") then
-			ply:DoAnimationEvent(ACT_GMOD_GESTURE_ITEM_DROP)
-			local Armor = ents.Create("ent_jack_hmcd_helmet")
-			Armor:SetPos(ply:GetShootPos() + ply:GetAimVector() * 25)
+concommand.Add("hmcd_dropequipment", function(ply, cmd, args)
+	if not ply then return end
+	sound.Play("snd_jack_hmcd_disguise.wav", ply:GetPos(), 65, 80)
+	if ply.HeadArmor and (ply.HeadArmor ~= "") then
+		ply:DoAnimationEvent(ACT_GMOD_GESTURE_ITEM_DROP)
+		local Armor = ents.Create("ent_jack_hmcd_helmet")
+		Armor:SetPos(ply:GetShootPos() + ply:GetAimVector() * 25)
+		Armor.HmcdSpawned = true
+		Armor:Spawn()
+		Armor:Activate()
+		Armor:GetPhysicsObject():SetVelocity(ply:GetVelocity())
+		ply:SetHeadArmor(nil)
+	end
+
+	if ply.ChestArmor and (ply.ChestArmor ~= "") then
+		ply:DoAnimationEvent(ACT_GMOD_GESTURE_ITEM_DROP)
+		local Class = nil
+		if ply.ChestArmor == "Level IIIA" then Class = "ent_jack_hmcd_softarmor" end
+		if ply.ChestArmor == "Level III" then Class = "ent_jack_hmcd_hardarmor" end
+		if Class then
+			local Armor = ents.Create(Class)
+			Armor:SetPos(ply:GetShootPos() + ply:GetAimVector() * 20)
 			Armor.HmcdSpawned = true
 			Armor:Spawn()
 			Armor:Activate()
 			Armor:GetPhysicsObject():SetVelocity(ply:GetVelocity())
-			ply:SetHeadArmor(nil)
-		end
-
-		if ply.ChestArmor and (ply.ChestArmor ~= "") then
-			ply:DoAnimationEvent(ACT_GMOD_GESTURE_ITEM_DROP)
-			local Class = nil
-			if ply.ChestArmor == "Level IIIA" then
-				Class = "ent_jack_hmcd_softarmor"
-			end
-
-			if ply.ChestArmor == "Level III" then
-				Class = "ent_jack_hmcd_hardarmor"
-			end
-
-			if Class then
-				local Armor = ents.Create(Class)
-				Armor:SetPos(ply:GetShootPos() + ply:GetAimVector() * 20)
-				Armor.HmcdSpawned = true
-				Armor:Spawn()
-				Armor:Activate()
-				Armor:GetPhysicsObject():SetVelocity(ply:GetVelocity())
-				ply:SetChestArmor(nil)
-			end
-		end
-
-		if ply.HasFlashlight then
-			ply:DoAnimationEvent(ACT_GMOD_GESTURE_ITEM_DROP)
-			local Armor = ents.Create("ent_jack_hmcd_flashlight")
-			Armor:SetPos(ply:GetShootPos() + ply:GetAimVector() * 30)
-			Armor.HmcdSpawned = true
-			Armor:Spawn()
-			Armor:Activate()
-			Armor:GetPhysicsObject():SetVelocity(ply:GetVelocity())
-			ply.HasFlashlight = false
-			net.Start("hmcd_flashlightpickup")
-			net.WriteEntity(ply)
-			net.WriteBit(ply.HasFlashlight)
-			net.Broadcast()
+			ply:SetChestArmor(nil)
 		end
 	end
-)
 
-concommand.Add(
-	"hmcd_dropammo",
-	function(ply, cmd, args)
-		if not ply then return end
-		local Num = 0
-		for amm, fuck in pairs(HMCD_AmmoWeights) do
-			local Amt = ply:GetAmmoCount(amm) or 0
-			Num = Num + Amt
-		end
-
-		if Num > 0 then
-			net.Start("hmcd_openammomenu")
-			net.Send(ply)
-		end
+	if ply.HasFlashlight then
+		ply:DoAnimationEvent(ACT_GMOD_GESTURE_ITEM_DROP)
+		local Armor = ents.Create("ent_jack_hmcd_flashlight")
+		Armor:SetPos(ply:GetShootPos() + ply:GetAimVector() * 30)
+		Armor.HmcdSpawned = true
+		Armor:Spawn()
+		Armor:Activate()
+		Armor:GetPhysicsObject():SetVelocity(ply:GetVelocity())
+		ply.HasFlashlight = false
+		net.Start("hmcd_flashlightpickup")
+		net.WriteEntity(ply)
+		net.WriteBit(ply.HasFlashlight)
+		net.Broadcast()
 	end
-)
+end)
 
-concommand.Add(
-	"hmcd_droprequest_ammo",
-	function(ply, cmd, args)
-		if not ply then return end
-		local Type, Amount = args[1], tonumber(args[2])
-		local Amm = ply:GetAmmoCount(Type)
-		if Amm < Amount then
-			Amount = Amm
-		end
-
-		if Amount > 0 then
-			ply:DropAmmo(Type, Amount)
-		end
+concommand.Add("hmcd_dropammo", function(ply, cmd, args)
+	if not ply then return end
+	local Num = 0
+	for amm, fuck in pairs(HMCD_AmmoWeights) do
+		local Amt = ply:GetAmmoCount(amm) or 0
+		Num = Num + Amt
 	end
-)
 
-concommand.Add(
-	"hmcd_lockedcontrols",
-	function(ply, cmd, args)
-		if not ply then return end
-		if ply.ContainingContainer then
-			if not ply.NextContainerShove then
-				ply.NextContainerShove = 0
-			end
+	if Num > 0 then
+		net.Start("hmcd_openammomenu")
+		net.Send(ply)
+	end
+end)
 
-			if args[1] == "+use" then
-				ply:ExitContainer()
-			elseif ply.NextContainerShove < CurTime() then
-				ply:SetPos(ply.ContainingContainer:LocalToWorld(ply.ContainingContainer:OBBCenter()) - Vector(0, 0, 20))
-				ply.NextContainerShove = CurTime() + 1
-				local Phys, Obj = ply.ContainingContainer:GetPhysicsObject(), ply.ContainingContainer
-				if Phys then
-					if args[1] == "+moveleft" then
-						Phys:ApplyForceCenter(-Obj:GetRight() * 7000)
-					elseif args[1] == "+moveright" then
-						Phys:ApplyForceCenter(Obj:GetRight() * 7000)
-					elseif args[1] == "+forward" then
-						Phys:ApplyForceCenter(Obj:GetForward() * 7000)
-					elseif args[1] == "+back" then
-						Phys:ApplyForceCenter(-Obj:GetForward() * 7000)
-					elseif args[1] == "+jump" then
-						Phys:ApplyForceCenter(Obj:GetUp() * 7000)
-					elseif args[1] == "+duck" then
-						Phys:ApplyForceCenter(-Obj:GetUp() * 7000)
-					end
+concommand.Add("hmcd_droprequest_ammo", function(ply, cmd, args)
+	if not ply then return end
+	local Type, Amount = args[1], tonumber(args[2])
+	local Amm = ply:GetAmmoCount(Type)
+	if Amm < Amount then Amount = Amm end
+	if Amount > 0 then ply:DropAmmo(Type, Amount) end
+end)
+
+concommand.Add("hmcd_lockedcontrols", function(ply, cmd, args)
+	if not ply then return end
+	if ply.ContainingContainer then
+		if not ply.NextContainerShove then ply.NextContainerShove = 0 end
+		if args[1] == "+use" then
+			ply:ExitContainer()
+		elseif ply.NextContainerShove < CurTime() then
+			ply:SetPos(ply.ContainingContainer:LocalToWorld(ply.ContainingContainer:OBBCenter()) - Vector(0, 0, 20))
+			ply.NextContainerShove = CurTime() + 1
+			local Phys, Obj = ply.ContainingContainer:GetPhysicsObject(), ply.ContainingContainer
+			if Phys then
+				if args[1] == "+moveleft" then
+					Phys:ApplyForceCenter(-Obj:GetRight() * 7000)
+				elseif args[1] == "+moveright" then
+					Phys:ApplyForceCenter(Obj:GetRight() * 7000)
+				elseif args[1] == "+forward" then
+					Phys:ApplyForceCenter(Obj:GetForward() * 7000)
+				elseif args[1] == "+back" then
+					Phys:ApplyForceCenter(-Obj:GetForward() * 7000)
+				elseif args[1] == "+jump" then
+					Phys:ApplyForceCenter(Obj:GetUp() * 7000)
+				elseif args[1] == "+duck" then
+					Phys:ApplyForceCenter(-Obj:GetUp() * 7000)
 				end
 			end
 		end
 	end
-)
+end)
 
 function PlayerMeta:DropAmmo(typ, amt)
-	if not amt then
-		amt = self:GetAmmoCount(typ)
-	end
-
+	if not amt then amt = self:GetAmmoCount(typ) end
 	if amt <= 0 then return end
 	self:DoAnimationEvent(ACT_GMOD_GESTURE_ITEM_DROP)
 	self:RemoveAmmo(amt, typ)
@@ -2068,9 +1744,7 @@ function PlayerMeta:AddExperience(amt)
 	if GetConVar("sv_cheats"):GetBool() then return end
 	local Num = 0
 	for key, playah in pairs(team.GetPlayers(2)) do
-		if not playah:IsBot() then
-			Num = Num + 1
-		end
+		if not playah:IsBot() then Num = Num + 1 end
 	end
 
 	if Num < 2 then return end
