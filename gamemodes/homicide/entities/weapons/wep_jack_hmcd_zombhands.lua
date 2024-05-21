@@ -49,8 +49,8 @@ function SWEP:Initialize()
 			1,
 			function()
 				if IsValid(self) and IsValid(self:GetOwner()) then
-					self:GetOwner():SetHealth(200)
-					self:GetOwner():SetMaxHealth(200)
+					self:GetOwner():SetHealth(450)
+					self:GetOwner():SetMaxHealth(450)
 				end
 			end
 		)
