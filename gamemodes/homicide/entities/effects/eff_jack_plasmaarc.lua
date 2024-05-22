@@ -1,13 +1,9 @@
-local Beamtwo = CreateMaterial(
-	"xeno/beamgauss",
-	"UnlitGeneric",
-	{
-		["$basetexture"] = "sprites/spotlight",
-		["$additive"] = "1",
-		["$vertexcolor"] = "1",
-		["$vertexalpha"] = "1",
-	}
-)
+local Beamtwo = CreateMaterial("xeno/beamgauss", "UnlitGeneric", {
+	["$basetexture"] = "sprites/spotlight",
+	["$additive"] = "1",
+	["$vertexcolor"] = "1",
+	["$vertexalpha"] = "1",
+})
 
 function EFFECT:Init(data)
 	self.StartPos = data:GetStart()

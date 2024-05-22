@@ -29,13 +29,11 @@ function Translator:GetLanguageTable()
 	local lang = self:GetLanguage()
 	if self.languages[lang] then return self.languages[lang] end
 	if self.languages["english"] then return self.languages["english"] end
-
 	return def
 end
 
 function Translator:GetEnglishTable()
 	if self.languages["english"] then return self.languages["english"] end
-
 	return def
 end
 
@@ -85,9 +83,7 @@ function Translator:ChangeLanguage(lang)
 		[HITGROUP_GENERIC] = ""
 	}
 
-	if SERVER then
-		self:NetworkLanguage()
-	end
+	if SERVER then self:NetworkLanguage() end
 end
 
 local files, dirs = file.Find(rootFolder .. "lang/*", "LUA")
@@ -99,20 +95,11 @@ end
 
 if SERVER then
 	util.AddNetworkString("translator_language")
-	hook.Add(
-		"Think",
-		"Translator",
-		function()
-			local lang = GAMEMODE.Language:GetString()
-			if lang == "" then
-				lang = "english"
-			end
-
-			if lang ~= Translator.language then
-				Translator:ChangeLanguage(lang)
-			end
-		end
-	)
+	hook.Add("Think", "Translator", function()
+		local lang = GAMEMODE.Language:GetString()
+		if lang == "" then lang = "english" end
+		if lang ~= Translator.language then Translator:ChangeLanguage(lang) end
+	end)
 
 	function Translator:NetworkLanguage(ply)
 		net.Start("translator_language")
@@ -124,21 +111,12 @@ if SERVER then
 		end
 	end
 
-	hook.Add(
-		"PlayerInitialSpawn",
-		"Translator",
-		function(ply)
-			Translator:NetworkLanguage(ply)
-		end
-	)
+	hook.Add("PlayerInitialSpawn", "Translator", function(ply) Translator:NetworkLanguage(ply) end)
 else
-	net.Receive(
-		"translator_language",
-		function(len)
-			local lang = net.ReadString()
-			Translator:ChangeLanguage(lang)
-		end
-	)
+	net.Receive("translator_language", function(len)
+		local lang = net.ReadString()
+		Translator:ChangeLanguage(lang)
+	end)
 end
 
 function Translator:Translate(languageTable, names)
@@ -149,7 +127,6 @@ function Translator:Translate(languageTable, names)
 				local ret = a(name)
 				if ret ~= nil then return ret end
 			end
-
 			return a
 		end
 	end
@@ -160,7 +137,6 @@ function Translator:Translate(languageTable, names)
 			local ret = a(names[1])
 			if ret ~= nil then return ret end
 		end
-
 		return a
 	end
 end
@@ -171,13 +147,11 @@ function Translator:VarTranslate(s, reptable)
 	for k, v in pairs(reptable) do
 		s = s:gsub("{" .. k .. "}", v)
 	end
-
 	return s
 end
 
 function Translator:QuickVar(s, k, v)
 	s = s:gsub("{" .. k .. "}", v)
-
 	return s
 end
 
@@ -190,22 +164,16 @@ function Translator:AdvVarTranslate(phrase, replacements)
 		local a, b, c = s:match("([^{]*){([^}]+)}(.*)")
 		if a then
 			if #a > 0 then
-				table.insert(
-					out,
-					{
-						text = a
-					}
-				)
+				table.insert(out, {
+					text = a
+				})
 			end
 
 			if type(replacements) == "function" then
 				local rep = replacements(b)
-				table.insert(
-					out,
-					rep or {
-						text = "{" .. b .. "}"
-					}
-				)
+				table.insert(out, rep or {
+					text = "{" .. b .. "}"
+				})
 			else
 				local rep = replacements[b] or "{" .. b .. "}"
 				if type(rep) == "function" then
@@ -213,12 +181,9 @@ function Translator:AdvVarTranslate(phrase, replacements)
 				elseif type(rep) == "table" then
 					table.insert(out, rep)
 				else
-					table.insert(
-						out,
-						{
-							text = rep
-						}
-					)
+					table.insert(out, {
+						text = rep
+					})
 				end
 			end
 
@@ -227,14 +192,10 @@ function Translator:AdvVarTranslate(phrase, replacements)
 	end
 
 	if #s > 0 then
-		table.insert(
-			out,
-			{
-				text = s
-			}
-		)
+		table.insert(out, {
+			text = s
+		})
 	end
-
 	return out
 end
 
@@ -254,7 +215,6 @@ local function trans(self, ...)
 	if a ~= nil then return tostring(a) end
 	local first = args[1]
 	if first then return "<" .. tostring(first) .. ">" end
-
 	return "<no-trans>"
 end
 

@@ -33,23 +33,12 @@ SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
 SWEP.CommandDroppable = false
 SWEP.DeathDroppable = false
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
@@ -77,7 +66,6 @@ end
 function SWEP:Deploy()
 	self:SetNextPrimaryFire(CurTime() + 1)
 	self.DownAmt = 20
-
 	return true
 end
 
@@ -110,11 +98,8 @@ if CLIENT then
 
 	--
 	function SWEP:GetViewModelPosition(pos, ang)
-		if not self.DownAmt then
-			self.DownAmt = 0
-		end
-
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if not self.DownAmt then self.DownAmt = 0 end
+		if self:GetOwner():IsSprinting() then
 			self.DownAmt = math.Clamp(self.DownAmt + .2, 0, 20)
 		else
 			self.DownAmt = math.Clamp(self.DownAmt - .2, 0, 20)
@@ -124,7 +109,6 @@ if CLIENT then
 		ang:RotateAroundAxis(ang:Up(), -90)
 		--ang:RotateAroundAxis(ang:Right(),-10)
 		--ang:RotateAroundAxis(ang:Forward(),-10)
-
 		return pos, ang
 	end
 

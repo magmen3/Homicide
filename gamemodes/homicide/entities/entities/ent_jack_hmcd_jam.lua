@@ -20,25 +20,16 @@ if SERVER then
 			phys:SetMass(10)
 		end
 
-		if not self.Doors then
-			self.Doors = {}
-		end
-
-		if not self.Blocking then
-			self.Blocking = false
-		end
-
-		if not self.Constraint then
-			self.Constraint = nil
-		end
+		if not self.Doors then self.Doors = {} end
+		if not self.Blocking then self.Blocking = false end
+		if not self.Constraint then self.Constraint = nil end
 	end
 
 	function ENT:Use(ply)
 		if GAMEMODE.ZOMBIE and ply.Murderer then return end
 		if self.ContactPoisoned then
 			if ply.Murderer then
-				ply:PrintMessage(HUD_PRINTTALK, translate.poisoned)
-
+				ply:ChatPrint(translate.poisoned)
 				return
 			else
 				self.ContactPoisoned = false
@@ -81,7 +72,6 @@ if SERVER then
 		end
 
 		self:NextThink(CurTime() + .1)
-
 		return true
 	end
 
@@ -89,9 +79,7 @@ if SERVER then
 		if self.Blocking then
 			self.Blocking = false
 			for key, door in pairs(self.Doors) do
-				if IsValid(door) then
-					door:Fire("unlock", "", 0)
-				end
+				if IsValid(door) then door:Fire("unlock", "", 0) end
 			end
 
 			self.Doors = {}

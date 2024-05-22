@@ -7,10 +7,7 @@ ENT.ImpactSound = "snd_jack_hmcd_foodbounce.wav"
 local FoodModels = {"models/foodnhouseholditems/mcdburgerbox.mdl", "models/foodnhouseholditems/chipsfritos.mdl", "models/foodnhouseholditems/chipslays5.mdl", "models/foodnhouseholditems/chipslays3.mdl", "models/foodnhouseholditems/mcdfrenchfries.mdl", "models/jordfood/prongleclosedfilledgreen.mdl", "models/foodnhouseholditems/mcddrink.mdl", "models/foodnhouseholditems/juicesmall.mdl", "models/jorddrink/7upcan01a.mdl", "models/jorddrink/barqcan1a.mdl", "models/jorddrink/cozcan01a.mdl", "models/jorddrink/crucan01a.mdl", "models/jorddrink/dewcan01a.mdl", "models/jorddrink/foscan01a.mdl", "models/jorddrink/heican01a.mdl", "models/jorddrink/mongcan1a.mdl", "models/jorddrink/pepcan01a.mdl", "models/jorddrink/redcan01a.mdl", "models/jorddrink/sprcan01a.mdl"}
 if SERVER then
 	function ENT:Initialize()
-		if not self.RandomModel then
-			self.RandomModel = table.Random(FoodModels)
-		end
-
+		if not self.RandomModel then self.RandomModel = table.Random(FoodModels) end
 		if table.KeyFromValue(FoodModels, self.RandomModel) > 5 then
 			self.Drink = true
 		else
@@ -42,15 +39,12 @@ if SERVER then
 			ply:GetWeapon(SWEP).Drink = Jrink
 			ply:GetWeapon(SWEP).Poisoned = self.Poisoned
 			if self.Poisoned then
-				timer.Simple(
-					.1,
-					function()
-						net.Start("hmcd_hudhalo")
-						net.WriteEntity(ply:GetWeapon(SWEP))
-						net.WriteInt(3, 32)
-						net.Send(player.GetAll())
-					end
-				)
+				timer.Simple(.1, function()
+					net.Start("hmcd_hudhalo")
+					net.WriteEntity(ply:GetWeapon(SWEP))
+					net.WriteInt(3, 32)
+					net.Send(player.GetAll())
+				end)
 			end
 
 			ply:GetWeapon(SWEP).Poisoner = self.Poisoner

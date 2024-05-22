@@ -43,10 +43,7 @@ if SERVER then
 		if GAMEMODE.ZOMBIE and ply.Murderer then return end
 		ply:GiveAmmo(1, "XBowBolt", true)
 		sound.Play("snd_jack_hmcd_arrow.wav", self:GetPos(), 60, math.random(90, 110))
-		if ply:HasWeapon("wep_jack_hmcd_bow") then
-			ply:SelectWeapon("wep_jack_hmcd_bow")
-		end
-
+		if ply:HasWeapon("wep_jack_hmcd_bow") then ply:SelectWeapon("wep_jack_hmcd_bow") end
 		self:Remove()
 	end
 
@@ -65,12 +62,9 @@ if SERVER then
 	function ENT:Think()
 		if self.Fired and not self.HitSomething then
 			local Dir, Tab = self:GetPhysicsObject():GetVelocity():GetNormalized(), {self}
-			if Dir:Length() < 10 then
-				Dir = self.InitialDir
-			end
-
+			if Dir:Length() < 10 then Dir = self.InitialDir end
 			if self.Thinks < 100 then
-				Tab = {self, self.Owner}
+				Tab = {self, self:GetOwner()}
 				self.Thinks = self.Thinks + 1
 			end
 
@@ -79,10 +73,7 @@ if SERVER then
 				self.HitSomething = true
 				local Break, DMul = false, 1
 				if Tr.Entity:IsPlayer() or Tr.Entity:IsNPC() then
-					if Tr.HitGroup then
-						DMul = LocationalMuls[Tr.HitGroup]
-					end
-
+					if Tr.HitGroup then DMul = LocationalMuls[Tr.HitGroup] end
 					if Tr.Entity:IsPlayer() then
 						if Tr.Entity.ChestArmor and (Tr.Entity.ChestArmor == "Level III") and Tr.HitGroup and (Tr.HitGroup == HITGROUP_CHEST) then
 							Break = true
@@ -100,31 +91,26 @@ if SERVER then
 				Dmg:SetDamage(40 * DMul)
 				Dmg:SetDamageType(DMG_SLASH)
 				Dmg:SetDamagePosition(Tr.HitPos)
-				Dmg:SetAttacker(self.Owner)
+				Dmg:SetAttacker(self:GetOwner())
 				Dmg:SetInflictor(self)
 				Dmg:SetDamageForce(self:GetPhysicsObject():GetVelocity())
 				Tr.Entity:TakeDamageInfo(Dmg)
-				self:FireBullets(
-					{
-						Src = self:GetPos(),
-						Dir = Dir,
-						Damage = 1,
-						Attacker = self.Owner,
-						Spread = Vector(0, 0, 0),
-						Num = 1
-					}
-				)
+				self:FireBullets({
+					Src = self:GetPos(),
+					Dir = Dir,
+					Damage = 1,
+					Attacker = self:GetOwner(),
+					Spread = Vector(0, 0, 0),
+					Num = 1
+				})
 
 				if self.Poisoned and Tr.Entity:IsPlayer() then
-					HMCD_Poison(Tr.Entity, self.Owner)
+					HMCD_Poison(Tr.Entity, self:GetOwner())
 					self.Poisoned = false
 				end
 
 				util.Decal("Impact.Metal", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal)
-				if table.HasValue(BreakMats, Tr.MatType) then
-					Break = true
-				end
-
+				if table.HasValue(BreakMats, Tr.MatType) then Break = true end
 				if not Break then
 					sound.Play("Flesh.BulletImpact", Tr.HitPos, 60, 100)
 					self:SetPos(Tr.HitPos - Dir)
@@ -143,15 +129,11 @@ if SERVER then
 		end
 
 		self:NextThink(CurTime() + .01)
-
 		return true
 	end
 
 	function ENT:PhysicsCollide(data, physobj)
-		if data.DeltaTime > .15 then
-			self:EmitSound("snd_jack_hmcd_arrow.wav", 60, math.random(90, 110))
-		end
-
+		if data.DeltaTime > .15 then self:EmitSound("snd_jack_hmcd_arrow.wav", 60, math.random(90, 110)) end
 		self.HitSomething = true
 	end
 

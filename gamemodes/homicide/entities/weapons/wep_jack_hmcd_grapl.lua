@@ -31,23 +31,12 @@ SWEP.SwayScale = 3
 SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = false
+SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = true
@@ -98,9 +87,7 @@ function SWEP:OnDrop()
 		Ent:GetPhysicsObject():SetVelocity(self:GetVelocity() / 2)
 	end
 
-	if SERVER then
-		self:Remove()
-	end
+	if SERVER then self:Remove() end
 end
 
 function SWEP:PrimaryAttack()
@@ -114,9 +101,7 @@ function SWEP:PrimaryAttack()
 			else
 				self.DesiredDist = math.Clamp(self.DesiredDist - 20, 50, 5000)
 				local Tr = util.QuickTrace(self:GetOwner():GetShootPos(), self:GetOwner():GetAimVector() * 60, {self:GetOwner()})
-				if Tr.Hit then
-					self:GetOwner():SetVelocity(-self:GetOwner():GetAimVector() * 300)
-				end
+				if Tr.Hit then self:GetOwner():SetVelocity(-self:GetOwner():GetAimVector() * 300) end
 			end
 
 			HMCD_StaminaPenalize(self:GetOwner(), 4)
@@ -152,15 +137,10 @@ function SWEP:Reload()
 	if self:GetCurrentState() == "Nothing" then
 		self:Deploy()
 		self.GrapplinHook = nil
-		if self.Rope and self.Rope.Remove and IsValid(self.Rope) and SERVER then
-			self.Rope:Remove()
-		end
-
+		if self.Rope and self.Rope.Remove and IsValid(self.Rope) and SERVER then self.Rope:Remove() end
 		self.Rope = nil
 		self:SetHoldType("normal")
-		if SERVER then
-			self:Remove()
-		end
+		if SERVER then self:Remove() end
 	end
 end
 
@@ -170,13 +150,11 @@ function SWEP:Think()
 		self.NextThinkTime = Time + .025
 		local State = self:GetCurrentState()
 		if not (State == "Nothing") then
-			local Sprintin = self:GetOwner():KeyDown(IN_SPEED)
+			local Sprintin = self:GetOwner():IsSprinting()
 			local HiddenAmt = self:GetHidden()
 			local BackAmt = self:GetBack()
 			if State == "Idling" then
-				if self:GetOwner():KeyDown(IN_ATTACK) then
-					self:Windup()
-				end
+				if self:GetOwner():KeyDown(IN_ATTACK) then self:Windup() end
 			elseif State == "Hidden" then
 				if math.random(1, 19) == 18 then
 					self:GetOwner():ViewPunch(Angle(1, 0, 0))
@@ -185,9 +163,7 @@ function SWEP:Think()
 				end
 			elseif State == "Drawing" then
 				self:SetHidden(math.Clamp(HiddenAmt - 10 / self.DrawTime, 0, 100))
-				if HiddenAmt <= 0 then
-					self:SetCurrentState("Idling")
-				end
+				if HiddenAmt <= 0 then self:SetCurrentState("Idling") end
 			elseif (State == "Winding") and not self.JustThrew then
 				self:SetHoldType("Grenade")
 				if not self:GetOwner():KeyDown(IN_ATTACK) then
@@ -196,7 +172,6 @@ function SWEP:Think()
 						self:SetHidden(100)
 						self:SetBack(0)
 						self:Throw()
-
 						return
 					end
 				end
@@ -210,7 +185,6 @@ function SWEP:Think()
 	end
 
 	self:NextThink(Time + .025)
-
 	return true
 end
 
@@ -235,17 +209,14 @@ function SWEP:Throw()
 	local Pos = self:GetOwner():GetShootPos()
 	local ThrowPos = Pos + Vec * 30
 	local Tr = util.QuickTrace(Pos, Vec * 35, {self:GetOwner()})
-	if Tr.Hit then
-		ThrowPos = Pos + Vec * 10
-	end
-
+	if Tr.Hit then ThrowPos = Pos + Vec * 10 end
 	sound.Play("weapons/slam/throw.wav", self:GetPos(), 75, 80)
 	sound.Play("weapons/slam/throw.wav", self:GetPos(), 70, 80)
 	sound.Play("weapons/slam/throw.wav", self:GetPos(), 65, 80)
 	local Gr = ents.Create("ent_jack_hmcd_grapl")
 	Gr.HmcdSpawned = self.HmcdSpawned
 	Gr:SetPos(ThrowPos)
-	Gr.Owner = self:GetOwner()
+	Gr:SetOwner(self:GetOwner())
 	Gr:SetAngles(VectorRand():Angle())
 	Gr:Spawn()
 	Gr:Activate()
@@ -254,19 +225,8 @@ function SWEP:Throw()
 	-- JIBFS.CloakPenalize(self:GetOwner())
 	Gr:GetPhysicsObject():SetVelocity(self:GetOwner():GetVelocity() + Vec * self:GetThrowPower() * 6 * self.ThrowAbility)
 	Gr:SetPhysicsAttacker(self:GetOwner())
-	timer.Simple(
-		.5,
-		function()
-			if IsValid(self) then
-				self:SetHoldType("melee2")
-			end
-		end
-	)
-
-	if self.Rope and self.Rope.Remove and SERVER then
-		self.Rope:Remove()
-	end
-
+	timer.Simple(.5, function() if IsValid(self) then self:SetHoldType("melee2") end end)
+	if self.Rope and self.Rope.Remove and SERVER then self.Rope:Remove() end
 	self.Rope = self:CollisionlessKeyFrameRope(self:GetOwner(), self.GrapplinHook, Vector(0, 0, 10), Vector(0, 0, 0), 1000, 2, "cable/rope")
 end
 
@@ -276,10 +236,7 @@ function SWEP:CollisionlessKeyFrameRope(Ent1, Ent2, LPos1, LPos2, length, width,
 	local rope = ents.Create("keyframe_rope")
 	rope:SetPos(Ent1:GetPos())
 	rope:SetKeyValue("Width", width)
-	if material then
-		rope:SetKeyValue("RopeMaterial", material)
-	end
-
+	if material then rope:SetKeyValue("RopeMaterial", material) end
 	rope:SetEntity("StartEntity", Ent1)
 	rope:SetKeyValue("StartOffset", tostring(LPos1))
 	rope:SetKeyValue("StartBone", 0)
@@ -299,7 +256,6 @@ function SWEP:CollisionlessKeyFrameRope(Ent1, Ent2, LPos1, LPos2, length, width,
 	rope:Activate()
 	Ent1:DeleteOnRemove(rope)
 	Ent2:DeleteOnRemove(rope)
-
 	return rope
 end
 
@@ -312,13 +268,8 @@ function SWEP:OnRemove()
 		end
 	end
 
-	if self.Rope and self.Rope.Remove and IsValid(self.Rope) and SERVER then
-		self.Rope:Remove()
-	end
-
-	if self:GetOwner() and IsValid(self:GetOwner()) and self:GetOwner().SelectWeapon then
-		self:GetOwner():SelectWeapon("wep_jack_hmcd_hands")
-	end
+	if self.Rope and self.Rope.Remove and IsValid(self.Rope) and SERVER then self.Rope:Remove() end
+	if self:GetOwner() and IsValid(self:GetOwner()) and self:GetOwner().SelectWeapon then self:GetOwner():SelectWeapon("wep_jack_hmcd_hands") end
 end
 
 function SWEP:Holster()
@@ -330,7 +281,6 @@ function SWEP:Holster()
 				vm:SetColor(color_white)
 			end
 		end
-
 		return true
 	else
 		return false
@@ -348,16 +298,13 @@ function SWEP:HideThenDraw(num)
 	self:SetHidden(100)
 	self:SetCurrentState("Hidden")
 	-- self:EmitSound("snds_jack_equipmentfumble/"..math.random(1,10)..".wav",70,math.random(80,120))
-	timer.Simple(
-		num,
-		function()
-			if IsValid(self) then
-				-- self:EmitSound("snds_jack_clothmove/"..math.random(1,9)..".wav",70,math.random(90,110))
-				self:SetCurrentState("Drawing")
-				self:CustomFinishedDrawing()
-			end
+	timer.Simple(num, function()
+		if IsValid(self) then
+			-- self:EmitSound("snds_jack_clothmove/"..math.random(1,9)..".wav",70,math.random(90,110))
+			self:SetCurrentState("Drawing")
+			self:CustomFinishedDrawing()
 		end
-	)
+	end)
 end
 
 function SWEP:CustomFinishedDrawing()
@@ -387,14 +334,11 @@ function SWEP:CustomThink(State, Sprintin, HiddenAmt, BackAmt)
 			self.GrapplinHook:GetPhysicsObject():ApplyForceCenter(-Dir * EffDist * 100 - self.GrapplinHook:GetPhysicsObject():GetVelocity() / 40)
 			if (EffDist > 20) and not Ground and (RelVel:Length() > 1200) then
 				self:Fail()
-
 				return
 			end
 		end
 
-		if self.Rope then
-			self.Rope:Fire("SetLength", self.DesiredDist + 10)
-		end
+		if self.Rope then self.Rope:Fire("SetLength", self.DesiredDist + 10) end
 	elseif State == "Nothing" then
 		self:Reload()
 	elseif State == "Winding" then
@@ -407,10 +351,7 @@ function SWEP:CustomThink(State, Sprintin, HiddenAmt, BackAmt)
 
 		if SERVER then
 			local Spun = self:GetSpin() + 25
-			if Spun > 360 then
-				Spun = 0
-			end
-
+			if Spun > 360 then Spun = 0 end
 			self:SetSpin(Spun)
 		end
 	end
@@ -428,18 +369,14 @@ if CLIENT then
 
 	local DownAmt = 10
 	function SWEP:GetViewModelPosition(pos, ang)
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if self:GetOwner():IsSprinting() then
 			DownAmt = math.Clamp(DownAmt + .6, 0, 50)
 		else
 			DownAmt = math.Clamp(DownAmt - .6, 0, 50)
 		end
 
-		if (self:GetCurrentState() == "Nothing") or (self:GetCurrentState() == "Winding") then
-			DownAmt = DownAmt + 10
-		end
-
+		if (self:GetCurrentState() == "Nothing") or (self:GetCurrentState() == "Winding") then DownAmt = DownAmt + 10 end
 		pos = pos + ang:Forward() * 30 + ang:Right() * 15 - ang:Up() * (15 + DownAmt)
-
 		return pos, ang
 	end
 

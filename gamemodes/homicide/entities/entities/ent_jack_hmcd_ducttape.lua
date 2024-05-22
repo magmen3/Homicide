@@ -30,10 +30,7 @@ if SERVER then
 			self:EmitSound(self.ImpactSound, 60, 100)
 			ply:Give(SWEP)
 			ply:GetWeapon(self.SWEP).HmcdSpawned = self.HmcdSpawned
-			if self.TapeAmount then
-				ply:GetWeapon(SWEP).TapeAmount = self.TapeAmount
-			end
-
+			if self.TapeAmount then ply:GetWeapon(SWEP).TapeAmount = self.TapeAmount end
 			self:Remove()
 			ply:SelectWeapon(SWEP)
 		else

@@ -72,6 +72,7 @@ pt.startHelpGun = {"There is a murderer on the loose", "Find and kill him/her", 
 pt.startHelpMurdererTitle = "You are the murderer"
 pt.startHelpMurderer = {"Kill everyone", "Don't get caught"}
 pt.pressEToDisguiseFor1Loot = "[E] Disguise as"
+pt.bodysearchPressE = "[E] Search body for clues"
 pt.playerStatusDead = "Dead"
 -- lines not originally in file
 pt.ms = ""
@@ -266,11 +267,123 @@ pt.identSuccess4 = " core "
 pt.identSuccess5 = " lowerbody "
 pt.identSuccess6 = " wearing "
 pt.identSuccess7 = " clothes + "
-pt.tips = {"The shuriken is not a killing weapon. It is useful for poisoning and for chipping away at someone who's out of reach.", "The murderer's knife does much more damage with backstabs.", "The IED can be hidden inside most props. Certain props add special effects to the explosion (shrapnel, fire, etc).", "Items spawn all around the map for bystanders to use. Food, weapons, building materials, etc.", "If items aren't spawning on your map, contact the author, Jackarunda, so he can investigate and improve the spawning algorithm.", "It you spawn often in walls on your map, contact the author, Jackarunda, so he can investigate and improve the spawning algorithm.", "If you spawn stuck in something, try crouching (to move your collision hull) or punching with your fists to nudge yourself.", "Shot placement counts. Limb shots don't do much health damage, though they have other effects.", "Being shot in the legs causes temporary immobilization.", "Being shot in the arms forces you to fumble your weapon (switch to hands).", "Eating food grants a stamina regen bonus and also allows you to slowly regenerate health.", "Bandages only stop bleeding; they don't restore health.", "If you can't reach a particular ledge, try punching the wall downward to give yourself an upward boost while crouch-jumping.", "The murderer has many ways to poison people: injection, item contact, weapon strike and food poisoning.", "If you can't jump or walk, you're probably exhausted. Just sit still for a moment and let your stamina (flashing bar) regenerate.", "Drawing the fake pistol will likely expose you as the murderer if you do it too soon. Drop the thing instead to act as bait.", "The silenced pistol shoots a .22LR, a very weak round. Headshots are the shots of choice for this weapon.", "When stabbing, the murderer immobilizes victims, preventing them from turning or moving. Don't get caught.", "There are many weapons that bystanders can use to defend themselves. Bats, pocket knives, fists, etc.", "The axe and hatchet can only be used by the murderer.", "The hatchet is the only throwing weapon that can easily deal lethal damage to someone.", "The axe can actually break down map doors with enough swings.", "Duct tape and hammer/nails can be used to seal map doors, though it uses a lot of tape/nails.", "A bare IED can blow down map doors.", "An IED inside a dense metal prop will create metal fragments upon detonation, tripling lethality.", "An IED inside a flammable prop (such as a gasoline canister) will burst into flames upon detonation.", "Don't equip the psycho disguise unless you have an escape plan. Its purpose is only to hide your true identity.", "The bolt action rifle is not an ideal weapon in close quarters. It is very long, slow and unwieldy.", "The shotgun is a great close-quarters weapon. It has tons of killing power.", "The AR15 is an optimal weapon, posessing accuracy, maneuverability, firepower, a high rate of fire and a large magazine.", "Even in normal homicide mode, additional 9mm ammunition can be found all around the map, though it is rare.", "It is possible for bystanders to find pistols, though they are rare.", "Collect bandages. They stop bleeding and can save you from a ton of damage.", "Bandages only stop bleeding; they do not instantly restore health. Nothing does.", "The only way to regain health is to slowly heal, which food and medkits help you do.", "Bandages and medkits are more effective when used on someone other than the person holding them. Be a pal.", "You can apply bandages and medkits to other people. Doing so causes the items to be applied much faster and be more effective.", "Medkits stop bleeding, provide pain relief, boost stamina regeneration and induce health regeneration.", "Pain pills provide temporary pain relief, which allows you to move normally even when you're wounded.", "The murderer's adrenaline shot allows the murderer to temporarily run and jump at nearly superhuman speeds, despite wounds.", "The murderer's adrenaline shot does not give any extra health or stop bleeding, it merely raises movement speed and stamina.", "If you can manage to find some duct tape or a hammer and nails, you can build forts and barricades.", "Barricades can be built using props and fastening equipment, like duct tape and nails. Barricades can save you from the murderer.", "The murderer can bust through doors and barricades with an axe. Here's Johnny!", "As this game is meant for public servers, RDMing is dealt with very harshly. Turn on sv_cheats if you don't want penalties.", "When you RDM, you accumulate Guilt. Too much guilt can cause you to be gimped at spawn, or kickbanned at the end of a round.", "Kickbans for RDMing only last one minute, just to prevent instant rejoining.", "You can be punished for RDMing even if you don't kill anyone. Repeated punching over multiple rounds can get you in trouble.", "Asault laws are a thing. As a normal non-murdering citizen, you are subject to harsh penalties for RDMing.", "Loot only spawns in places where players aren't. If you want loot, move around the map and find places where no one is.", "The police will shoot the murderer and anyone else who has a weapon drawn, even fists.", "The national guardsmen will shoot the traitor and anyone else who attacks an innocent while they're around.", "Rejoining a server does NOT reset your RDM guilt. Guilt is stored per steam-ID.", "Turning on sv_cheats disables RDM penalties and anticheat features (good for messing around or making videos).", "The murderer generally stands no chance in open confrontation with a gunman. Stealth and cunning are necessary.", "You can set a custom name and appearance for use in Homicide using an identity.txt file. For details type 'homicide_identity_help'", "Holding right-click with your fists blocks, reducing incoming punch damage.", "We live in a lawful society with assault laws. RDMing is dealt with very harshly. Turn on sv_cheats to disable penalties.", "Your RDM offenses are forgiven over time. Go an entire round without losing your innocence and you get bonus forgiveness.", "The IED isn't terribly lethal on its own. Put it in something that'll fragment, like a metal container.", "As the traitor/murderer, you start with more gear than bystanders. Don't give yourself away by showing it too early.", "Just because someone has additional gear or items doesn't mean they're the murderer. Items can be found around the map all the time.", "The curare poison can be applied to any bladed weapon. The first person struck with the poisoned weapon will die after a while.", "The VX poison can be applied to any pick-up-able item. The first person who touches the poisoned item will die after a while.", "The batrachotoxin needle can be used to quietly prick someone from behind. The poisoned person will die after a while.", "The tetrodotoxin poison can be mixed into any food or drink lying around. Anyone who eats the item will die after a while.", "The door wedge can be used to completely block a door from one side.", "Can't jump high enough? Just chill for a minute. Let your stamina regenerate.", "A basic understanding of aerobic stamina/fatigue is necessary to effectively flee from the murderer.", "State-of-Emergency mode can be forced on or off with the console command 'homicide_setmode 1/0'", "If a mass murderer gets loose in a gun-free zone, you'd better run or hide and hope the cops double-time it.", "Localized chaos can break out after natural disasters, especially in 2nd and 3rd world countries. This is a state of emergency.", "Gun-Free-Zone mode is similar to a hunt or a deadly game of hide-and-seek.", "Some State-of-Emergency rounds will be Bonus Deathmatch rounds, where it's a classic free-for-all gunfight with increased rewards.", "Wild-West mode is where everyone has a gun, even the murderer.", "In Jihad Mode, a suicidal lunatic is trying to blow everyone up.", "The longer you spin the grappling hook, the further you will throw it.", "The grappling hook must come to rest upon something in order to anchor. Listen for the anchoring sound before climbing the rope.", "If you rapel down from somewhere using a grappling hook, you'll have to leave it behind.", "The grappling hook's rope does not have collision or hang around corners. This is simply a limitation of GMod.", "Pull the grappling hook's rope taut in mid-flight to get it to land where you want.", "If you spawn stuck in something, aim where you want to go and use the *unstick chat command. You only get one try per round.", "The *unstick chat command can get you free from being stuck in the map. You can only do it once per round, though.", "People can hide inside large containers by pressing RMB+E. Deadly prophunt.", "While hiding inside an object, you can nudge the object in different directions with WASD.", "The Zyklon-B poison gas canister will contaminate an area for about 4 minutes.", "Poison gas is less deadly in wide open spaces and more deadly in small enclosed spaces.", "Poison gas will expand to fill rooms and will flow down hallways. Closing doors is a good way to contain the gas.", "The poison gas canister can easily poison the murderer if he isn't careful to avoid the area he placed it in.", "Pro-tip: hide the poison gas canister where it won't be found, like behind furniture. The gas will fill the room all the same.", "The murderer can silence his own footsteps by holding ALT.", "Don't use your scroll wheel to change weapons, noob, use your number keys.", "Your number keys change weapons much faster than your scrollwheel. Learn to play computer games.", "As an alpha zombie, you can order the other zombies to charge a location or to return to you.", "As an alpha zombie, you can smell the living. Your vision becomes more red as you close on your nearest target.", "As an alpha zombie, use other zombies as meatshields. The round ends if you are destroyed.", "Travel light. Everything you carry slows you down.", "Bad people are generally at greater risk of bad things happen to them. No rest for the wicked.", "You can specify your custom identity easily using the identity UI console command: homicide_appearance_menu", "Be the coolest kid on the block by using the concommand homicide_appearance_menu to set a custom identity.", "Custom identities (clothes, accessory, playermodel, color etc) can be set by using the concommand homicide_appearance_menu.", "If you don't set a custom identity with the concommand homicide_appearance_menu, you will be assigned a random identity every round.", "As the alpha zombie, your vision turns more red when you look in the direction of the living.", "If you ever spawn stuck in something, or get stuck in something, look where you want to go and type *unstick in chat.", "If you are killed unjustly but you ain't even mad, you can press F shortly after dying to forgive your attackers (prevent them from gaining guilt).", "If you are wrongfully killed and mad about it, don't press F after dying. Let your attackers gain guilt and eventually be kicked.", "Pressing F shortly after death will forgive your attackers, if you were wrongfully killed. This will prevent them from gaining guilt.", "If your friend accidentally kills you wrongfully, press F after death to forgive him and prevent him from gaining guilt."} -- "Your merit (kills, assists etc) are stored in the server's database, and used in your skill (SK) calculation.", -- "Your demerits (deaths, teamkills etc) are stored in the server's database, and used in your skill (SK) calculation.", -- "The total time you've been alive during gameplay is stored in the server's database, and used in your experience (XP) calculation.",
+pt.tips = {
+	"The shuriken is not a killing weapon. It is useful for poisoning and for chipping away at someone who's out of reach.", -- "Your merit (kills, assists etc) are stored in the server's database, and used in your skill (SK) calculation.", -- "Your demerits (deaths, teamkills etc) are stored in the server's database, and used in your skill (SK) calculation.", -- "The total time you've been alive during gameplay is stored in the server's database, and used in your experience (XP) calculation.",
+	"The murderer's knife does much more damage with backstabs.",
+	"The IED can be hidden inside most props. Certain props add special effects to the explosion (shrapnel, fire, etc).",
+	"Items spawn all around the map for bystanders to use. Food, weapons, building materials, etc.",
+	"If items aren't spawning on your map, contact the author, Jackarunda, so he can investigate and improve the spawning algorithm.",
+	"It you spawn often in walls on your map, contact the author, Jackarunda, so he can investigate and improve the spawning algorithm.",
+	"If you spawn stuck in something, try crouching (to move your collision hull) or punching with your fists to nudge yourself.",
+	"Shot placement counts. Limb shots don't do much health damage, though they have other effects.",
+	"Being shot in the legs causes temporary immobilization.",
+	"Being shot in the arms forces you to fumble your weapon (switch to hands).",
+	"Eating food grants a stamina regen bonus and also allows you to slowly regenerate health.",
+	"Bandages only stop bleeding; they don't restore health.",
+	"If you can't reach a particular ledge, try punching the wall downward to give yourself an upward boost while crouch-jumping.",
+	"The murderer has many ways to poison people: injection, item contact, weapon strike and food poisoning.",
+	"If you can't jump or walk, you're probably exhausted. Just sit still for a moment and let your stamina (flashing bar) regenerate.",
+	"Drawing the fake pistol will likely expose you as the murderer if you do it too soon. Drop the thing instead to act as bait.",
+	"The silenced pistol shoots a .22LR, a very weak round. Headshots are the shots of choice for this weapon.",
+	"When stabbing, the murderer immobilizes victims, preventing them from turning or moving. Don't get caught.",
+	"There are many weapons that bystanders can use to defend themselves. Bats, pocket knives, fists, etc.",
+	"The axe and hatchet can only be used by the murderer.",
+	"The hatchet is the only throwing weapon that can easily deal lethal damage to someone.",
+	"The axe can actually break down map doors with enough swings.",
+	"Duct tape and hammer/nails can be used to seal map doors, though it uses a lot of tape/nails.",
+	"A bare IED can blow down map doors.",
+	"An IED inside a dense metal prop will create metal fragments upon detonation, tripling lethality.",
+	"An IED inside a flammable prop (such as a gasoline canister) will burst into flames upon detonation.",
+	"Don't equip the psycho disguise unless you have an escape plan. Its purpose is only to hide your true identity.",
+	"The bolt action rifle is not an ideal weapon in close quarters. It is very long, slow and unwieldy.",
+	"The shotgun is a great close-quarters weapon. It has tons of killing power.",
+	"The AR15 is an optimal weapon, posessing accuracy, maneuverability, firepower, a high rate of fire and a large magazine.",
+	"Even in normal homicide mode, additional 9mm ammunition can be found all around the map, though it is rare.",
+	"It is possible for bystanders to find pistols, though they are rare.",
+	"Collect bandages. They stop bleeding and can save you from a ton of damage.",
+	"Bandages only stop bleeding; they do not instantly restore health. Nothing does.",
+	"The only way to regain health is to slowly heal, which food and medkits help you do.",
+	"Bandages and medkits are more effective when used on someone other than the person holding them. Be a pal.",
+	"You can apply bandages and medkits to other people. Doing so causes the items to be applied much faster and be more effective.",
+	"Medkits stop bleeding, provide pain relief, boost stamina regeneration and induce health regeneration.",
+	"Pain pills provide temporary pain relief, which allows you to move normally even when you're wounded.",
+	"The murderer's adrenaline shot allows the murderer to temporarily run and jump at nearly superhuman speeds, despite wounds.",
+	"The murderer's adrenaline shot does not give any extra health or stop bleeding, it merely raises movement speed and stamina.",
+	"If you can manage to find some duct tape or a hammer and nails, you can build forts and barricades.",
+	"Barricades can be built using props and fastening equipment, like duct tape and nails. Barricades can save you from the murderer.",
+	"The murderer can bust through doors and barricades with an axe. Here's Johnny!",
+	"As this game is meant for public servers, RDMing is dealt with very harshly. Turn on sv_cheats if you don't want penalties.",
+	"When you RDM, you accumulate Guilt. Too much guilt can cause you to be gimped at spawn, or kickbanned at the end of a round.",
+	"Kickbans for RDMing only last one minute, just to prevent instant rejoining.",
+	"You can be punished for RDMing even if you don't kill anyone. Repeated punching over multiple rounds can get you in trouble.",
+	"Asault laws are a thing. As a normal non-murdering citizen, you are subject to harsh penalties for RDMing.",
+	"Loot only spawns in places where players aren't. If you want loot, move around the map and find places where no one is.",
+	"The police will shoot the murderer and anyone else who has a weapon drawn, even fists.",
+	"The national guardsmen will shoot the traitor and anyone else who attacks an innocent while they're around.",
+	"Rejoining a server does NOT reset your RDM guilt. Guilt is stored per steam-ID.",
+	"Turning on sv_cheats disables RDM penalties and anticheat features (good for messing around or making videos).",
+	"The murderer generally stands no chance in open confrontation with a gunman. Stealth and cunning are necessary.",
+	"You can set a custom name and appearance for use in Homicide using an identity.txt file. For details type 'homicide_identity_help'",
+	"Holding right-click with your fists blocks, reducing incoming punch damage.",
+	"We live in a lawful society with assault laws. RDMing is dealt with very harshly. Turn on sv_cheats to disable penalties.",
+	"Your RDM offenses are forgiven over time. Go an entire round without losing your innocence and you get bonus forgiveness.",
+	"The IED isn't terribly lethal on its own. Put it in something that'll fragment, like a metal container.",
+	"As the traitor/murderer, you start with more gear than bystanders. Don't give yourself away by showing it too early.",
+	"Just because someone has additional gear or items doesn't mean they're the murderer. Items can be found around the map all the time.",
+	"The curare poison can be applied to any bladed weapon. The first person struck with the poisoned weapon will die after a while.",
+	"The VX poison can be applied to any pick-up-able item. The first person who touches the poisoned item will die after a while.",
+	"The batrachotoxin needle can be used to quietly prick someone from behind. The poisoned person will die after a while.",
+	"The tetrodotoxin poison can be mixed into any food or drink lying around. Anyone who eats the item will die after a while.",
+	"The door wedge can be used to completely block a door from one side.",
+	"Can't jump high enough? Just chill for a minute. Let your stamina regenerate.",
+	"A basic understanding of aerobic stamina/fatigue is necessary to effectively flee from the murderer.",
+	"State-of-Emergency mode can be forced on or off with the console command 'homicide_setmode 1/0'",
+	"If a mass murderer gets loose in a gun-free zone, you'd better run or hide and hope the cops double-time it.",
+	"Localized chaos can break out after natural disasters, especially in 2nd and 3rd world countries. This is a state of emergency.",
+	"Gun-Free-Zone mode is similar to a hunt or a deadly game of hide-and-seek.",
+	"Some State-of-Emergency rounds will be Bonus Deathmatch rounds, where it's a classic free-for-all gunfight with increased rewards.",
+	"Wild-West mode is where everyone has a gun, even the murderer.",
+	"In Jihad Mode, a suicidal lunatic is trying to blow everyone up.",
+	"The longer you spin the grappling hook, the further you will throw it.",
+	"The grappling hook must come to rest upon something in order to anchor. Listen for the anchoring sound before climbing the rope.",
+	"If you rapel down from somewhere using a grappling hook, you'll have to leave it behind.",
+	"The grappling hook's rope does not have collision or hang around corners. This is simply a limitation of GMod.",
+	"Pull the grappling hook's rope taut in mid-flight to get it to land where you want.",
+	"If you spawn stuck in something, aim where you want to go and use the *unstick chat command. You only get one try per round.",
+	"The *unstick chat command can get you free from being stuck in the map. You can only do it once per round, though.",
+	"People can hide inside large containers by pressing RMB+E. Deadly prophunt.",
+	"While hiding inside an object, you can nudge the object in different directions with WASD.",
+	"The Zyklon-B poison gas canister will contaminate an area for about 4 minutes.",
+	"Poison gas is less deadly in wide open spaces and more deadly in small enclosed spaces.",
+	"Poison gas will expand to fill rooms and will flow down hallways. Closing doors is a good way to contain the gas.",
+	"The poison gas canister can easily poison the murderer if he isn't careful to avoid the area he placed it in.",
+	"Pro-tip: hide the poison gas canister where it won't be found, like behind furniture. The gas will fill the room all the same.",
+	"The murderer can silence his own footsteps by holding ALT.",
+	"Don't use your scroll wheel to change weapons, noob, use your number keys.",
+	"Your number keys change weapons much faster than your scrollwheel. Learn to play computer games.",
+	"As an alpha zombie, you can order the other zombies to charge a location or to return to you.",
+	"As an alpha zombie, you can smell the living. Your vision becomes more red as you close on your nearest target.",
+	"As an alpha zombie, use other zombies as meatshields. The round ends if you are destroyed.",
+	"Travel light. Everything you carry slows you down.",
+	"Bad people are generally at greater risk of bad things happen to them. No rest for the wicked.",
+	"You can specify your custom identity easily using the identity UI console command: homicide_appearance_menu",
+	"Be the coolest kid on the block by using the concommand homicide_appearance_menu to set a custom identity.",
+	"Custom identities (clothes, accessory, playermodel, color etc) can be set by using the concommand homicide_appearance_menu.",
+	"If you don't set a custom identity with the concommand homicide_appearance_menu, you will be assigned a random identity every round.",
+	"As the alpha zombie, your vision turns more red when you look in the direction of the living.",
+	"If you ever spawn stuck in something, or get stuck in something, look where you want to go and type *unstick in chat.",
+	"If you are killed unjustly but you ain't even mad, you can press F shortly after dying to forgive your attackers (prevent them from gaining guilt).",
+	"If you are wrongfully killed and mad about it, don't press F after dying. Let your attackers gain guilt and eventually be kicked.",
+	"Pressing F shortly after death will forgive your attackers, if you were wrongfully killed. This will prevent them from gaining guilt.",
+	"If your friend accidentally kills you wrongfully, press F after death to forgive him and prevent him from gaining guilt."
+}
+
 pt.weaponAdrenaline = "Epinephrine Autoinjector"
 pt.weaponAdrenalineDesc = "This is a self-contained adrenaline injector for stopping allergic reactions. Use it to give yourself a serious stamina boost when murdering.\n\nLBM to inject drug."
 pt.weaponassaultrifle = "AR-15"
 pt.weaponassaultrifleDesc = "An absurdly powerful weapon, this aluminum/polymer 5.56x45mm semi-automatic home-assembled 30-round-capacity rifle is the quintessence of an armed American citizenry in the early 21st century.\n\nLMB to fire.\nRMB to aim.\nRELOAD to reload.\nShot placement counts.\nCrouching helps stability.\nBullets can ricochet and penetrate."
+pt.weaponautorifle = "Illegally-automatic AR-15"
+pt.weaponautorifleDesc = "An absurdly powerful weapon, this aluminum/polymer 5.56x45mm semi-automatic home-assembled 30-round-capacity rifle is the quintessence of an armed American citizenry in the early 21st century.\n\nIt has an illegal automatic firing mode built into it, very unstable and sloppy, but pretty effective indoors.\n\nLMB to fire.\nRMB to aim.\nRELOAD to reload.\nShot placement counts.\nCrouching helps stability.\nBullets can ricochet and penetrate."
 pt.weaponAxe = "Woodcutting Axe"
 pt.weaponAxeDesc = "This is a typical woodcutter's axe with a sharp steel head. Murder the innocent like the a true psycopath.\n\nLBM to swing.\nCan also bust down doors and destroy fortifications."
 pt.weaponSmallBandage = "Small Bandage"
@@ -365,3 +478,11 @@ pt.weaponWalkieTalkieDesc = "This is an average consumer-grade medium-range walk
 pt.weaponWalkieTalkieHide = "You hide the additional walkie talkie."
 pt.weaponZombHandsDesc = "These are your zombified hands. They're no energy sword, but they still pack a wallop.\n\nLMB clobber.\nRMB to direct fellow zombies.\nRELOAD to recall fellow zombies."
 pt.additionalFlashlight = "You hide the additional flashlight."
+pt.bodysearchKilledwith = " is killed with "
+pt.bodysearchKilledfrom = " was killed from approximately "
+pt.bodysearchMeters = " meters"
+pt.bodysearchLastweapon = "'s last weapon that he held in his hands is "
+pt.bodysearchLasthitgroup = " was killed "
+pt.bodysearchWeaponwith = "weapon with "
+pt.bodysearchCaliber = " caliber"
+pt.bodysearchNothing = "nothing"

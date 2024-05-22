@@ -20,7 +20,7 @@ elseif CLIENT then
 		local Tr = util.QuickTrace(self:GetOwner():GetShootPos(), self:GetOwner():GetAimVector() * 65, {self:GetOwner()})
 		if self:CanNail(Tr) then
 			surface.SetTexture(NailMat)
-			surface.SetDrawColor(color_white)
+			surface.SetDrawColor(255, 255, 255, 255)
 			surface.DrawTexturedRect(ScrW() / 2, ScrH() / 2 - 32, 64, 64)
 		end
 	end
@@ -42,23 +42,12 @@ SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
 SWEP.CommandDroppable = true
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "AirboatGun"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = true
@@ -85,29 +74,17 @@ function SWEP:PrimaryAttack()
 	if not IsFirstTimePredicted() then
 		self:DoBFSAnimation("midslash2")
 		self:GetOwner():GetViewModel():SetPlaybackRate(.65)
-
 		return
 	end
 
 	if self:GetOwner().Stamina < 5 then return end
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	self:DoBFSAnimation("midslash2")
 	self:GetOwner():GetViewModel():SetPlaybackRate(.65)
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	self:GetOwner():ViewPunch(Angle(-3, 0, 0))
-	if SERVER then
-		sound.Play("weapons/slam/throw.wav", self:GetOwner():GetPos(), 60, math.random(90, 110))
-	end
-
-	timer.Simple(
-		.1,
-		function()
-			if IsValid(self) then
-				self:AttackFront()
-			end
-		end
-	)
-
+	if SERVER then sound.Play("weapons/slam/throw.wav", self:GetOwner():GetPos(), 60, math.random(90, 110)) end
+	timer.Simple(.1, function() if IsValid(self) then self:AttackFront() end end)
 	self:SetNextSecondaryFire(CurTime() + 1.5)
 	self:SetNextPrimaryFire(CurTime() + 1.5)
 end
@@ -143,10 +120,7 @@ function SWEP:AttackFront()
 		Ent:TakeDamageInfo(Dam)
 		local Phys = Ent:GetPhysicsObject()
 		if IsValid(Phys) then
-			if Ent:IsPlayer() then
-				Ent:SetVelocity(AimVec * SelfForce / 2)
-			end
-
+			if Ent:IsPlayer() then Ent:SetVelocity(AimVec * SelfForce / 2) end
 			Phys:ApplyForceOffset(AimVec * 4500 * Mul, HitPos)
 			self:GetOwner():SetVelocity(-AimVec * SelfForce / 10)
 		end
@@ -160,18 +134,16 @@ function SWEP:Deploy()
 	self.DownAmt = 20
 	self:DoBFSAnimation("draw")
 	--self:GetOwner():GiveAmmo(10,"AirboatGun")
-
 	return true
 end
 
 function SWEP:SecondaryAttack()
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	if SERVER then
 		if not (self:GetOwner():GetAmmoCount(self.Primary.Ammo) > 0) then
 			net.Start("HMCD_AmmoShow")
 			net.Send(self:GetOwner())
 			net.Broadcast()
-
 			return
 		end
 
@@ -180,10 +152,7 @@ function SWEP:SecondaryAttack()
 		if self:CanNail(Tr) then
 			local NewTr, NewEnt = util.QuickTrace(Tr.HitPos, AimVec * 10, {self:GetOwner(), Tr.Entity}), nil
 			if self:CanNail(NewTr) then
-				if not NewTr.HitSky then
-					NewEnt = NewTr.Entity
-				end
-
+				if not NewTr.HitSky then NewEnt = NewTr.Entity end
 				if NewEnt and (IsValid(NewEnt) or NewEnt:IsWorld()) and not (NewEnt:IsPlayer() or NewEnt:IsNPC() or (NewEnt == Tr.Entity)) then
 					if HMCD_IsDoor(Tr.Entity) then
 						if self:GetOwner():GetAmmoCount(self.AmmoType) >= 3 then
@@ -199,14 +168,7 @@ function SWEP:SecondaryAttack()
 							self:DoBFSAnimation("midslash2")
 							self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 							self:GetOwner():GetViewModel():SetPlaybackRate(.75)
-							timer.Simple(
-								1,
-								function()
-									if IsValid(self) then
-										self:DoBFSAnimation("idle")
-									end
-								end
-							)
+							timer.Simple(1, function() if IsValid(self) then self:DoBFSAnimation("idle") end end)
 						else
 							self:GetOwner():PrintMessage(HUD_PRINTCENTER, translate.weaponHammerNailsNeeded)
 						end
@@ -223,14 +185,7 @@ function SWEP:SecondaryAttack()
 						self:DoBFSAnimation("midslash2")
 						self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 						self:GetOwner():GetViewModel():SetPlaybackRate(.75)
-						timer.Simple(
-							1,
-							function()
-								if IsValid(self) then
-									self:DoBFSAnimation("idle")
-								end
-							end
-						)
+						timer.Simple(1, function() if IsValid(self) then self:DoBFSAnimation("idle") end end)
 					end
 				end
 			end
@@ -261,10 +216,7 @@ end
 function SWEP:Think()
 	if SERVER then
 		local HoldType = "melee"
-		if self:GetOwner():KeyDown(IN_SPEED) then
-			HoldType = "normal"
-		end
-
+		if self:GetOwner():IsSprinting() then HoldType = "normal" end
 		self:SetHoldType(HoldType)
 	end
 end
@@ -301,11 +253,8 @@ if CLIENT then
 
 	--
 	function SWEP:GetViewModelPosition(pos, ang)
-		if not self.DownAmt then
-			self.DownAmt = 0
-		end
-
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if not self.DownAmt then self.DownAmt = 0 end
+		if self:GetOwner():IsSprinting() then
 			self.DownAmt = math.Clamp(self.DownAmt + .2, 0, 20)
 		else
 			self.DownAmt = math.Clamp(self.DownAmt - .2, 0, 20)
@@ -315,7 +264,6 @@ if CLIENT then
 		--ang:RotateAroundAxis(ang:Up(),0)
 		--ang:RotateAroundAxis(ang:Right(),0)
 		--ang:RotateAroundAxis(ang:Forward(),0)
-
 		return pos, ang
 	end
 

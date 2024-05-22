@@ -32,23 +32,12 @@ SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
 SWEP.CommandDroppable = true
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
@@ -74,17 +63,9 @@ end
 function SWEP:PrimaryAttack()
 	--for i=0,10 do PrintTable(self:GetOwner():GetViewModel():GetAnimInfo(i)) end
 	if self:GetOwner().Stamina < 25 then return end
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	if not IsFirstTimePredicted() then
-		timer.Simple(
-			.2,
-			function()
-				if IsValid(self) then
-					self:DoBFSAnimation("stab")
-				end
-			end
-		)
-
+		timer.Simple(.2, function() if IsValid(self) then self:DoBFSAnimation("stab") end end)
 		return
 	end
 
@@ -93,48 +74,26 @@ function SWEP:PrimaryAttack()
 	self:DoBFSAnimation("idle")
 	self:SetNextPrimaryFire(CurTime() + 1.25)
 	self:GetOwner():ViewPunch(Angle(0, -15, 0))
-	timer.Simple(
-		.1,
-		function()
-			if IsValid(self) then
-				self:GetOwner():SetAnimation(PLAYER_ATTACK1)
-			end
+	timer.Simple(.1, function() if IsValid(self) then self:GetOwner():SetAnimation(PLAYER_ATTACK1) end end)
+	timer.Simple(.2, function()
+		if IsValid(self) then
+			self:DoBFSAnimation("stab")
+			timer.Simple(.1, function() if IsValid(self) then self:AttackFront() end end)
 		end
-	)
-
-	timer.Simple(
-		.2,
-		function()
-			if IsValid(self) then
-				self:DoBFSAnimation("stab")
-				timer.Simple(
-					.1,
-					function()
-						if IsValid(self) then
-							self:AttackFront()
-						end
-					end
-				)
-			end
-		end
-	)
+	end)
 end
 
 function SWEP:Deploy()
 	if not IsFirstTimePredicted() then
 		self:DoBFSAnimation("draw")
 		self:GetOwner():GetViewModel():SetPlaybackRate(.1)
-
 		return
 	end
 
 	self:DoBFSAnimation("draw")
 	self:GetOwner():GetViewModel():SetPlaybackRate(.25)
 	self:SetNextPrimaryFire(CurTime() + .5)
-	if SERVER then
-		sound.Play("Wood_Plank.ImpactSoft", self:GetPos(), 65, math.random(90, 110))
-	end
-
+	if SERVER then sound.Play("Wood_Plank.ImpactSoft", self:GetPos(), 65, math.random(90, 110)) end
 	return true
 end
 
@@ -179,19 +138,14 @@ function SWEP:AttackFront()
 			edata:SetNormal(HitNorm)
 			edata:SetEntity(Ent)
 			util.Effect("BloodImpact", edata, true, true)
-			timer.Simple(
-				.05,
-				function()
-					if IsValid(self) then
-						for i = 1, 10 do
-							local BloodTr = util.QuickTrace(HitPos - AimVec * 10, AimVec * 100 + VectorRand() * 25, {self, self:GetOwner()})
-							if BloodTr.Hit then
-								util.Decal("Blood", BloodTr.HitPos + BloodTr.HitNormal, BloodTr.HitPos - BloodTr.HitNormal)
-							end
-						end
+			timer.Simple(.05, function()
+				if IsValid(self) then
+					for i = 1, 10 do
+						local BloodTr = util.QuickTrace(HitPos - AimVec * 10, AimVec * 100 + VectorRand() * 25, {self, self:GetOwner()})
+						if BloodTr.Hit then util.Decal("Blood", BloodTr.HitPos + BloodTr.HitNormal, BloodTr.HitPos - BloodTr.HitNormal) end
 					end
 				end
-			)
+			end)
 		else
 			sound.Play("Canister.ImpactHard", HitPos, 65, math.random(90, 110))
 			sound.Play("SolidMetal.ImpactHard", HitPos - vector_up, 65, math.random(90, 110))
@@ -210,26 +164,16 @@ function SWEP:AttackFront()
 		Ent:TakeDamageInfo(Dam)
 		local Phys = Ent:GetPhysicsObject()
 		if IsValid(Phys) then
-			if Ent:IsPlayer() then
-				Ent:SetVelocity(-Ent:GetVelocity() / 5)
-			end
-
+			if Ent:IsPlayer() then Ent:SetVelocity(-Ent:GetVelocity() / 5) end
 			Phys:ApplyForceOffset(AimVec * 10000 * Mul, HitPos)
 			self:GetOwner():SetVelocity(-AimVec * SelfForce / 50)
 		end
 
-		if Ent:GetClass() == "func_breakable_surf" then
-			Ent:Fire("break", "", 0)
-		end
-
+		if Ent:GetClass() == "func_breakable_surf" then Ent:Fire("break", "", 0) end
 		if IsValid(Ent) and HMCD_IsDoor(Ent) and not Ent:GetNoDraw() then
-			if math.random(1, 3) == 1 then
-				HMCD_BlastThatDoor(Ent)
-			end
+			if math.random(1, 3) == 1 then HMCD_BlastThatDoor(Ent) end
 		elseif Ent:GetClass() == "func_breakable" then
-			if math.random(1, 3) == 1 then
-				Ent:Fire("break", "", 0)
-			end
+			if math.random(1, 3) == 1 then Ent:Fire("break", "", 0) end
 		end
 
 		if math.random(1, 2) == 2 then
@@ -279,14 +223,13 @@ end
 if CLIENT then
 	local DownAmt = 0
 	function SWEP:GetViewModelPosition(pos, ang)
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if self:GetOwner():IsSprinting() then
 			DownAmt = math.Clamp(DownAmt + .6, 0, 50)
 		else
 			DownAmt = math.Clamp(DownAmt - .6, 0, 50)
 		end
 
 		ang:RotateAroundAxis(ang:Forward(), 10)
-
 		return pos + ang:Up() * 0 - ang:Forward() * (DownAmt - 10) - ang:Up() * DownAmt + ang:Right() * (3 + self:GetWindUp() * 5), ang
 	end
 

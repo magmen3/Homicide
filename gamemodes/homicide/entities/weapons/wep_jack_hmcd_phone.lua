@@ -32,23 +32,12 @@ SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
 SWEP.CommandDroppable = true
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
@@ -70,7 +59,7 @@ function SWEP:SetupDataTables()
 end
 
 function SWEP:PrimaryAttack()
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	if self:GetCalling() then return end
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	self:SetNextPrimaryFire(CurTime() + 1)
@@ -85,140 +74,114 @@ function SWEP:PrimaryAttack()
 		self:SetCalling(true)
 		sound.Play("snd_jack_hmcd_phone_dial.wav", self:GetOwner():GetShootPos(), 60, 100)
 		local DatTime = nil
-		timer.Simple(
-			.7,
-			function()
-				if IsValid(self) and IsValid(self:GetOwner()) then
-					if not self:GetOwner().Murderer then
-						umsg.Start("HMCD_SurfaceSound", self:GetOwner())
-						umsg.String("snd_jack_hmcd_phone_voice.wav")
-						umsg.End()
+		timer.Simple(.7, function()
+			if IsValid(self) and IsValid(self:GetOwner()) then
+				if not self:GetOwner().Murderer then
+					umsg.Start("HMCD_SurfaceSound", self:GetOwner())
+					umsg.String("snd_jack_hmcd_phone_voice.wav")
+					umsg.End()
+				end
+			end
+		end)
+
+		timer.Simple(2, function()
+			if IsValid(self:GetOwner()) and self:GetOwner():Alive() then
+				self:GetOwner():ConCommand("hmcd_taunt help")
+				if self:GetOwner().Murderer then
+					self:GetOwner():ChatPrint(translate.weaponPhonePretend)
+				else
+					local Until = GAMEMODE.PoliceTime - CurTime()
+					if Until > 0 then
+						DatTime = Until / 2
+						GAMEMODE.PoliceTime = CurTime() + DatTime
 					end
 				end
 			end
-		)
+		end)
 
-		timer.Simple(
-			2,
-			function()
-				if IsValid(self:GetOwner()) and self:GetOwner():Alive() then
-					self:GetOwner():ConCommand("hmcd_taunt help")
-					if self:GetOwner().Murderer then
-						self:GetOwner():PrintMessage(HUD_PRINTTALK, translate.weaponPhonePretend)
+		timer.Simple(4, function()
+			if IsValid(self) then
+				if not self:GetOwner().Murderer then
+					if GAMEMODE.SHTF then
+						if DatTime then
+							if DatTime > 60 then
+								local argh = Translator:AdvVarTranslate(translate.guardIn, {
+									mins = {
+										text = math.ceil(DatTime / 60)
+									}
+								})
+
+								aargh = ""
+								for k, msg in pairs(argh) do
+									aargh = aargh .. msg.text
+								end
+
+								self:GetOwner():ChatPrint(aargh)
+							else
+								local argh = Translator:AdvVarTranslate(translate.guardInSeconds, {
+									secs = {
+										text = math.ceil(DatTime)
+									}
+								})
+
+								aargh = ""
+								for k, msg in pairs(argh) do
+									aargh = aargh .. msg.text
+								end
+
+								self:GetOwner():ChatPrint(aargh)
+							end
+						end
+
+						for key, ply in pairs(team.GetPlayers(2)) do
+							if ply.Murderer then ply:ChatPrint(translate.weaponPhoneCalledGuard) end
+						end
 					else
-						local Until = GAMEMODE.PoliceTime - CurTime()
-						if Until > 0 then
-							DatTime = Until / 2
-							GAMEMODE.PoliceTime = CurTime() + DatTime
+						if DatTime then
+							if DatTime > 60 then
+								local argh = Translator:AdvVarTranslate(translate.policeIn, {
+									mins = {
+										text = math.ceil(DatTime / 60)
+									}
+								})
+
+								aargh = ""
+								for k, msg in pairs(argh) do
+									aargh = aargh .. msg.text
+								end
+
+								self:GetOwner():ChatPrint(aargh)
+							else
+								local argh = Translator:AdvVarTranslate(translate.policeInSeconds, {
+									secs = {
+										text = math.ceil(DatTime)
+									}
+								})
+
+								aargh = ""
+								for k, msg in pairs(argh) do
+									aargh = aargh .. msg.text
+								end
+
+								self:GetOwner():ChatPrint(aargh)
+							end
+						end
+
+						for key, ply in pairs(team.GetPlayers(2)) do
+							if ply.Murderer then ply:ChatPrint(translate.weaponPhoneCalledPolice) end
 						end
 					end
 				end
+
+				self:Remove()
 			end
-		)
-
-		timer.Simple(
-			4,
-			function()
-				if IsValid(self) then
-					if not self:GetOwner().Murderer then
-						if GAMEMODE.SHTF then
-							if DatTime then
-								if DatTime > 60 then
-									local argh = Translator:AdvVarTranslate(
-										translate.guardIn,
-										{
-											mins = {
-												text = math.ceil(DatTime / 60)
-											}
-										}
-									)
-
-									aargh = ""
-									for k, msg in pairs(argh) do
-										aargh = aargh .. msg.text
-									end
-
-									self:GetOwner():PrintMessage(HUD_PRINTTALK, aargh)
-								else
-									local argh = Translator:AdvVarTranslate(
-										translate.guardInSeconds,
-										{
-											secs = {
-												text = math.ceil(DatTime)
-											}
-										}
-									)
-
-									aargh = ""
-									for k, msg in pairs(argh) do
-										aargh = aargh .. msg.text
-									end
-
-									self:GetOwner():PrintMessage(HUD_PRINTTALK, aargh)
-								end
-							end
-
-							for key, ply in pairs(team.GetPlayers(2)) do
-								if ply.Murderer then
-									ply:PrintMessage(HUD_PRINTTALK, translate.weaponPhoneCalledGuard)
-								end
-							end
-						else
-							if DatTime then
-								if DatTime > 60 then
-									local argh = Translator:AdvVarTranslate(
-										translate.policeIn,
-										{
-											mins = {
-												text = math.ceil(DatTime / 60)
-											}
-										}
-									)
-
-									aargh = ""
-									for k, msg in pairs(argh) do
-										aargh = aargh .. msg.text
-									end
-
-									self:GetOwner():PrintMessage(HUD_PRINTTALK, aargh)
-								else
-									local argh = Translator:AdvVarTranslate(
-										translate.policeInSeconds,
-										{
-											secs = {
-												text = math.ceil(DatTime)
-											}
-										}
-									)
-
-									aargh = ""
-									for k, msg in pairs(argh) do
-										aargh = aargh .. msg.text
-									end
-
-									self:GetOwner():PrintMessage(HUD_PRINTTALK, aargh)
-								end
-							end
-
-							for key, ply in pairs(team.GetPlayers(2)) do
-								if ply.Murderer then
-									ply:PrintMessage(HUD_PRINTTALK, translate.weaponPhoneCalledPolice)
-								end
-							end
-						end
-					end
-
-					self:Remove()
-				end
-			end
-		)
+		end)
 	end
 end
 
 function SWEP:Deploy()
 	self:SetNextPrimaryFire(CurTime() + 1)
 	self.DownAmt = 20
-
 	return true
 end
 
@@ -229,10 +192,7 @@ end
 function SWEP:Think()
 	if SERVER then
 		local HoldType = "slam"
-		if self:GetOwner():KeyDown(IN_SPEED) then
-			HoldType = "normal"
-		end
-
+		if self:GetOwner():IsSprinting() then HoldType = "normal" end
 		self:SetHoldType(HoldType)
 	end
 end
@@ -267,11 +227,8 @@ if CLIENT then
 	end
 
 	function SWEP:GetViewModelPosition(pos, ang)
-		if not self.DownAmt then
-			self.DownAmt = 0
-		end
-
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if not self.DownAmt then self.DownAmt = 0 end
+		if self:GetOwner():IsSprinting() then
 			self.DownAmt = math.Clamp(self.DownAmt + .2, 0, 20)
 		else
 			self.DownAmt = math.Clamp(self.DownAmt - .2, 0, 20)
@@ -281,7 +238,6 @@ if CLIENT then
 		ang:RotateAroundAxis(ang:Right(), -90)
 		ang:RotateAroundAxis(ang:Up(), 10)
 		ang:RotateAroundAxis(ang:Forward(), -110)
-
 		return pos, ang
 	end
 

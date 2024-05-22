@@ -31,17 +31,17 @@ local CopyMat = Material("pp/copy")
 local OutlineMat = CreateMaterial("outline", "UnlitGeneric", OutlineMatSettings)
 local ENTS, COLOR, MODE = 1, 2, 3
 function Add(ents, color, mode)
-	if ListSize >= 255 then return end --Maximum 255 reference values
+	if ListSize >= 255 then --Maximum 255 reference values
+		return
+	end
+
 	--Support for passing Entity as first argument
-	if not istable(ents) then
-		ents = {ents}
+	if not istable(ents) then ents = {ents} end
+	if ents[1] == nil then --Do not pass empty tables
+		return
 	end
 
-	if ents[1] == nil then return end --Do not pass empty tables
-	if mode ~= OUTLINE_MODE_BOTH and mode ~= OUTLINE_MODE_NOTVISIBLE and mode ~= OUTLINE_MODE_VISIBLE then
-		mode = OUTLINE_MODE_BOTH
-	end
-
+	if mode ~= OUTLINE_MODE_BOTH and mode ~= OUTLINE_MODE_NOTVISIBLE and mode ~= OUTLINE_MODE_VISIBLE then mode = OUTLINE_MODE_BOTH end
 	local data = {
 		[ENTS] = ents,
 		[COLOR] = color,
@@ -60,7 +60,6 @@ function SetRenderType(render_type)
 	if render_type ~= OUTLINE_RENDERTYPE_BEFORE_VM and render_type ~= OUTLINE_RENDERTYPE_BEFORE_EF and render_type ~= OUTLINE_RENDERTYPE_AFTER_EF then return end
 	local old_type = RenderType
 	RenderType = render_type
-
 	return old_type
 end
 
@@ -71,7 +70,6 @@ end
 function SetDoubleThickness(thickness)
 	local old_thickness = OutlineThickness == 2
 	OutlineThickness = thickness and 2 or 1
-
 	return old_thickness
 end
 
@@ -181,32 +179,6 @@ local function RenderOutlines()
 	List, ListSize = {}, 0
 end
 
-hook.Add(
-	"PreDrawViewModels",
-	"RenderOutlines",
-	function()
-		if RenderType == OUTLINE_RENDERTYPE_BEFORE_VM then
-			RenderOutlines()
-		end
-	end
-)
-
-hook.Add(
-	"PreDrawEffects",
-	"RenderOutlines",
-	function()
-		if RenderType == OUTLINE_RENDERTYPE_BEFORE_EF then
-			RenderOutlines()
-		end
-	end
-)
-
-hook.Add(
-	"PostDrawEffects",
-	"RenderOutlines",
-	function()
-		if RenderType == OUTLINE_RENDERTYPE_AFTER_EF then
-			RenderOutlines()
-		end
-	end
-)
+hook.Add("PreDrawViewModels", "RenderOutlines", function() if RenderType == OUTLINE_RENDERTYPE_BEFORE_VM then RenderOutlines() end end)
+hook.Add("PreDrawEffects", "RenderOutlines", function() if RenderType == OUTLINE_RENDERTYPE_BEFORE_EF then RenderOutlines() end end)
+hook.Add("PostDrawEffects", "RenderOutlines", function() if RenderType == OUTLINE_RENDERTYPE_AFTER_EF then RenderOutlines() end end)

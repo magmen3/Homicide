@@ -5,24 +5,13 @@ end
 
 function GM:PlayerStartTaunt(ply, act, length)
 	ply:Freeze(true)
-	timer.Simple(
-		length,
-		function()
-			ply:Freeze(false)
-		end
-	)
+	timer.Simple(length, function() ply:Freeze(false) end)
 end
 
 -- mechanical, why the hell was this a global function? You ass
 local function addTaunt(cat, soundFile, sex, act)
-	if not HMCD_Taunts[cat] then
-		HMCD_Taunts[cat] = {}
-	end
-
-	if not HMCD_Taunts[cat][sex] then
-		HMCD_Taunts[cat][sex] = {}
-	end
-
+	if not HMCD_Taunts[cat] then HMCD_Taunts[cat] = {} end
+	if not HMCD_Taunts[cat][sex] then HMCD_Taunts[cat][sex] = {} end
 	local t = {}
 	t.sound = soundFile
 	t.sex = sex
@@ -334,40 +323,35 @@ addTaunt("happy", "", "female", "dance")
 addTaunt("happy", "", "female", "muscle")
 addTaunt("happy", "", "female", "robot")
 addTaunt("happy", "", "female", "wave")
-concommand.Add(
-	"hmcd_taunt",
-	function(ply, com, args, full)
-		local Time = CurTime()
-		if not ply.NextTaunt then
-			ply.NextTaunt = 0
-		end
-
-		if ply.NextTaunt > Time then return end
-		if not ply:Alive() then return end
-		if ply:Team() ~= 2 then return end
-		if #args < 1 then return end
-		local cat = args[1]:lower()
-		if not HMCD_Taunts[cat] then return end -- if he's not TAUNTING THE CAT then return end
-		local sex = string.lower(ply.ModelSex or "male")
-		if not HMCD_Taunts[cat][sex] then return end
-		local taunt = table.Random(HMCD_Taunts[cat][sex]) -- random table cat taunt sex, sounds kinky
-		if GAMEMODE.ZOMBIE and ply.Murderer then
-			ply:EmitSound("npc/zombie/zombie_voice_idle" .. math.random(14) .. ".wav", 75, math.random(90, 110))
-			if (math.random(1, 2) == 2) and taunt.act then
-				taunt.act = "zombie"
-			end
-		else
-			ply:EmitSound(taunt.sound)
-		end
-
-		--PrintTable(taunt)
-		if taunt.act and not ply:InVehicle() and not ply.ContainingContainer then
-			net.Start("HMCD_PlayerAct")
-			net.WriteString(taunt.act)
-			net.Send(ply)
-		end
-
-		local Dur = math.Clamp(SoundDuration(taunt.sound), 1.5, 5) -- apparently SoundDuration doesn't work on Linux, which is what most gmod servers are
-		ply.NextTaunt = Time + Dur -- DURRRRRR
+concommand.Add("hmcd_taunt", function(ply, com, args, full)
+	local Time = CurTime()
+	if not ply.NextTaunt then ply.NextTaunt = 0 end
+	if ply.NextTaunt > Time then return end
+	if not ply:Alive() then return end
+	if ply:Team() ~= 2 then return end
+	if #args < 1 then return end
+	local cat = args[1]:lower()
+	if not HMCD_Taunts[cat] then -- if he's not TAUNTING THE CAT then return end
+		return
 	end
-)
+
+	local sex = string.lower(ply.ModelSex or "male")
+	if not HMCD_Taunts[cat][sex] then return end
+	local taunt = table.Random(HMCD_Taunts[cat][sex]) -- random table cat taunt sex, sounds kinky
+	if GAMEMODE.ZOMBIE and ply.Murderer then
+		ply:EmitSound("npc/zombie/zombie_voice_idle" .. math.random(14) .. ".wav", 75, math.random(90, 110))
+		if (math.random(1, 2) == 2) and taunt.act then taunt.act = "zombie" end
+	else
+		ply:EmitSound(taunt.sound)
+	end
+
+	--PrintTable(taunt)
+	if taunt.act and not ply:InVehicle() and not ply.ContainingContainer then
+		net.Start("HMCD_PlayerAct")
+		net.WriteString(taunt.act)
+		net.Send(ply)
+	end
+
+	local Dur = math.Clamp(SoundDuration(taunt.sound), 1.5, 5) -- apparently SoundDuration doesn't work on Linux, which is what most gmod servers are
+	ply.NextTaunt = Time + Dur -- DURRRRRR
+end)

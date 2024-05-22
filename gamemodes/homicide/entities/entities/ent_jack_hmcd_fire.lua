@@ -10,10 +10,7 @@ if SERVER then
 		self:SetCollisionBounds(Vector(-20, -20, -10), Vector(20, 20, 10))
 		self:PhysicsInitBox(Vector(-20, -20, -10), Vector(20, 20, 10))
 		local phys = self:GetPhysicsObject()
-		if phys:IsValid() then
-			phys:EnableCollisions(false)
-		end
-
+		if phys:IsValid() then phys:EnableCollisions(false) end
 		self:SetNotSolid(true)
 		self.Radius = 200
 		self.NextSound = 0
@@ -43,9 +40,7 @@ if SERVER then
 					Dmg:SetDamage(Frac * 3)
 					obj:TakeDamageInfo(Dmg)
 					local SpectPly = obj:IsPlayer() and obj:IsCSpectating()
-					if not (obj:IsOnFire() or (obj:WaterLevel() > 0) or SpectPly) then
-						obj:Ignite(Frac * 30)
-					end
+					if not (obj:IsOnFire() or (obj:WaterLevel() > 0) or SpectPly) then obj:Ignite(Frac * 30) end
 				end
 			end
 		end
@@ -62,7 +57,6 @@ if SERVER then
 		end
 
 		self:NextThink(CurTime() + .2)
-
 		return true
 	end
 end

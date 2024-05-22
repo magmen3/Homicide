@@ -1,14 +1,8 @@
 local menu
 function GM:DisplayEndRoundBoard(data)
-	if IsValid(menu) then
-		menu:Close()
-	end
-
+	if IsValid(menu) then menu:Close() end
 	local Showin, Dude = false, self:GetVictor()
-	if Dude then
-		Showin = true
-	end
-
+	if Dude then Showin = true end
 	menu = vgui.Create("DFrame")
 	menu:SetSize(ScrW() * 0.8, ScrH() * 0.8)
 	menu:Center()
@@ -89,17 +83,14 @@ function GM:DisplayEndRoundBoard(data)
 
 		winner:SetTextColor(Color(190, 20, 20))
 	elseif data.reason == 5 then
-		local argh = Translator:AdvVarTranslate(
-			translate.endroundDMWins,
-			{
-				murderer = {
-					text = data.murdererName
-				},
-				s = {
-					text = s
-				}
+		local argh = Translator:AdvVarTranslate(translate.endroundDMWins, {
+			murderer = {
+				text = data.murdererName
+			},
+			s = {
+				text = s
 			}
-		)
+		})
 
 		local aargh = ""
 		for k, msg in pairs(argh) do
@@ -127,31 +118,25 @@ function GM:DisplayEndRoundBoard(data)
 		local col = data.murdererColor
 		local msgs
 		if self.SHTF then
-			msgs = Translator:AdvVarTranslate(
-				translate.endroundTraitorWas,
-				{
-					murderer = {
-						text = data.murdererName,
-						color = Color(col.x * 255, col.y * 255, col.z * 255)
-					},
-					s = {
-						text = s
-					}
+			msgs = Translator:AdvVarTranslate(translate.endroundTraitorWas, {
+				murderer = {
+					text = data.murdererName,
+					color = Color(col.x * 255, col.y * 255, col.z * 255)
+				},
+				s = {
+					text = s
 				}
-			)
+			})
 		else
-			msgs = Translator:AdvVarTranslate(
-				translate.endroundMurdererWas,
-				{
-					murderer = {
-						text = data.murdererName,
-						color = Color(col.x * 255, col.y * 255, col.z * 255)
-					},
-					s = {
-						text = s
-					}
+			msgs = Translator:AdvVarTranslate(translate.endroundMurdererWas, {
+				murderer = {
+					text = data.murdererName,
+					color = Color(col.x * 255, col.y * 255, col.z * 255)
+				},
+				s = {
+					text = s
 				}
-			)
+			})
 		end
 
 		for k, msg in pairs(msgs) do
@@ -183,23 +168,11 @@ function GM:DisplayEndRoundBoard(data)
 	lootList:Dock(FILL)
 	table.sort(data.collectedLoot, function(a, b) return a.count > b.count end)
 	for k, v in pairs(team.GetPlayers(2)) do
-		if not v.HMCD_Merit then
-			v.HMCD_Merit = 0
-		end
-
-		if not v.HMCD_Demerit then
-			v.HMCD_Demerit = 1
-		end
-
-		if not v.HMCD_Experience then
-			v.HMCD_Experience = 0
-		end
-
+		if not v.HMCD_Merit then v.HMCD_Merit = 0 end
+		if not v.HMCD_Demerit then v.HMCD_Demerit = 1 end
+		if not v.HMCD_Experience then v.HMCD_Experience = 0 end
 		local Demerit = v.HMCD_Demerit
-		if Demerit < 1 then
-			Demerit = 1
-		end
-
+		if Demerit < 1 then Demerit = 1 end
 		local pnl = vgui.Create("DPanel")
 		pnl:SetTall(draw.GetFontHeight("MersRadialSmall"))
 		function pnl:Paint(w, h)
@@ -207,18 +180,9 @@ function GM:DisplayEndRoundBoard(data)
 
 		--
 		function pnl:PerformLayout()
-			if self.NamePnl then
-				self.NamePnl:SetWidth(self:GetWide() * 0.4)
-			end
-
-			if self.BNamePnl then
-				self.BNamePnl:SetWidth(self:GetWide() * 0.3)
-			end
-
-			if self.SNamePnl then
-				self.SNamePnl:SetWidth(self:GetWide() * 0.4)
-			end
-
+			if self.NamePnl then self.NamePnl:SetWidth(self:GetWide() * 0.4) end
+			if self.BNamePnl then self.BNamePnl:SetWidth(self:GetWide() * 0.3) end
+			if self.SNamePnl then self.SNamePnl:SetWidth(self:GetWide() * 0.4) end
 			self:SizeToChildren(false, true)
 		end
 
@@ -234,9 +198,7 @@ function GM:DisplayEndRoundBoard(data)
 		end
 
 		function name:DoClick()
-			if IsValid(v) then
-				GAMEMODE:DoScoreboardActionPopup(v)
-			end
+			if IsValid(v) then GAMEMODE:DoScoreboardActionPopup(v) end
 		end
 
 		local bname = vgui.Create("DButton", pnl)
@@ -346,18 +308,9 @@ function GM:DisplayEndRoundBoard(data)
 		wow:SetTextColor(color_white)
 		wow:SetPos(80, 20)
 		wow:SetSize(530, 50)
-		menu.OnClose = function()
-			Bottom:Close()
-		end
+		menu.OnClose = function() Bottom:Close() end
 		--Top:Close()
 	end
 end
 
-net.Receive(
-	"reopen_round_board",
-	function()
-		if IsValid(menu) then
-			menu:SetVisible(true)
-		end
-	end
-)
+net.Receive("reopen_round_board", function() if IsValid(menu) then menu:SetVisible(true) end end)

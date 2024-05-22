@@ -11,7 +11,6 @@ function EFFECT:Init(data)
 		Splach:SetNormal(Vector(0, 0, 1))
 		Splach:SetScale(Scayul * 200)
 		util.Effect("WaterSplash", Splach)
-
 		return
 	end
 

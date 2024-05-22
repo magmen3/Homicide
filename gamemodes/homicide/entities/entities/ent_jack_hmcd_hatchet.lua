@@ -13,7 +13,7 @@ if SERVER then
 		self:SetSolid(SOLID_VPHYSICS)
 		self:SetCollisionGroup(COLLISION_GROUP_NONE)
 		self:SetUseType(SIMPLE_USE)
-		self:DrawShadow(true)
+		self:DrawShadow(false)
 		local phys = self:GetPhysicsObject()
 		if IsValid(phys) then
 			phys:SetMass(5)
@@ -22,18 +22,13 @@ if SERVER then
 		end
 
 		self.HitSomething = false
-		if not self.Thrown then
-			self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
-		end
+		if not self.Thrown then self:SetCollisionGroup(COLLISION_GROUP_WEAPON) end
 	end
 
 	function ENT:PhysicsCollide(data, phys)
 		if self.Thrown and not self.HitSomething then
 			self.HitSomething = true
-			if data.HitEntity:GetClass() == "func_breakable_surf" then
-				data.HitEntity:Fire("break", "", 0)
-			end
-
+			if data.HitEntity:GetClass() == "func_breakable_surf" then data.HitEntity:Fire("break", "", 0) end
 			if math.Rand(0, 1) < .6666 then
 				-- head hit
 				local Dmg, DmgAmt = DamageInfo(), math.random(20, 30)
@@ -48,7 +43,7 @@ if SERVER then
 					self:EmitSound("snd_jack_hmcd_axehit.wav", 75, math.random(110, 130))
 					if data.HitEntity:IsPlayer() and self.Poisoned then
 						self.Poisoned = false
-						HMCD_Poison(data.HitEntity, self.Owner)
+						HMCD_Poison(data.HitEntity, self:GetOwner())
 					end
 
 					local edata = EffectData()
@@ -57,17 +52,12 @@ if SERVER then
 					edata:SetNormal(vector_up)
 					edata:SetEntity(data.HitEntity)
 					util.Effect("BloodImpact", edata, true, true)
-					timer.Simple(
-						.05,
-						function()
-							for i = 1, 2 do
-								local BloodTr = util.QuickTrace(data.HitPos - data.OurOldVelocity:GetNormalized() * 10, data.OurOldVelocity:GetNormalized() * 50, {self})
-								if BloodTr.Hit then
-									util.Decal("Blood", BloodTr.HitPos + BloodTr.HitNormal, BloodTr.HitPos - BloodTr.HitNormal)
-								end
-							end
+					timer.Simple(.05, function()
+						for i = 1, 2 do
+							local BloodTr = util.QuickTrace(data.HitPos - data.OurOldVelocity:GetNormalized() * 10, data.OurOldVelocity:GetNormalized() * 50, {self})
+							if BloodTr.Hit then util.Decal("Blood", BloodTr.HitPos + BloodTr.HitNormal, BloodTr.HitPos - BloodTr.HitNormal) end
 						end
-					)
+					end)
 				else
 					self:EmitSound("physics/metal/metal_solid_impact_hard1.wav", 75, math.random(90, 110))
 				end
@@ -78,28 +68,27 @@ if SERVER then
 
 			self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 		else
-			if data.DeltaTime > .2 then
-				self:EmitSound(self.ImpactSound, 65, math.random(90, 110))
-			end
+			if data.DeltaTime > .2 then self:EmitSound(self.ImpactSound, 65, math.random(90, 110)) end
 		end
 	end
 
 	function ENT:PickUp(ply)
 		local SWEP = self.SWEP
-		if (ply.Murderer or GAMEMODE.ZOMBIE) and not ply:HasWeapon(SWEP) then
-			ply:Give(SWEP)
-			ply:GetWeapon(self.SWEP).HmcdSpawned = self.HmcdSpawned
-			ply:GetWeapon(SWEP).Poisoned = self.Poisoned
-			ply:SelectWeapon(SWEP)
-			self:Remove()
-			ply:SelectWeapon(SWEP)
+		if not ply:HasWeapon(SWEP) then
+			if ply.Murderer or (GAMEMODE.ZOMBIE and not ply.Murderer) or GAMEMODE.DEATHMATCH then
+				ply:Give(SWEP)
+				ply:GetWeapon(self.SWEP).HmcdSpawned = self.HmcdSpawned
+				ply:GetWeapon(SWEP).Poisoned = self.Poisoned
+				ply:SelectWeapon(SWEP)
+				self:Remove()
+				ply:SelectWeapon(SWEP)
+			end
 		end
 	end
 elseif CLIENT then
 	function ENT:Initialize()
 	end
 
-	--
 	function ENT:Draw()
 		local Mat = Matrix()
 		Mat:Scale(Vector(.9, .4, .9))

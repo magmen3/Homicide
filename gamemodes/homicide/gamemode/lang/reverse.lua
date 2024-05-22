@@ -9,9 +9,7 @@ pt.default = function(n)
 		else
 			local cap = word:sub(1, 1):match("[A-Z]")
 			word = word:lower():reverse()
-			if cap then
-				word = word:sub(1, 1):upper() .. word:sub(2)
-			end
+			if cap then word = word:sub(1, 1):upper() .. word:sub(2) end
 		end
 
 		if first then
@@ -21,6 +19,5 @@ pt.default = function(n)
 			words = words .. " " .. word
 		end
 	end
-
 	return sleft .. words .. sright
 end

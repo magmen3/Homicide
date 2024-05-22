@@ -1,7 +1,4 @@
-if SERVER then
-	AddCSLuaFile()
-end
-
+if SERVER then AddCSLuaFile() end
 DEFINE_BASECLASS("base_anim")
 ENT.PrintName = "Cyanide Gas Particle"
 ENT.RenderGroup = RENDERGROUP_TRANSLUCENT
@@ -9,33 +6,23 @@ ENT.MinSize = 4
 ENT.MaxSize = 128
 ENT.HmcdGas = true
 function ENT:SetupDataTables()
-	self:NetworkVar(
-		"Float",
-		0,
-		"BallSize",
-		{
-			KeyName = "ballsize",
-			Edit = {
-				type = "Float",
-				min = self.MinSize,
-				max = self.MaxSize,
-				order = 1
-			}
+	self:NetworkVar("Float", 0, "BallSize", {
+		KeyName = "ballsize",
+		Edit = {
+			type = "Float",
+			min = self.MinSize,
+			max = self.MaxSize,
+			order = 1
 		}
-	)
+	})
 
-	self:NetworkVar(
-		"Vector",
-		0,
-		"BallColor",
-		{
-			KeyName = "ballcolor",
-			Edit = {
-				type = "VectorColor",
-				order = 2
-			}
+	self:NetworkVar("Vector", 0, "BallColor", {
+		KeyName = "ballcolor",
+		Edit = {
+			type = "VectorColor",
+			order = 2
 		}
-	)
+	})
 
 	self:NetworkVarNotify("BallSize", self.OnBallSizeChanged)
 end
@@ -64,7 +51,6 @@ function ENT:Think()
 	local Time, SelfPos = CurTime(), self:GetPos()
 	if self.DieTime < Time then
 		self:Remove()
-
 		return
 	end
 
@@ -76,7 +62,7 @@ function ENT:Think()
 				local Vec = (obj:GetPos() - SelfPos):GetNormalized()
 				Force = Force - Vec * self.Repulsion * 2
 			elseif obj:IsPlayer() and (obj:Team() == 2) and obj:Alive() and (math.random(1, 300) == 42) then
-				HMCD_Poison(obj, self.Owner, true) --obj:TakeDamage(1,nil,nil)
+				HMCD_Poison(obj, self:GetOwner(), true) --obj:TakeDamage(1,nil,nil)
 			end
 		end
 	end
@@ -84,7 +70,6 @@ function ENT:Think()
 	self.Repulsion = math.Clamp(self.Repulsion + .03, 0, 1)
 	self:GetPhysicsObject():ApplyForceCenter(Force)
 	self:NextThink(Time + 1)
-
 	return true
 end
 
@@ -120,7 +105,10 @@ end
 function ENT:Use(activator, caller)
 end
 
-if SERVER then return end -- We do NOT want to execute anything below in this FILE on SERVER
+if SERVER then -- We do NOT want to execute anything below in this FILE on SERVER
+	return
+end
+
 local matBall = Material("particle/smokestack")
 --local matBall=Material( "sprites/sent_ball" )
 function ENT:Draw()

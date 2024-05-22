@@ -25,28 +25,20 @@ function GM:Initialize()
 	self:FootStepsInit()
 end
 
-net.Receive(
-	"hmcd_mode",
-	function(len)
-		GAMEMODE.SHTF = tobool(net.ReadBit())
-		GAMEMODE.PUSSY = tobool(net.ReadBit())
-		GAMEMODE.ISLAM = tobool(net.ReadBit())
-		GAMEMODE.EPIC = tobool(net.ReadBit())
-		GAMEMODE.DEATHMATCH = tobool(net.ReadBit())
-		GAMEMODE.ZOMBIE = tobool(net.ReadBit())
-	end
-)
+net.Receive("hmcd_mode", function(len)
+	GAMEMODE.SHTF = tobool(net.ReadBit())
+	GAMEMODE.PUSSY = tobool(net.ReadBit())
+	GAMEMODE.ISLAM = tobool(net.ReadBit())
+	GAMEMODE.EPIC = tobool(net.ReadBit())
+	GAMEMODE.DEATHMATCH = tobool(net.ReadBit())
+	GAMEMODE.ZOMBIE = tobool(net.ReadBit())
+end)
 
 GM.FogEmitters = {}
-if GAMEMODE then
-	GM.FogEmitters = GAMEMODE.FogEmitters
-end
-
+if GAMEMODE then GM.FogEmitters = GAMEMODE.FogEmitters end
 local lply = LocalPlayer()
 function GM:Think()
-	if not lply.TempSpeedMul then
-		lply.TempSpeedMul = 1
-	end
+	if not lply.TempSpeedMul then lply.TempSpeedMul = 1 end
 end
 
 local function SendIdentity(len, ply)
@@ -78,21 +70,8 @@ local function FixGlitch(data)
 	lply:ConCommand("gm_demo_icon 0")
 	print(translate.miscExplanation)
 	lply:ConCommand("record HOMICIDE_FIXGLITCH_DELETEME")
-	timer.Simple(
-		.01,
-		function()
-			lply:ConCommand("stop")
-		end
-	)
-
-	timer.Simple(
-		5,
-		function()
-			if lply and lply.ConCommand then
-				lply:ConCommand("stop")
-			end
-		end
-	)
+	timer.Simple(.01, function() lply:ConCommand("stop") end)
+	timer.Simple(5, function() if lply and lply.ConCommand then lply:ConCommand("stop") end end)
 end
 
 usermessage.Hook("HMCD_FixViewModelGlitch", FixGlitch)
@@ -102,22 +81,19 @@ function GM:PostDrawTranslucentRenderables()
 end
 
 -- 1 loot 2 interest 3 poison 4 explosive
-net.Receive(
-	"hmcd_hudhalo",
-	function(length)
-		local Ent, Type = net.ReadEntity(), net.ReadInt(32)
-		--print(Ent,Type)
-		if Type == 1 then
-			Ent.MurdererLoot = true
-		elseif Type == 2 then
-			Ent.MurdererInterest = true
-		elseif Type == 3 then
-			Ent.MurdererPoison = true
-		elseif Type == 4 then
-			Ent.MurdererExplosive = true
-		end
+net.Receive("hmcd_hudhalo", function(length)
+	local Ent, Type = net.ReadEntity(), net.ReadInt(32)
+	--print(Ent,Type)
+	if Type == 1 then
+		Ent.MurdererLoot = true
+	elseif Type == 2 then
+		Ent.MurdererInterest = true
+	elseif Type == 3 then
+		Ent.MurdererPoison = true
+	elseif Type == 4 then
+		Ent.MurdererExplosive = true
 	end
-)
+end)
 
 local StopThatShit = 0
 local tabcolor = Color(0, 200, 200)
@@ -134,19 +110,14 @@ function GM:PreDrawHalos()
 	if StopThatShit > 0 then return end
 	local client, murd = lply, lply.Murderer
 	local Vary, Modulus = 0, CurTime() % 5
-	if Modulus < 1 then
-		Vary = 1 - (math.sin(CurTime() * math.pi * 2 - (math.pi / 2)) + 1) / 2
-	end
-
+	if Modulus < 1 then Vary = 1 - (math.sin(CurTime() * math.pi * 2 - (math.pi / 2)) + 1) / 2 end
 	if IsValid(client) and client:Alive() then
 		local tab, tab2 = {}, {}
 		for k, v in pairs(ents.GetAll()) do
 			if v.IsLoot and not v:GetDTBool(0) and not v.MurdererLoot then
 				table.insert(tab, v)
 			elseif murd then
-				if v.MurdererLoot or v.MurdererInterest or v.MurdererPoison or v.MurdererExplosive then
-					table.insert(tab2, v)
-				end
+				if v.MurdererLoot or v.MurdererInterest or v.MurdererPoison or v.MurdererExplosive then table.insert(tab2, v) end
 			end
 		end
 
@@ -224,10 +195,7 @@ function GM:RenderAccessories(ply)
 				local Pos, Ang = ply:GetBonePosition(ply:LookupBone("ValveBiped.Bip01_Spine4"))
 				if Pos and Ang then
 					local Dist = 0
-					if ply.ChestArmor and ((ply.ChestArmor == "Level III") or (ply.ChestArmor == "Level IIIA")) then
-						Dist = 2
-					end
-
+					if ply.ChestArmor and ((ply.ChestArmor == "Level III") or (ply.ChestArmor == "Level IIIA")) then Dist = 2 end
 					Pos = Pos + Ang:Right() * (DrawWep.HolsterPos.x + Dist) + Ang:Forward() * DrawWep.HolsterPos.y + Ang:Up() * DrawWep.HolsterPos.z
 					Ang:RotateAroundAxis(Ang:Right(), DrawWep.HolsterAng.p)
 					Ang:RotateAroundAxis(Ang:Up(), DrawWep.HolsterAng.y)
@@ -269,10 +237,7 @@ function GM:RenderAccessories(ply)
 				Ang:RotateAroundAxis(Ang:Forward(), 90)
 				ply.ArmorModel:SetRenderAngles(Ang)
 				local R, G, B = render.GetColorModulation()
-				if ply.ChestArmor == "Level III" then
-					render.SetColorModulation(.3, .3, .3)
-				end
-
+				if ply.ChestArmor == "Level III" then render.SetColorModulation(.3, .3, .3) end
 				ply.ArmorModel:DrawModel()
 				render.SetColorModulation(R, G, B)
 			end
@@ -300,10 +265,7 @@ function GM:RenderAccessories(ply)
 			local Pos, Ang = ply:GetBonePosition(ply:LookupBone("ValveBiped.Bip01_Head1"))
 			if Pos and Ang then
 				local Dist = 4.5
-				if ply.ModelSex == "male" then
-					Dist = 6
-				end
-
+				if ply.ModelSex == "male" then Dist = 6 end
 				Pos = Pos + Ang:Forward() * 1 + Ang:Right()
 				ply.HelmetModel:SetRenderOrigin(Pos)
 				Ang:RotateAroundAxis(Ang:Up(), -80)
@@ -321,10 +283,7 @@ function GM:RenderAccessories(ply)
 			ply.HelmetModel:SetParent(ply)
 			ply.HelmetModel:SetNoDraw(true)
 			local Scale = 1
-			if ply.ModelSex == "female" then
-				Scale = Scale * .9
-			end
-
+			if ply.ModelSex == "female" then Scale = Scale * .9 end
 			ply.HelmetModel:SetModelScale(Scale, 0)
 		end
 	else
@@ -382,18 +341,13 @@ end
 
 function GM:PlayerBindPress(ply, bind, pressed)
 	if self.PlayerAttackTime and (self.PlayerAttackTime > CurTime()) and (bind == "+attack") then return true end
-	if not (GetViewEntity() == lply) then
-		RunConsoleCommand("hmcd_lockedcontrols", bind)
-	end
+	if not (GetViewEntity() == lply) then RunConsoleCommand("hmcd_lockedcontrols", bind) end
 end
 
-net.Receive(
-	"hmcd_tker",
-	function(len)
-		GAMEMODE.TKerPenalty = net.ReadFloat()
-		GAMEMODE.TKerUnShowTime = CurTime() + 5
-	end
-)
+net.Receive("hmcd_tker", function(len)
+	GAMEMODE.TKerPenalty = net.ReadFloat()
+	GAMEMODE.TKerUnShowTime = CurTime() + 5
+end)
 
 local function ExplosiveReceive(data)
 	lply.RecognizedExplosive = data:ReadEntity()
@@ -414,13 +368,11 @@ function GM:GetVictor()
 			if self.VillainPlayer.IsPlayer and self.VillainPlayer:IsPlayer() then return self.VillainPlayer end
 		end
 	end
-
 	return nil
 end
 
 function GM:ShouldDrawLocalPlayer(ply)
 	if ply:IsPlayingTaunt() or self:GetVictor() then return true end
-
 	return false
 end
 
@@ -449,7 +401,6 @@ function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
 			znear = nearZ,
 			zfar = farZ
 		}
-
 		return CamData
 	end
 
@@ -465,17 +416,13 @@ function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
 					znear = nearZ,
 					zfar = farZ
 				}
-
 				return CamData
 			end
 		end
 	elseif ply:IsPlayingTaunt() then
 		local ViewPos = pos - ang:Forward() * 75
 		local Tr = util.QuickTrace(pos, ViewPos - pos, {ply})
-		if Tr.Hit then
-			ViewPos = Tr.HitPos
-		end
-
+		if Tr.Hit then ViewPos = Tr.HitPos end
 		local CamData = {
 			origin = ViewPos,
 			angles = ang,
@@ -483,14 +430,10 @@ function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
 			znear = nearZ,
 			zfar = farZ
 		}
-
 		return CamData
 	elseif ply:InVehicle() then
 		local Mdl, Vec = ply:GetVehicle():GetModel(), Vector(0, 0, 0)
-		if not ((Mdl == "models/airboat.mdl") or (Mdl == "models/buggy.mdl") or (Mdl == "models/vehicle.mdl")) then
-			Vec = Vector(0, 0, 5)
-		end
-
+		if not ((Mdl == "models/airboat.mdl") or (Mdl == "models/buggy.mdl") or (Mdl == "models/vehicle.mdl")) then Vec = Vector(0, 0, 5) end
 		local CamData = {
 			origin = pos + Vec,
 			angles = ang,
@@ -498,7 +441,6 @@ function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
 			znear = nearZ,
 			zfar = farZ
 		}
-
 		return CamData
 	elseif Ent ~= LocalPlayer() then
 		local Pos = Ent:LocalToWorld(Ent:OBBCenter())
@@ -509,7 +451,6 @@ function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
 			znear = nearZ,
 			zfar = farZ
 		}
-
 		return CamData
 	end
 end
@@ -520,38 +461,30 @@ local vp_is_calc = false
 local vp_punch_angle = Angle()
 local vp_punch_angle_velocity = Angle()
 local vp_punch_angle_last = vp_punch_angle
-hook.Add(
-	"Think",
-	"viewpunch_think",
-	function()
-		if not vp_punch_angle:IsZero() or not vp_punch_angle_velocity:IsZero() then
-			vp_punch_angle = vp_punch_angle + vp_punch_angle_velocity * FrameTime()
-			local damping = 1 - (PUNCH_DAMPING * FrameTime())
-			if damping < 0 then
-				damping = 0
-			end
-
-			vp_punch_angle_velocity = vp_punch_angle_velocity * damping
-			local spring_force_magnitude = math.Clamp(PUNCH_SPRING_CONSTANT * FrameTime(), 0, 0.2 / FrameTime())
-			vp_punch_angle_velocity = vp_punch_angle_velocity - vp_punch_angle * spring_force_magnitude
-			local x, y, z = vp_punch_angle:Unpack()
-			vp_punch_angle = Angle(math.Clamp(x, -89, 89), math.Clamp(y, -179, 179), math.Clamp(z, -89, 89))
-		else
-			vp_punch_angle = Angle()
-			vp_punch_angle_velocity = Angle()
-		end
-
-		if vp_punch_angle:IsZero() and vp_punch_angle_velocity:IsZero() then return end
-		if LocalPlayer():InVehicle() then return end
-		LocalPlayer():SetEyeAngles(LocalPlayer():EyeAngles() + vp_punch_angle - vp_punch_angle_last)
-		vp_punch_angle_last = vp_punch_angle
+hook.Add("Think", "viewpunch_think", function()
+	if not vp_punch_angle:IsZero() or not vp_punch_angle_velocity:IsZero() then
+		vp_punch_angle = vp_punch_angle + vp_punch_angle_velocity * FrameTime()
+		local damping = 1 - (PUNCH_DAMPING * FrameTime())
+		if damping < 0 then damping = 0 end
+		vp_punch_angle_velocity = vp_punch_angle_velocity * damping
+		local spring_force_magnitude = math.Clamp(PUNCH_SPRING_CONSTANT * FrameTime(), 0, 0.2 / FrameTime())
+		vp_punch_angle_velocity = vp_punch_angle_velocity - vp_punch_angle * spring_force_magnitude
+		local x, y, z = vp_punch_angle:Unpack()
+		vp_punch_angle = Angle(math.Clamp(x, -89, 89), math.Clamp(y, -179, 179), math.Clamp(z, -89, 89))
+	else
+		vp_punch_angle = Angle()
+		vp_punch_angle_velocity = Angle()
 	end
-)
+
+	if vp_punch_angle:IsZero() and vp_punch_angle_velocity:IsZero() then return end
+	if LocalPlayer():InVehicle() then return end
+	LocalPlayer():SetEyeAngles(LocalPlayer():EyeAngles() + vp_punch_angle - vp_punch_angle_last)
+	vp_punch_angle_last = vp_punch_angle
+end)
 
 function SetViewPunchAngles(angle)
 	if not angle then
 		print("[Local Viewpunch] SetViewPunchAngles called without an angle. wtf?")
-
 		return
 	end
 
@@ -561,7 +494,6 @@ end
 function SetViewPunchVelocity(angle)
 	if not angle then
 		print("[Local Viewpunch] SetViewPunchVelocity called without an angle. wtf?")
-
 		return
 	end
 
@@ -571,7 +503,6 @@ end
 function Viewpunch(angle)
 	if not angle then
 		print("[Local Viewpunch] Viewpunch called without an angle. wtf?")
-
 		return
 	end
 

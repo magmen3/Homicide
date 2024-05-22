@@ -38,14 +38,10 @@ if SERVER then
 	function ENT:Initialize()
 		if self.AmmoType == "XBowBolt" then
 			self:BecomeArrows()
-
 			return
 		end
 
-		if not self.AmmoType then
-			self.AmmoType = "Pistol"
-		end
-
+		if not self.AmmoType then self.AmmoType = "Pistol" end
 		self:SetModel("models/props_lab/box01a.mdl")
 		self:SetMaterial(self.Skins[self.AmmoType])
 		self:PhysicsInit(SOLID_VPHYSICS)
@@ -76,9 +72,7 @@ if SERVER then
 
 		for key, arrow in pairs(Arrows) do
 			for k, other in pairs(Arrows) do
-				if other ~= arrow then
-					constraint.Weld(arrow, other, 0, 0, 5000, true, false)
-				end
+				if other ~= arrow then constraint.Weld(arrow, other, 0, 0, 5000, true, false) end
 			end
 		end
 
@@ -86,10 +80,7 @@ if SERVER then
 	end
 
 	function ENT:PickUp(ply)
-		if not self.Rounds then
-			self:Fill()
-		end
-
+		if not self.Rounds then self:Fill() end
 		local Wep = nil
 		for key, wepon in pairs(self.SWEPS[self.AmmoType]) do
 			if ply:HasWeapon(wepon) then
@@ -112,9 +103,7 @@ if SERVER then
 			ply:SelectWeapon(Wep)
 		else
 			-- murderer can plausibly deny that he's able to pick up .22
-			if self.AmmoType ~= "AlyxGun" then
-				ply:PickupObject(self)
-			end
+			if self.AmmoType ~= "AlyxGun" then ply:PickupObject(self) end
 		end
 	end
 

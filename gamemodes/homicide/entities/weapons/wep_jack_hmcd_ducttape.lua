@@ -42,23 +42,12 @@ SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
 SWEP.CommandDroppable = true
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = true
@@ -114,7 +103,7 @@ function SWEP:FindObjects()
 end
 
 function SWEP:PrimaryAttack()
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	if SERVER then
 		local Go, TrOne, TrTwo = self:FindObjects()
 		if Go then
@@ -130,30 +119,17 @@ function SWEP:PrimaryAttack()
 			end
 
 			if DoorSealed then
-				if not self.TapeAmount then
-					self.TapeAmount = 100
-				end
-
+				if not self.TapeAmount then self.TapeAmount = 100 end
 				self.TapeAmount = self.TapeAmount - 100
 				sound.Play("snd_jack_hmcd_ducttape.wav", TrOne.HitPos, 65, math.random(80, 120))
 				self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 				self:GetOwner():ViewPunch(Angle(3, 0, 0))
 				self:SprayDecals()
 				self:GetOwner():PrintMessage(HUD_PRINTCENTER, translate.weaponDoorSealed)
-				timer.Simple(
-					.1,
-					function()
-						if self.TapeAmount <= 0 then
-							self:Remove()
-						end
-					end
-				)
+				timer.Simple(.1, function() if self.TapeAmount <= 0 then self:Remove() end end)
 			else
 				local Strength = HMCD_BindObjects(TrOne.Entity, TrOne.HitPos, TrTwo.Entity, TrTwo.HitPos)
-				if not self.TapeAmount then
-					self.TapeAmount = 100
-				end
-
+				if not self.TapeAmount then self.TapeAmount = 100 end
 				self.TapeAmount = self.TapeAmount - 10
 				sound.Play("snd_jack_hmcd_ducttape.wav", TrOne.HitPos, 65, math.random(80, 120))
 				self:GetOwner():SetAnimation(PLAYER_ATTACK1)
@@ -161,14 +137,7 @@ function SWEP:PrimaryAttack()
 				util.Decal("hmcd_jackatape", TrOne.HitPos + TrOne.HitNormal, TrOne.HitPos - TrOne.HitNormal)
 				util.Decal("hmcd_jackatape", TrTwo.HitPos + TrTwo.HitNormal, TrTwo.HitPos - TrTwo.HitNormal)
 				self:GetOwner():PrintMessage(HUD_PRINTCENTER, translate.weaponDuctTapeBondStrength .. tostring(Strength))
-				timer.Simple(
-					.1,
-					function()
-						if self.TapeAmount <= 0 then
-							self:Remove()
-						end
-					end
-				)
+				timer.Simple(.1, function() if self.TapeAmount <= 0 then self:Remove() end end)
 			end
 		end
 	end
@@ -196,13 +165,11 @@ end
 function SWEP:Deploy()
 	self:SetNextPrimaryFire(CurTime() + 1)
 	self.DownAmt = 60
-
 	return true
 end
 
 function SWEP:Holster()
 	self:OnRemove()
-
 	return true
 end
 
@@ -213,18 +180,13 @@ end
 function SWEP:Think()
 	if SERVER then
 		local HoldType = "slam"
-		if self:GetOwner():KeyDown(IN_SPEED) then
-			HoldType = "normal"
-		end
-
+		if self:GetOwner():IsSprinting() then HoldType = "normal" end
 		self:SetHoldType(HoldType)
 	end
 end
 
 function SWEP:Reload()
-	if SERVER then
-		self:GetOwner():PrintMessage(HUD_PRINTCENTER, tostring(self.TapeAmount or 100) .. translate.weaponDuctTapeRemaining)
-	end
+	if SERVER then self:GetOwner():PrintMessage(HUD_PRINTCENTER, tostring(self.TapeAmount or 100) .. translate.weaponDuctTapeRemaining) end
 end
 
 function SWEP:OnDrop()
@@ -232,10 +194,7 @@ function SWEP:OnDrop()
 	Ent.HmcdSpawned = self.HmcdSpawned
 	Ent:SetPos(self:GetPos())
 	Ent:SetAngles(self:GetAngles())
-	if self.TapeAmount then
-		Ent.TapeAmount = self.TapeAmount
-	end
-
+	if self.TapeAmount then Ent.TapeAmount = self.TapeAmount end
 	Ent:Spawn()
 	Ent:Activate()
 	Ent:GetPhysicsObject():SetVelocity(self:GetVelocity() / 2)
@@ -259,11 +218,8 @@ if CLIENT then
 	end
 
 	function SWEP:GetViewModelPosition(pos, ang)
-		if not self.DownAmt then
-			self.DownAmt = 0
-		end
-
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if not self.DownAmt then self.DownAmt = 0 end
+		if self:GetOwner():IsSprinting() then
 			self.DownAmt = math.Clamp(self.DownAmt + 1, 0, 60)
 		else
 			self.DownAmt = math.Clamp(self.DownAmt - 1, 0, 60)
@@ -273,7 +229,6 @@ if CLIENT then
 		--ang:RotateAroundAxis(ang:Up(),0)
 		ang:RotateAroundAxis(ang:Right(), 90)
 		ang:RotateAroundAxis(ang:Forward(), -90)
-
 		return pos, ang
 	end
 

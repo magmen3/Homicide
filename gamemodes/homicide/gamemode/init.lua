@@ -86,7 +86,7 @@ end
 concommand.Add("homicide_scope_fix", ThesePeopleAreJollyFellows)
 local function SpecSHTF(ply, cmd, args)
 	if ply.IsAdmin and not ply:IsAdmin() then
-		ply:PrintMessage(HUD_PRINTTALK, translate.youAreNoAdmin)
+		ply:ChatPrint(translate.youAreNoAdmin)
 		return
 	end
 
@@ -103,7 +103,7 @@ local function SpecSHTF(ply, cmd, args)
 
 	GAMEMODE.SHTF_Specified = true
 	print("SHTF mode specified as " .. tostring(GAMEMODE.SHTF_MODE_ENGAGED))
-	ply:PrintMessage(HUD_PRINTTALK, "SHTF mode specified as " .. tostring(GAMEMODE.SHTF_MODE_ENGAGED))
+	ply:ChatPrint("SHTF mode specified as " .. tostring(GAMEMODE.SHTF_MODE_ENGAGED))
 end
 
 concommand.Add("homicide_setmode", SpecSHTF)
@@ -338,7 +338,7 @@ function GM:Initialize()
 	self:StartNewRound()
 	self:LoadMapList()
 	-- пошли все нахер
-	if GetConVar("gmod_language"):GetString() == "ru" or "uk" and GetConVar("hmcd_language"):GetString() ~= "russian" then RunConsoleCommand("hmcd_language", "russian") end
+	if GetConVar("gmod_language"):GetString() == "ru" or GetConVar("gmod_language"):GetString() == "uk" or GetConVar("gmod_language"):GetString() == "ua" and GetConVar("hmcd_language"):GetString() ~= "russian" then RunConsoleCommand("hmcd_language", "russian") end
 end
 
 function GM:InitPostEntity()
@@ -416,7 +416,18 @@ function GM:SpawnGuardsman(pos)
 	return dude
 end
 
-local ZombTypes = {"npc_zombie", "npc_zombie", "npc_zombie_torso", "npc_fastzombie", "npc_fastzombie", "npc_fastzombie", "npc_fastzombie_torso", "npc_zombine", "npc_poisonzombie", "npc_poisonzombie"}
+-- format: multiline
+local ZombTypes = {
+	"npc_zombie",
+	"npc_zombie",
+	"npc_zombie_torso",
+	"npc_fastzombie",
+	"npc_fastzombie",
+	"npc_fastzombie_torso",
+	"npc_poisonzombie",
+	"npc_poisonzombie"
+}
+
 function GM:SpawnZombie(pos)
 	if self.ZombiesLeft <= 0 then return end
 	if self.PoliceTime < CurTime() then return end
@@ -657,7 +668,7 @@ function GM:ZombieThink()
 		end
 	end
 
-	local ZombLimit = 40 + #Playas * 5
+	local ZombLimit = 20 + #Playas * 5
 	if #Zombs >= ZombLimit then return end
 	if NextZombieSpawnTime > CurTime() then return end
 	NextZombieSpawnTime = CurTime() + 1
@@ -683,7 +694,7 @@ function GM:Think()
 		local Size, Threshold, Map = self:DetermineMapSize(), 3000, game.GetMap()
 		if string.find(Map, "ttt_") then
 			Threshold = 2000
-		elseif string.find(Map, "mu_") or string.find(Map, "md_") then
+		elseif string.find(Map, "mu_") or string.find(Map, "md_") or string.find(Map, "hmcd_") or string.find(Map, "homicide_") then
 			Threshold = 4000
 		elseif string.find(Map, "zs_") then
 			Threshold = 1000
@@ -718,11 +729,11 @@ function GM:Think()
 	if (self.PoliceTime < CurTime()) and not self.DEATHMATCH then
 		if not self.PoliceNotified then
 			self.PoliceNotified = true
-			for key, playah in pairs(player.GetAll()) do
+			for key, playah in player.Iterator() do
 				if self.SHTF then
-					playah:PrintMessage(HUD_PRINTTALK, translate.arrivalNationalGuard)
+					playah:ChatPrint(translate.arrivalNationalGuard)
 				else
-					playah:PrintMessage(HUD_PRINTTALK, translate.arrivalPolice)
+					playah:ChatPrint(translate.arrivalPolice)
 				end
 			end
 		end
@@ -780,7 +791,7 @@ function GM:Think()
 		self:GlobalAntiCheat()
 	end
 
-	for k, ply in pairs(player.GetAll()) do
+	for k, ply in player.Iterator() do
 		local ActiveWep = ply:GetActiveWeapon()
 		if not IsValid(ActiveWep) then
 			if ply:HasWeapon("wep_jack_hmcd_hands") then
@@ -801,7 +812,7 @@ function GM:Think()
 		if WillGodCheck then ply:GodCheck() end
 		if WillCalcSpeed then ply:CalculateSpeed() end
 		if WillCalc then
-			if ply:KeyDown(IN_SPEED) and ply:KeyDown(IN_FORWARD) and not ply:InVehicle() then
+			if ply:IsSprinting() and ply:KeyDown(IN_FORWARD) and not ply:InVehicle() then
 				if ply.Stamina > 40 then
 					local PenMul = .7
 					HMCD_StaminaPenalize(ply, 2 * PenMul)
@@ -812,7 +823,7 @@ function GM:Think()
 				HMCD_StaminaPenalize(ply, StamAmt)
 			end
 
-			self:CalculateFoV(ply, ply:KeyDown(IN_WALK), ply:KeyDown(IN_SPEED), ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) or ply:KeyDown(IN_FORWARD) or ply:KeyDown(IN_BACK))
+			self:CalculateFoV(ply, ply:KeyDown(IN_WALK), ply:IsSprinting(), ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) or ply:KeyDown(IN_FORWARD) or ply:KeyDown(IN_BACK))
 			ply.TempSpeedMul = math.Clamp(ply.TempSpeedMul + .1, .1, 1)
 			net.Start("hmcd_tempspeedmul")
 			net.WriteFloat(ply.TempSpeedMul)
@@ -887,7 +898,7 @@ local NextIntermissionThink = 0
 function GM:IntermissionThink()
 	if NextIntermissionThink > CurTime() then return end
 	NextIntermissionThink = CurTime() + 1
-	for key, ply in pairs(player.GetAll()) do
+	for key, ply in player.Iterator() do
 		ply.Stamina = 100
 		ply.Bleedout = 0
 		net.Start("stamina")
@@ -975,7 +986,7 @@ function GM:PlayerNoClip(ply)
 	if (ply:GetMoveType() == MOVETYPE_NOCLIP) or GetConVar("sv_cheats"):GetBool() then
 		return true
 	else
-		ply:PrintMessage(HUD_PRINTTALK, translate.notAllowedNoclip)
+		ply:ChatPrint(translate.notAllowedNoclip)
 	end
 end
 
@@ -988,7 +999,7 @@ end
 
 -- hi
 function GM:SendMessageAll(msg)
-	for k, v in pairs(player.GetAll()) do
+	for k, v in player.Iterator() do
 		v:ChatPrint(msg)
 	end
 end
@@ -1012,7 +1023,7 @@ function GM:EntityTakeDamage(ent, dmginfo)
 	local Mul, Att, Infl = 1, dmginfo:GetAttacker(), dmginfo:GetInflictor()
 	if Infl:IsVehicle() and Infl:GetDriver() then Att = Infl:GetDriver() end
 	if IsValid(Att) and IsValid(Att:GetPhysicsAttacker()) then Att = Att:GetPhysicsAttacker() end
-	if IsValid(Infl) and (Infl:GetClass() == "ent_jack_hmcd_grapl") then Att = Infl.Owner end
+	if IsValid(Infl) and (Infl:GetClass() == "ent_jack_hmcd_grapl") then Att = Infl:GetOwner() end
 	if self.PoliceTime and (self.PoliceTime < CurTime()) and (ent:IsPlayer() or (ent:GetClass() == "npc_combine_s")) and not ent.Murderer then if IsValid(Att) and Att:IsPlayer() then Att.GuardGuilty = true end end
 	if ent:IsPlayer() then
 		local Crush, Club, Slash, Bullet, Buckshot, Blast, Burn = dmginfo:IsDamageType(DMG_CRUSH), dmginfo:IsDamageType(DMG_CLUB), dmginfo:IsDamageType(DMG_SLASH), dmginfo:IsDamageType(DMG_BULLET), dmginfo:IsDamageType(DMG_BUCKSHOT), dmginfo:IsDamageType(DMG_BLAST), dmginfo:IsDamageType(DMG_BURN) or dmginfo:IsDamageType(DMG_DIRECT)
@@ -1580,7 +1591,7 @@ end)
 --]]
 concommand.Add("homicide_player_speed_mul", function(ply, cmd, args)
 	if ply.IsAdmin and not ply:IsAdmin() then
-		ply:PrintMessage(HUD_PRINTTALK, translate.youAreNoAdmin)
+		ply:ChatPrint(translate.youAreNoAdmin)
 		return
 	end
 
@@ -1588,13 +1599,13 @@ concommand.Add("homicide_player_speed_mul", function(ply, cmd, args)
 	if Num then
 		GAMEMODE.PLAYER_SPEED_MUL = Num
 		print("Player movement ability multiplier set: " .. tostring(GAMEMODE.PLAYER_SPEED_MUL))
-		ply:PrintMessage(HUD_PRINTTALK, "Player movement ability multiplier set: " .. tostring(GAMEMODE.PLAYER_SPEED_MUL))
+		ply:ChatPrint("Player movement ability multiplier set: " .. tostring(GAMEMODE.PLAYER_SPEED_MUL))
 	end
 end)
 
 concommand.Add("homicide_loot_spawn_mul", function(ply, cmd, args)
 	if ply.IsAdmin and not ply:IsAdmin() then
-		ply:PrintMessage(HUD_PRINTTALK, translate.youAreNoAdmin)
+		ply:ChatPrint(translate.youAreNoAdmin)
 		return
 	end
 
@@ -1602,7 +1613,7 @@ concommand.Add("homicide_loot_spawn_mul", function(ply, cmd, args)
 	if Num then
 		GAMEMODE.LOOT_SPAWN_MUL = Num
 		print("Loot spawn rate multiplier set: " .. tostring(GAMEMODE.LOOT_SPAWN_MUL))
-		ply:PrintMessage(HUD_PRINTTALK, "Loot spawn rate multiplier set: " .. tostring(GAMEMODE.LOOT_SPAWN_MUL))
+		ply:ChatPrint("Loot spawn rate multiplier set: " .. tostring(GAMEMODE.LOOT_SPAWN_MUL))
 	end
 end)
 

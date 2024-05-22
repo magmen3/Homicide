@@ -45,16 +45,11 @@ function PANEL:CheckBystanderState(state)
 			if client:Team() == 2 and client:Alive() then
 				newBystanderState = true
 			else
-				if self.ply:Team() == 2 and self.ply:Alive() then
-					newBystanderState = true
-				end
+				if self.ply:Team() == 2 and self.ply:Alive() then newBystanderState = true end
 			end
 		end
 
-		if self.Bystander ~= newBystanderState then
-			self:SetBystanderState(newBystanderState)
-		end
-
+		if self.Bystander ~= newBystanderState then self:SetBystanderState(newBystanderState) end
 		if newBystanderState then
 			local col = self.ply:GetPlayerColor()
 			if col ~= self.PrevColor then
@@ -93,9 +88,7 @@ end
 
 function PANEL:Think()
 	self:CheckBystanderState()
-	if self.fadeAnim then
-		self.fadeAnim:Run()
-	end
+	if self.fadeAnim then self.fadeAnim:Run() end
 end
 
 function PANEL:FadeOut(anim, delta, data)
@@ -103,10 +96,8 @@ function PANEL:FadeOut(anim, delta, data)
 		if IsValid(PlayerVoicePanels[self.ply]) then
 			PlayerVoicePanels[self.ply]:Remove()
 			PlayerVoicePanels[self.ply] = nil
-
 			return
 		end
-
 		return
 	end
 
@@ -125,7 +116,6 @@ function GM:PlayerStartVoice(ply)
 		end
 
 		PlayerVoicePanels[ply]:SetAlpha(255)
-
 		return
 	end
 
@@ -137,9 +127,7 @@ end
 
 local function VoiceClean()
 	for k, v in pairs(PlayerVoicePanels) do
-		if not IsValid(k) then
-			GAMEMODE:PlayerEndVoice(k)
-		end
+		if not IsValid(k) then GAMEMODE:PlayerEndVoice(k) end
 	end
 end
 

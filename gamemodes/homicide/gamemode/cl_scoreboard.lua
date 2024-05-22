@@ -1,16 +1,13 @@
 local menu
 local ext = translate.nocoolvetica == "<nocoolvetica>"
-surface.CreateFont(
-	"ScoreboardPlayer",
-	{
-		font = "Coolvetica Rg",
-		size = 35,
-		weight = 500,
-		antialias = true,
-		italic = false,
-		extended = ext
-	}
-)
+surface.CreateFont("ScoreboardPlayer", {
+	font = "Coolvetica Rg",
+	size = 35,
+	weight = 500,
+	antialias = true,
+	italic = false,
+	extended = ext
+})
 
 local muted = Material("icon32/muted.png")
 local admin = Material("icon32/wand.png")
@@ -37,14 +34,14 @@ local function addPlayerItem(self, mlist, ply, pteam)
 			local s = 0
 			if showAdmins and ply:IsAdmin() then
 				surface.SetMaterial(admin)
-				surface.SetDrawColor(color_white)
+				surface.SetDrawColor(255, 255, 255, 255)
 				surface.DrawTexturedRect(s + 4, h / 2 - 16, 32, 32)
 				s = s + 32
 			end
 
 			if ply:IsMuted() then
 				surface.SetMaterial(muted)
-				surface.SetDrawColor(color_white)
+				surface.SetDrawColor(255, 255, 255, 255)
 				surface.DrawTexturedRect(s + 4, h / 2 - 16, 32, 32)
 				s = s + 32
 			end
@@ -72,46 +69,39 @@ function GM:DoScoreboardActionPopup(ply)
 	--end
 	if ply ~= LocalPlayer() then
 		local t = translate.scoreboardActionMute
-		if ply:IsMuted() then
-			t = translate.scoreboardActionUnmute
-		end
-
+		if ply:IsMuted() then t = translate.scoreboardActionUnmute end
 		local mute = actions:AddOption(t)
 		mute:SetIcon("icon16/sound_mute.png")
 		function mute:DoClick()
-			if IsValid(ply) then
-				ply:SetMuted(not ply:IsMuted())
-			end
+			if IsValid(ply) then ply:SetMuted(not ply:IsMuted()) end
 		end
 	end
 
-	--[[
-	if IsValid(LocalPlayer()) && LocalPlayer():IsAdmin() then
+	if IsValid(LocalPlayer()) and LocalPlayer():IsAdmin() then
 		actions:AddSpacer()
-
 		if ply:Team() == 2 then
-			local spectate=actions:AddOption( Translator:QuickVar(translate.adminMoveToSpectate, "spectate", team.GetName(1)) )
-			spectate:SetIcon( "icon16/status_busy.png" )
+			local spectate = actions:AddOption(Translator:QuickVar(translate.adminMoveToSpectate, "spectate", team.GetName(1)))
+			spectate:SetIcon("icon16/status_busy.png")
 			function spectate:DoClick()
 				RunConsoleCommand("hmcd_movetospectate", ply:EntIndex())
 			end
 
-			--local force=actions:AddOption( translate.adminMurdererForce )
-			--force:SetIcon( "icon16/delete.png" )
-			--function force:DoClick()
-			--	RunConsoleCommand("mu_forcenextmurderer", ply:EntIndex())
-			--end
+			local force = actions:AddOption(translate.adminMurdererForce)
+			force:SetIcon("icon16/delete.png")
+			function force:DoClick()
+				RunConsoleCommand("hmcd_forcenextmurderer", ply:EntIndex())
+			end
 
 			if ply:Alive() then
-				local specateThem=actions:AddOption( translate.adminSpectate )
-				specateThem:SetIcon( "icon16/status_online.png" )
+				local specateThem = actions:AddOption(translate.adminSpectate)
+				specateThem:SetIcon("icon16/status_online.png")
 				function specateThem:DoClick()
-					RunConsoleCommand("mu_spectate", ply:EntIndex())
+					RunConsoleCommand("hmcd_spectate", ply:EntIndex())
 				end
 			end
 		end
 	end
-	--]]
+
 	actions:Open()
 end
 
@@ -125,9 +115,7 @@ local function doPlayerItems(self, mlist, pteam)
 			end
 		end
 
-		if not found then
-			addPlayerItem(self, mlist, ply, pteam)
-		end
+		if not found then addPlayerItem(self, mlist, ply, pteam) end
 	end
 
 	local del = false
@@ -139,19 +127,11 @@ local function doPlayerItems(self, mlist, pteam)
 	end
 
 	-- make sure the rest of the elements are moved up
-	if del then
-		timer.Simple(
-			0,
-			function()
-				mlist:GetCanvas():InvalidateLayout()
-			end
-		)
-	end
+	if del then timer.Simple(0, function() mlist:GetCanvas():InvalidateLayout() end) end
 end
 
 local function makeTeamList(parent, pteam)
 	local mlist
-	local chaos
 	local pnl = vgui.Create("DPanel", parent)
 	pnl:DockPadding(8, 8, 8, 8)
 	function pnl:Paint(w, h)
@@ -163,11 +143,6 @@ local function makeTeamList(parent, pteam)
 		if not self.RefreshWait or self.RefreshWait < CurTime() then
 			self.RefreshWait = CurTime() + 0.1
 			doPlayerItems(self, mlist, pteam)
-			-- update chaos/control
-			if pteam == 2 then
-			else -- chaos:SetText("Control: " .. GAMEMODE:GetControl())
-			end
-			-- chaos:SetText("Chaos: " .. GAMEMODE:GetChaos())
 		end
 	end
 
@@ -184,7 +159,7 @@ local function makeTeamList(parent, pteam)
 	but:SetTextColor(color_white)
 	but:SetFont("Trebuchet18")
 	function but:DoClick()
-		RunConsoleCommand("mu_jointeam", pteam)
+		RunConsoleCommand("hmcd_jointeam", pteam)
 	end
 
 	function but:Paint(w, h)
@@ -203,23 +178,6 @@ local function makeTeamList(parent, pteam)
 		end
 	end
 
-	-- chaos=vgui.Create("DLabel", headp)
-	-- chaos:Dock(RIGHT)
-	-- chaos:DockMargin(0,0,10,0)
-	-- if pteam == 2 then
-	-- 	-- chaos:SetText("Control: " .. GAMEMODE:GetControl())
-	-- else
-	-- 	-- chaos:SetText("Chaos: " .. GAMEMODE:GetChaos())
-	-- end
-	-- function chaos:PerformLayout()
-	-- 	self:ApplySchemeSettings()
-	-- 	self:SizeToContentsX()
-	-- 	if ( self.m_bAutoStretchVertical ) then
-	-- 		self:SizeToContentsY()
-	-- 	end
-	-- end
-	-- chaos:SetFont("Trebuchet24")
-	-- chaos:SetTextColor(team.GetColor(pteam))
 	local head = vgui.Create("DLabel", headp)
 	head:SetText(team.GetName(pteam))
 	head:SetFont("Trebuchet24")
@@ -233,7 +191,6 @@ local function makeTeamList(parent, pteam)
 		child:Dock(TOP)
 		child:DockMargin(0, 0, 0, 4)
 	end
-
 	return pnl
 end
 
@@ -295,9 +252,7 @@ function GM:ScoreboardShow()
 end
 
 function GM:ScoreboardHide()
-	if IsValid(menu) then
-		menu:Close()
-	end
+	if IsValid(menu) then menu:Close() end
 end
 
 function GM:HUDDrawScoreBoard()

@@ -7,10 +7,7 @@ ENT.ImpactSound = "snd_jack_hmcd_foodbounce.wav"
 local FoodModels = {"models/foodnhouseholditems/applejacks.mdl", "models/foodnhouseholditems/cheerios.mdl", "models/foodnhouseholditems/kellogscornflakes.mdl", "models/foodnhouseholditems/miniwheats.mdl", "models/foodnhouseholditems/bagette.mdl", "models/jordfood/atun.mdl", "models/jordfood/cakes.mdl", "models/jordfood/can.mdl", "models/jordfood/canned_burger.mdl", "models/jordfood/capncrunch.mdl", "models/jordfood/chili.mdl", "models/jordfood/girlscout_cookies.mdl", "models/foodnhouseholditems/cola.mdl", "models/foodnhouseholditems/juice.mdl", "models/foodnhouseholditems/milk.mdl", "models/foodnhouseholditems/cola.mdl", "models/jorddrink/the_bottle_of_water.mdl"}
 if SERVER then
 	function ENT:Initialize()
-		if not self.RandomModel then
-			self.RandomModel = table.Random(FoodModels)
-		end
-
+		if not self.RandomModel then self.RandomModel = table.Random(FoodModels) end
 		if table.KeyFromValue(FoodModels, self.RandomModel) > 12 then
 			self.Drink = true
 		else
@@ -43,15 +40,12 @@ if SERVER then
 			ply:GetWeapon(SWEP).Drink = Jrink
 			ply:GetWeapon(SWEP).Poisoned = self.Poisoned
 			if self.Poisoned then
-				timer.Simple(
-					.1,
-					function()
-						net.Start("hmcd_hudhalo")
-						net.WriteEntity(ply:GetWeapon(SWEP))
-						net.WriteInt(3, 32)
-						net.Send(player.GetAll())
-					end
-				)
+				timer.Simple(.1, function()
+					net.Start("hmcd_hudhalo")
+					net.WriteEntity(ply:GetWeapon(SWEP))
+					net.WriteInt(3, 32)
+					net.Send(player.GetAll())
+				end)
 			end
 
 			ply:GetWeapon(SWEP).Poisoner = self.Poisoner

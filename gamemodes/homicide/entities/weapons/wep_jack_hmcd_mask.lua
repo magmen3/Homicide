@@ -32,23 +32,12 @@ SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
 SWEP.CommandDroppable = false
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
@@ -68,52 +57,27 @@ end
 
 --
 function SWEP:PrimaryAttack()
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
-	if SERVER then
-		self:GetOwner():MurdererHideIdentity()
-	end
-
+	if SERVER then self:GetOwner():MurdererHideIdentity() end
 	self:SetNextPrimaryFire(CurTime() + 1)
 	self:SetNextSecondaryFire(CurTime() + 1)
-	timer.Simple(
-		.5,
-		function()
-			if IsValid(self) then
-				if SERVER then
-					self:GetOwner():SelectWeapon("wep_jack_hmcd_knife")
-				end
-			end
-		end
-	)
+	timer.Simple(.5, function() if IsValid(self) then if SERVER then self:GetOwner():SelectWeapon("wep_jack_hmcd_knife") end end end)
 end
 
 function SWEP:Deploy()
 	self:SetNextPrimaryFire(CurTime() + 1)
 	self:SetNextSecondaryFire(CurTime() + 1)
 	self.DownAmt = 20
-
 	return true
 end
 
 function SWEP:SecondaryAttack()
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
-	if SERVER then
-		self:GetOwner():MurdererShowIdentity()
-	end
-
+	if self:GetOwner():IsSprinting() then return end
+	if SERVER then self:GetOwner():MurdererShowIdentity() end
 	self:SetNextPrimaryFire(CurTime() + 1)
 	self:SetNextSecondaryFire(CurTime() + 1)
-	timer.Simple(
-		.5,
-		function()
-			if IsValid(self) then
-				if SERVER then
-					self:GetOwner():SelectWeapon("wep_jack_hmcd_hands")
-				end
-			end
-		end
-	)
+	timer.Simple(.5, function() if IsValid(self) then if SERVER then self:GetOwner():SelectWeapon("wep_jack_hmcd_hands") end end end)
 end
 
 function SWEP:Think()
@@ -134,11 +98,8 @@ if CLIENT then
 
 	--
 	function SWEP:GetViewModelPosition(pos, ang)
-		if not self.DownAmt then
-			self.DownAmt = 0
-		end
-
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if not self.DownAmt then self.DownAmt = 0 end
+		if self:GetOwner():IsSprinting() then
 			self.DownAmt = math.Clamp(self.DownAmt + .2, 0, 20)
 		else
 			self.DownAmt = math.Clamp(self.DownAmt - .2, 0, 20)
@@ -146,7 +107,6 @@ if CLIENT then
 
 		pos = pos - ang:Up() * (self.DownAmt + 8) + ang:Forward() * 45 + ang:Right() * 22
 		--ang:RotateAroundAxis(ang:Forward(),-90)
-
 		return pos, ang
 	end
 

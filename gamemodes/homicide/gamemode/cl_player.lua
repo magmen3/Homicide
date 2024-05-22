@@ -1,39 +1,27 @@
 local PlayerMeta = FindMetaTable("Player")
 local EntityMeta = FindMetaTable("Entity")
-net.Receive(
-	"hmcd_playersilent",
-	function()
-		local Ply = net.ReadEntity()
-		Ply.SilentStepping = tobool(net.ReadBit())
-	end
-)
+net.Receive("hmcd_playersilent", function()
+	local Ply = net.ReadEntity()
+	Ply.SilentStepping = tobool(net.ReadBit())
+end)
 
-net.Receive(
-	"hmcd_armor",
-	function()
-		local Ply = net.ReadEntity()
-		Ply.HeadArmor = net.ReadString()
-		Ply.ChestArmor = net.ReadString()
-	end
-)
+net.Receive("hmcd_armor", function()
+	local Ply = net.ReadEntity()
+	Ply.HeadArmor = net.ReadString()
+	Ply.ChestArmor = net.ReadString()
+end)
 
-net.Receive(
-	"hmcd_flashlightpickup",
-	function()
-		local Dude = net.ReadEntity()
-		Dude.HasFlashlight = tobool(net.ReadBit())
-	end
-)
+net.Receive("hmcd_flashlightpickup", function()
+	local Dude = net.ReadEntity()
+	Dude.HasFlashlight = tobool(net.ReadBit())
+end)
 
-net.Receive(
-	"hmcd_player_accessory",
-	function()
-		local Ply = net.ReadEntity()
-		Ply.ModelSex = net.ReadString()
-		Ply.Accessory = net.ReadString()
-		Ply.AccessoryModel = nil
-	end
-)
+net.Receive("hmcd_player_accessory", function()
+	local Ply = net.ReadEntity()
+	Ply.ModelSex = net.ReadString()
+	Ply.Accessory = net.ReadString()
+	Ply.AccessoryModel = nil
+end)
 
 local AppearanceMenuOpen, Frame = false, nil
 local function OpenMenu()
@@ -48,10 +36,7 @@ local function OpenMenu()
 	Frame:ShowCloseButton(true)
 	Frame:MakePopup()
 	Frame:Center()
-	Frame.OnClose = function()
-		AppearanceMenuOpen = false
-	end
-
+	Frame.OnClose = function() AppearanceMenuOpen = false end
 	local MainPanel = vgui.Create("DPanel", Frame)
 	MainPanel:SetPos(5, 25)
 	MainPanel:SetSize(290, 420)
@@ -168,13 +153,7 @@ local function OpenMenu()
 	end
 end
 
-net.Receive(
-	"hmcd_openappearancemenu",
-	function()
-		OpenMenu()
-	end
-)
-
+net.Receive("hmcd_openappearancemenu", function() OpenMenu() end)
 function GM:PrePlayerDraw(ply)
 	if not self.Murderer then
 		for key, shroud in pairs(ents.FindByClass("ent_jack_hmcd_smokebomb")) do
@@ -211,14 +190,16 @@ end
 
 function GM:PlayerFootstep(ply, pos, foot, snd, volume, filter)
 	self:FootStepsFootstep(ply, pos, foot, snd, volume, filter)
-	if ply.SilentStepping then return true end -- murderer can choose to walk silently
+	if ply.SilentStepping then -- murderer can choose to walk silently
+		return true
+	end
+
 	if ply:GetModel() == "models/player/zombie_classic.mdl" then
 		if math.random(1, 2) == 1 then
 			sound.Play("npc/zombie/foot" .. math.random(3) .. ".wav", pos, 70, math.random(90, 110))
 		else
 			sound.Play("npc/zombie/foot_slide" .. math.random(3) .. ".wav", pos, 70, math.random(90, 110))
 		end
-
 		return true
 	end
 end
@@ -230,22 +211,15 @@ end
 function EntityMeta:GetBystanderName()
 	local name = self:GetNWString("bystanderName")
 	if not name or name == "" then return translate.bystander end
-
 	return name
 end
 
-net.Receive(
-	"hmcd_tempspeedmul",
-	function(len, pl)
-		LocalPlayer().TempSpeedMul = net.ReadFloat()
-	end
-)
-
+net.Receive("hmcd_tempspeedmul", function(len, pl) LocalPlayer().TempSpeedMul = net.ReadFloat() end)
 function GM:AdjustMouseSensitivity(num)
 	local Mul, Ply = 1, LocalPlayer()
 	if not Ply.TempSpeedMul then return -1 end
 	local Wep = Ply:GetActiveWeapon()
-	if Ply:KeyDown(IN_SPEED) then
+	if Ply:IsSprinting() then
 		Mul = Mul * .25
 	elseif IsValid(Wep) and Wep.GetAiming then
 		if Wep:GetAiming() > 99 then
@@ -264,12 +238,10 @@ function GM:AdjustMouseSensitivity(num)
 			Helth = Ply:Health()
 			if (Helth and tonumber(Helth)) and (Helth > 0) then
 				Mul = Mul * math.Clamp((Helth * .5 + 50) / 100, .01, 1)
-
 				return Mul
 			end
 		end
 	end
-
 	return -1
 end
 
@@ -277,14 +249,8 @@ local WDir, Overriding, MovDir = VectorRand():GetNormalized(), false, 1000
 function GM:CreateMove(cmd)
 	local ply, Amt, Sporadicness = LocalPlayer(), 20, 15
 	local Wep = ply:GetActiveWeapon()
-	if ply:Crouching() then
-		Amt = Amt / 2
-	end
-
-	if LocalPlayer().Murderer then
-		Amt = Amt / 2
-	end
-
+	if ply:Crouching() then Amt = Amt / 2 end
+	if LocalPlayer().Murderer then Amt = Amt / 2 end
 	if ply.Seizuring then
 		Amt = 1500
 		Sporadicness = 20
@@ -306,14 +272,8 @@ function GM:CreateMove(cmd)
 	end
 
 	if ply.Seizuring then
-		if math.random(1, 100) == 2 then
-			Overriding = not Overriding
-		end
-
-		if math.random(1, 100) == 8 then
-			MovDir = -MovDir
-		end
-
+		if math.random(1, 100) == 2 then Overriding = not Overriding end
+		if math.random(1, 100) == 8 then MovDir = -MovDir end
 		if Overriding then
 			cmd:SetForwardMove(MovDir)
 			cmd:SetButtons(IN_ATTACK)

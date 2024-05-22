@@ -36,7 +36,7 @@ if SERVER then
 		local Part = ents.Create("ent_jack_hmcd_gasparticle")
 		Part:SetPos(SelfPos)
 		Part.HmcdSpawned = self.HmcdSpawned
-		Part.Owner = self.Owner
+		Part:GetOwner(self:GetOwner())
 		Part:Spawn()
 		Part:Activate()
 		Part:GetPhysicsObject():SetVelocity(self:GetPhysicsObject():GetVelocity())
@@ -68,14 +68,11 @@ if SERVER then
 		end
 		--]]
 		self:NextThink(Time + math.Rand(.8, 1.2))
-
 		return true
 	end
 
 	function ENT:PhysicsCollide(data, ent)
-		if data.DeltaTime > .1 then
-			sound.Play("physics/metal/soda_can_impact_soft" .. math.random(2, 3) .. ".wav", self:GetPos(), 55, math.random(90, 110))
-		end
+		if data.DeltaTime > .1 then sound.Play("physics/metal/soda_can_impact_soft" .. math.random(2, 3) .. ".wav", self:GetPos(), 55, math.random(90, 110)) end
 	end
 elseif CLIENT then
 	function ENT:Initialize()

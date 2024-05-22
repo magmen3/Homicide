@@ -32,10 +32,7 @@ if SERVER then
 	end
 
 	function ENT:Think()
-		if (self:GetVelocity():Length() > 300) and not self.HitSomething then
-			self:EmitSound("snd_jack_hmcd_tinyswish.wav", 70, math.random(90, 110))
-		end
-
+		if (self:GetVelocity():Length() > 300) and not self.HitSomething then self:EmitSound("snd_jack_hmcd_tinyswish.wav", 70, math.random(90, 110)) end
 		if self.HitSomething then
 			for key, ply in pairs(ents.FindInSphere(self:GetPos(), 30)) do
 				if ply:IsPlayer() and ply.Murderer then
@@ -49,7 +46,6 @@ if SERVER then
 		end
 
 		self:NextThink(CurTime() + .1)
-
 		return true
 	end
 
@@ -66,14 +62,14 @@ if SERVER then
 				self.HitSomething = true
 				local dmg = DamageInfo()
 				dmg:SetDamage(math.random(5, 9))
-				dmg:SetAttacker(self.Owner)
+				dmg:SetAttacker(self:GetOwner())
 				dmg:SetDamageType(DMG_SLASH)
 				dmg:SetDamageForce(data.OurOldVelocity)
 				dmg:SetDamagePosition(self:GetPos())
 				ply:TakeDamageInfo(dmg)
 				self:EmitSound("snd_jack_hmcd_knifestab.wav", 55, math.random(90, 110))
 				if self.Poisoned and ply:IsPlayer() then
-					HMCD_Poison(ply, self.Owner)
+					HMCD_Poison(ply, self:GetOwner())
 					self.Poisoned = false
 				end
 

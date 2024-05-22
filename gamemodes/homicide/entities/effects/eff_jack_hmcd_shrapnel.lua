@@ -33,15 +33,13 @@ function EFFECT:Init(data)
 			particle:SetColor(darg, darg, darg)
 			particle:SetCollide(true)
 			particle:SetBounce(0)
-			particle:SetCollideCallback(
-				function(part, hitpos, hitnormal)
-					part:SetStartAlpha(math.Rand(50, 255))
-					part:SetLifeTime(0)
-					part:SetDieTime(math.Rand(.01, 1.5))
-					part:SetVelocity(hitnormal * 10)
-					util.Decal("ExplosiveGunshot", hitpos + hitnormal, hitpos - hitnormal)
-				end
-			)
+			particle:SetCollideCallback(function(part, hitpos, hitnormal)
+				part:SetStartAlpha(math.Rand(50, 255))
+				part:SetLifeTime(0)
+				part:SetDieTime(math.Rand(.01, 1.5))
+				part:SetVelocity(hitnormal * 10)
+				util.Decal("ExplosiveGunshot", hitpos + hitnormal, hitpos - hitnormal)
+			end)
 		end
 	end
 

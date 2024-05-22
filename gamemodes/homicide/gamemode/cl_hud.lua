@@ -1,157 +1,106 @@
-surface.CreateFont(
-	"MersText1",
-	{
-		font = "Tahoma",
-		size = 16,
-		weight = 1000,
-		antialias = true,
-		italic = false
-	}
-)
+surface.CreateFont("MersText1", {
+	font = "Tahoma",
+	size = 16,
+	weight = 1000,
+	antialias = true,
+	italic = false
+})
 
 local ext = translate.nocoolvetica == "<nocoolvetica>"
-surface.CreateFont(
-	"MersHead1",
-	{
-		font = "Coolvetica Rg",
-		size = 26,
-		weight = 500,
-		antialias = true,
-		italic = false,
-		extended = ext
-	}
-)
+surface.CreateFont("MersHead1", {
+	font = "Coolvetica Rg",
+	size = 26,
+	weight = 500,
+	antialias = true,
+	italic = false,
+	extended = ext
+})
 
 local basesize = ScrH() / 19.125 * 1.07829597918913 -- we have to multiply because coolvetica v1 is just bigger than coolvetica v5 for some reason
-surface.CreateFont(
-	"MersRadial",
-	{
-		font = "Coolvetica Rg",
-		size = math.ceil(basesize),
-		weight = 500,
-		antialias = true,
-		italic = false,
-		extended = ext
-	}
-)
+surface.CreateFont("MersRadial", {
+	font = "Coolvetica Rg",
+	size = math.ceil(basesize),
+	weight = 500,
+	antialias = true,
+	italic = false,
+	extended = ext
+})
 
-surface.CreateFont(
-	"MersRadial_QM",
-	{
-		font = "Coolvetica Rg",
-		size = math.ceil(basesize * .89),
-		weight = 500,
-		antialias = true,
-		italic = false,
-		extended = ext
-	}
-)
+surface.CreateFont("MersRadial_QM", {
+	font = "Coolvetica Rg",
+	size = math.ceil(basesize * .89),
+	weight = 500,
+	antialias = true,
+	italic = false,
+	extended = ext
+})
 
-surface.CreateFont(
-	"MersRadialS",
-	{
-		font = "Coolvetica Rg",
-		size = math.ceil(basesize * .76),
-		weight = 400,
-		antialias = true,
-		italic = false,
-		extended = ext
-	}
-)
+surface.CreateFont("MersRadialS", {
+	font = "Coolvetica Rg",
+	size = math.ceil(basesize * .76),
+	weight = 400,
+	antialias = true,
+	italic = false,
+	extended = ext
+})
 
-surface.CreateFont(
-	"MersRadialSemiSuperS",
-	{
-		font = "Coolvetica Rg",
-		size = math.ceil(basesize * .62),
-		weight = 125,
-		antialias = true,
-		italic = false,
-		extended = ext
-	}
-)
+surface.CreateFont("MersRadialSemiSuperS", {
+	font = "Coolvetica Rg",
+	size = math.ceil(basesize * .62),
+	weight = 125,
+	antialias = true,
+	italic = false,
+	extended = ext
+})
 
-surface.CreateFont(
-	"MersRadialSuperS",
-	{
-		font = "Coolvetica Rg",
-		size = math.ceil(basesize * .425),
-		weight = 100,
-		antialias = true,
-		italic = false,
-		extended = ext
-	}
-)
+surface.CreateFont("MersRadialSuperS", {
+	font = "Coolvetica Rg",
+	size = math.ceil(basesize * .425),
+	weight = 100,
+	antialias = true,
+	italic = false,
+	extended = ext
+})
 
-surface.CreateFont(
-	"MersRadialBig",
-	{
-		font = "Coolvetica Rg",
-		size = math.ceil(basesize * 1.42),
-		weight = 500,
-		antialias = true,
-		italic = false,
-		extended = ext
-	}
-)
+surface.CreateFont("MersRadialBig", {
+	font = "Coolvetica Rg",
+	size = math.ceil(basesize * 1.42),
+	weight = 500,
+	antialias = true,
+	italic = false,
+	extended = ext
+})
 
-surface.CreateFont(
-	"MersRadialSmall",
-	{
-		font = "Coolvetica Rg",
-		size = math.ceil(basesize * .57),
-		weight = 100,
-		antialias = true,
-		italic = false,
-		extended = ext
-	}
-)
+surface.CreateFont("MersRadialSmall", {
+	font = "Coolvetica Rg",
+	size = math.ceil(basesize * .57),
+	weight = 100,
+	antialias = true,
+	italic = false,
+	extended = ext
+})
 
-surface.CreateFont(
-	"MersRadialSmall_QM",
-	{
-		font = "Coolvetica Rg",
-		size = math.ceil(basesize * .425),
-		weight = 100,
-		antialias = true,
-		italic = false,
-		extended = ext
-	}
-)
+surface.CreateFont("MersRadialSmall_QM", {
+	font = "Coolvetica Rg",
+	size = math.ceil(basesize * .425),
+	weight = 100,
+	antialias = true,
+	italic = false,
+	extended = ext
+})
 
-surface.CreateFont(
-	"MersDeathBig",
-	{
-		font = "Coolvetica Rg",
-		size = math.ceil(basesize * 1.89),
-		weight = 500,
-		antialias = true,
-		italic = false,
-		extended = ext
-	}
-)
+surface.CreateFont("MersDeathBig", {
+	font = "Coolvetica Rg",
+	size = math.ceil(basesize * 1.89),
+	weight = 500,
+	antialias = true,
+	italic = false,
+	extended = ext
+})
 
-net.Receive(
-	"hmcd_noscopeaberration",
-	function()
-		LocalPlayer().JackaHMCDNoScopeAberration = true
-	end
-)
-
-net.Receive(
-	"hmcd_painvision",
-	function()
-		LocalPlayer().PainVision = 100
-	end
-)
-
-net.Receive(
-	"hmcd_seizure",
-	function()
-		LocalPlayer().Seizuring = tobool(net.ReadBit())
-	end
-)
-
+net.Receive("hmcd_noscopeaberration", function() LocalPlayer().JackaHMCDNoScopeAberration = true end)
+net.Receive("hmcd_painvision", function() LocalPlayer().PainVision = 100 end)
+net.Receive("hmcd_seizure", function() LocalPlayer().Seizuring = tobool(net.ReadBit()) end)
 local function drawTextShadow(t, f, x, y, c, px, py)
 	draw.SimpleText(t, f, x + 1, y + 1, Color(0, 0, 0, c.a), px, py)
 	draw.SimpleText(t, f, x - 1, y - 1, Color(255, 255, 255, math.Clamp(c.a * .25, 0, 255)), px, py)
@@ -162,10 +111,7 @@ local healthCol = Color(120, 255, 20)
 function GM:HUDPaint()
 	local round = self:GetRound()
 	local client = LocalPlayer()
-	if round == 0 then
-		drawTextShadow(translate.minimumPlayers, "MersRadial", ScrW() / 2, ScrH() - 75, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
-	end
-
+	if round == 0 then drawTextShadow(translate.minimumPlayers, "MersRadial", ScrW() / 2, ScrH() - 75, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP) end
 	if client:Team() == 2 then
 		if not client:Alive() then
 			self:RenderRespawnText()
@@ -313,7 +259,6 @@ local function colorDif(col1, col2)
 	x = x > 0 and x or -x
 	y = y > 0 and y or -y
 	z = z > 0 and z or -z
-
 	return x + y + z
 end
 
@@ -327,19 +272,10 @@ function GM:DrawGameHUD(ply)
 	local W, H, Bleedout, Vary = ScrW(), ScrH(), ply.Bleedout, math.sin(CurTime() * 10) / 2 + .5
 	Health = Lerp(.1, Health, ply:Health())
 	Stamina = Lerp(.05, Stamina, ply.Stamina)
-	if not Stamina then
-		Stamina = 0
-	end
-
-	if not Bleedout then
-		Bleedout = 0
-	end
-
+	if not Stamina then Stamina = 0 end
+	if not Bleedout then Bleedout = 0 end
 	local Bright = color_white
-	if ply.FoodBoost and (ply.FoodBoost > CurTime()) then
-		Bright = Color(175, 235, 255, 255)
-	end
-
+	if ply.FoodBoost and (ply.FoodBoost > CurTime()) then Bright = Color(175, 235, 255, 255) end
 	local tr = ply:GetEyeTraceNoCursor()
 	local shouldDraw = hook.Run("HUDShouldDraw", "MurderPlayerNames")
 	if shouldDraw ~= false then
@@ -359,17 +295,22 @@ function GM:DrawGameHUD(ply)
 	end
 
 	local shouldDraw = hook.Run("HUDShouldDraw", "MurderDisguise")
-	if shouldDraw ~= false then
-		if GetViewEntity() == LocalPlayer() then
-			if IsValid(tr.Entity) and LocalPlayer().Murderer and tr.Entity:GetClass() == "prop_ragdoll" and tr.HitPos:Distance(tr.StartPos) < 60 and not self.ZOMBIE then
-				if tr.Entity:GetBystanderName() ~= ply:GetBystanderName() or colorDif(tr.Entity:GetPlayerColor(), ply:GetPlayerColor()) > 0.1 then
-					local h = draw.GetFontHeight("MersRadial")
-					drawTextShadow(translate.pressEToDisguiseFor1Loot, "MersRadialSmall", ScrW() / 2, ScrH() / 2 + 80 + h * 0.7, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-				end
-			elseif IsValid(tr.Entity) and table.HasValue(HMCD_PersonContainers, string.lower(tr.Entity:GetModel())) and (tr.HitPos:Distance(tr.StartPos) < 60) then
+	if GetViewEntity() == LocalPlayer() and shouldDraw ~= false then
+		if IsValid(tr.Entity) and LocalPlayer().Murderer and tr.Entity:GetClass() == "prop_ragdoll" and tr.HitPos:Distance(tr.StartPos) < 60 and not self.ZOMBIE then
+			if tr.Entity:GetBystanderName() ~= ply:GetBystanderName() or colorDif(tr.Entity:GetPlayerColor(), ply:GetPlayerColor()) > 0.1 then
 				local h = draw.GetFontHeight("MersRadial")
-				drawTextShadow(translate.hideInThing, "MersRadialSmall", ScrW() / 2, ScrH() / 2 + 80 + h * 0.7, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+				drawTextShadow(translate.pressEToDisguiseFor1Loot, "MersRadialSmall", ScrW() / 2, ScrH() / 2 + 80 + h * 0.7, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 			end
+		elseif IsValid(tr.Entity) and table.HasValue(HMCD_PersonContainers, string.lower(tr.Entity:GetModel())) and (tr.HitPos:Distance(tr.StartPos) < 60) then
+			local h = draw.GetFontHeight("MersRadial")
+			drawTextShadow(translate.hideInThing, "MersRadialSmall", ScrW() / 2, ScrH() / 2 + 80 + h * 0.7, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		end
+	end
+
+	if IsValid(tr.Entity) and (ply.ArmedAtSpawn or self.DEATHMATCH or self.ZOMBIE) and not LocalPlayer().Murderer and tr.Entity:GetClass() == "prop_ragdoll" and tr.HitPos:Distance(tr.StartPos) < 60 then
+		if tr.Entity:GetBystanderName() ~= ply:GetBystanderName() or colorDif(tr.Entity:GetPlayerColor(), ply:GetPlayerColor()) > 0.1 then
+			local h = draw.GetFontHeight("MersRadial")
+			drawTextShadow(translate.bodysearchPressE, "MersRadialSmall", ScrW() / 2, ScrH() / 2 + 80 + h * 0.7, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 		end
 	end
 
@@ -404,8 +345,7 @@ function GM:DrawGameHUD(ply)
 			surface.SetFont("MersRadialS")
 			drawTextShadow(ply.StatusEffect, "MersRadialS", W / 2 - Size / 2, BarLow + 37, col, 0, TEXT_ALIGN_TOP)
 		end
-
-		local col, Name = ply:GetPlayerColor(), ply:GetBystanderName()
+		--[[local col, Name = ply:GetPlayerColor(), ply:GetBystanderName()
 		if (Name == translate.murderer) or (Name == translate.traitor) then
 			col = Color(255 * Vary, 0, 0)
 		else
@@ -425,14 +365,14 @@ function GM:DrawGameHUD(ply)
 			end
 
 			local str = translate.chest .. tca
-			surface.SetDrawColor(color_white)
+			surface.SetDrawColor(255, 255, 255, 255)
 			surface.SetFont("MersRadialS")
 			drawTextShadow(str, "MersRadialSuperS", W / 2 - 430, BarLow + 30, color_white, 0, TEXT_ALIGN_TOP)
 		end
 
 		if ply.HeadArmor and (ply.HeadArmor ~= "") then
 			local str = translate.head .. ply.HeadArmor
-			surface.SetDrawColor(color_white)
+			surface.SetDrawColor(255, 255, 255, 255)
 			surface.SetFont("MersRadialS")
 			local Size = surface.GetTextSize(str)
 			drawTextShadow(str, "MersRadialSuperS", W / 2 + 470 - Size, BarLow + 30, color_white, 0, TEXT_ALIGN_TOP)
@@ -441,18 +381,9 @@ function GM:DrawGameHUD(ply)
 		local shouldDraw = hook.Run("HUDShouldDraw", "MurderPlayerType")
 		if shouldDraw ~= false then
 			local Name = translate.bystander
-			if self.SHTF then
-				Name = translate.innocent
-			end
-
-			if self.DEATHMATCH then
-				Name = translate.fighter
-			end
-
-			if self.ZOMBIE then
-				Name = translate.survivor
-			end
-
+			if self.SHTF then Name = translate.innocent end
+			if self.DEATHMATCH then Name = translate.fighter end
+			if self.ZOMBIE then Name = translate.survivor end
 			if LocalPlayer() == ply and LocalPlayer().Murderer then
 				if self.ZOMBIE then
 					Name = translate.zombie
@@ -464,7 +395,7 @@ function GM:DrawGameHUD(ply)
 			end
 
 			drawTextShadow(Name, "MersRadialS", W / 2 + 455, BarLow + 10, col, 0, TEXT_ALIGN_TOP)
-		end
+		end]]
 	end
 
 	local RoundTextures = {
@@ -483,7 +414,7 @@ function GM:DrawGameHUD(ply)
 	if shouldDraw ~= false then
 		if LocalPlayer() == ply and ply:FlashlightIsOn() then
 			local col = color_white
-			surface.SetDrawColor(color_white)
+			surface.SetDrawColor(255, 255, 255, 255)
 			surface.SetTexture(FlashTex)
 			surface.DrawTexturedRect(W * .3 - 150, H * .85, 128, 128)
 			--drawTextShadow(math.Round(charge*100).."%","MersRadialSmall",W*.3-140,H*.85+50,col,0,TEXT_ALIGN_TOP)
@@ -501,9 +432,7 @@ function GM:DrawGameHUD(ply)
 			local Mag, Message, Cnt = Wep:Clip1(), "", ply:GetAmmoCount(Wep.AmmoType)
 			if Mag >= 0 then
 				Message = tostring(Mag)
-				if Cnt > 0 then
-					Message = Message .. "+" .. tostring(Cnt)
-				end
+				if Cnt > 0 then Message = Message .. "+" .. tostring(Cnt) end
 			else
 				Message = tostring(Cnt)
 			end
@@ -514,7 +443,7 @@ function GM:DrawGameHUD(ply)
 
 	-- a simple grouping feature that will allows players to find eachother (and play) on large maps
 	local Barycenter, Num = Vector(0, 0, 0), 0
-	for key, playa in ipairs(player.GetAll()) do
+	for key, playa in player.Iterator() do
 		if playa:Alive() and playa ~= ply then
 			Barycenter = Barycenter + playa:GetPos()
 			Num = Num + 1
@@ -523,18 +452,9 @@ function GM:DrawGameHUD(ply)
 
 	Barycenter = Vector(Barycenter.x / Num, Barycenter.y / Num, Barycenter.z / Num)
 	local Dist, MaxDist = (Barycenter - ply:GetPos()):Length(), 1000
-	if self.SHTF then
-		MaxDist = 2000
-	end
-
-	if self.DEATHMATCH or self.ZOMBIE then
-		MaxDist = 4000
-	end
-
-	if self.ZOMBIE and LocalPlayer():HasWeapon("wep_jack_hmcd_zombhands") then
-		MaxDist = 500
-	end
-
+	if self.SHTF then MaxDist = 2000 end
+	if self.DEATHMATCH or self.ZOMBIE then MaxDist = 4000 end
+	if self.ZOMBIE and LocalPlayer():HasWeapon("wep_jack_hmcd_zombhands") then MaxDist = 500 end
 	local Wep = ply:GetActiveWeapon()
 	if Dist > MaxDist then
 		if not (Wep and IsValid(Wep) and Wep.GetAiming and (Wep:GetAiming() > 1)) then
@@ -635,7 +555,7 @@ function GM:RenderScreenspaceEffects()
 				if Wep.Scoped then
 					if Wep:GetAiming() >= 99 then
 						local W, H = ScrW(), ScrH()
-						surface.SetDrawColor(color_white)
+						surface.SetDrawColor(255, 255, 255, 255)
 						surface.SetTexture(ScpMat)
 						surface.DrawTexturedRect(-1, -1, W + 1, H + 1)
 						surface.SetDrawColor(0, 0, 0, 255)
@@ -648,44 +568,32 @@ function GM:RenderScreenspaceEffects()
 			end
 		end
 
-		if client.HighOnDrugs then
-			DrawSharpen(2, 1.2)
-		end
+		if client.HighOnDrugs then DrawSharpen(2, 1.2) end
 	end
 
 	local ply = client
-	if self:IsCSpectating() and IsValid(self:GetCSpectatee()) then
-		ply = self:GetCSpectatee()
-	end
-
+	if self:IsCSpectating() and IsValid(self:GetCSpectatee()) then ply = self:GetCSpectatee() end
 	local Health = ply:Health()
 	if (ply:IsPlayer() and ply:Alive() or (GAMEMODE.SpectateTime > CurTime())) and not (self.ZOMBIE and ply.Murderer) then
 		if Health < 50 then
 			local Frac = math.Clamp(Health / 50, .01, 1)
-			DrawColorModify(
-				{
-					["$pp_colour_addr"] = 0,
-					["$pp_colour_addg"] = 0,
-					["$pp_colour_addb"] = 0,
-					["$pp_colour_brightness"] = -(1 - Frac) * .1,
-					["$pp_colour_contrast"] = 1 + (1 - Frac) * .5,
-					["$pp_colour_colour"] = Frac,
-					["$pp_colour_mulr"] = 0,
-					["$pp_colour_mulg"] = 0,
-					["$pp_colour_mulb"] = 0
-				}
-			)
+			DrawColorModify({
+				["$pp_colour_addr"] = 0,
+				["$pp_colour_addg"] = 0,
+				["$pp_colour_addb"] = 0,
+				["$pp_colour_brightness"] = -(1 - Frac) * .1,
+				["$pp_colour_contrast"] = 1 + (1 - Frac) * .5,
+				["$pp_colour_colour"] = Frac,
+				["$pp_colour_mulr"] = 0,
+				["$pp_colour_mulg"] = 0,
+				["$pp_colour_mulb"] = 0
+			})
 		end
 
-		if Health < 10 then
-			DrawToyTown(1, ScrH())
-		end
+		if Health < 10 then DrawToyTown(1, ScrH()) end
 	end
 
-	if not self.RoundStart then
-		self.RoundStart = CurTime()
-	end
-
+	if not self.RoundStart then self.RoundStart = CurTime() end
 	if self:GetRound() == 1 and self.RoundStart and self.RoundStart + 10 > CurTime() then
 		local sw, sh = ScrW(), ScrH()
 		surface.SetDrawColor(0, 0, 0, 255)
@@ -693,13 +601,7 @@ function GM:RenderScreenspaceEffects()
 	end
 end
 
-net.Receive(
-	"hmcd_innocence",
-	function()
-		net.ReadEntity().InnocenceLost = CurTime() + 1.5
-	end
-)
-
+net.Receive("hmcd_innocence", function() net.ReadEntity().InnocenceLost = CurTime() + 1.5 end)
 function GM:PostDrawHUD()
 	if self:GetRound() == 1 then
 		local AlreadyDrawn = false
@@ -742,7 +644,6 @@ function GM:HUDShouldDraw(name)
 		local wep = ply:GetActiveWeapon()
 		if IsValid(wep) and wep.HUDShouldDraw then return wep.HUDShouldDraw(wep, name) end
 	end
-
 	return true
 end
 
@@ -754,25 +655,16 @@ end
 	I hate desiging derma UIs so damn much
 ---------------------------------------------------------------]]
 --
-net.Receive(
-	"hmcd_openammomenu",
-	function()
-		GAMEMODE:OpenAmmoDropMenu()
-	end
-)
-
+net.Receive("hmcd_openammomenu", function() GAMEMODE:OpenAmmoDropMenu() end)
 function GM:OpenAmmoDropMenu()
 	local Ply, AmmoType, AmmoAmt, Ammos = LocalPlayer(), "Pistol", 1, {}
 	for key, name in pairs(HMCD_AmmoNames) do
 		local Amownt = Ply:GetAmmoCount(key)
-		if Amownt > 0 then
-			Ammos[key] = Amownt
-		end
+		if Amownt > 0 then Ammos[key] = Amownt end
 	end
 
 	if #table.GetKeys(Ammos) <= 0 then
 		Ply:ChatPrint(translate.ammoNo)
-
 		return
 	end
 
@@ -811,10 +703,7 @@ function GM:OpenAmmoDropMenu()
 	amtselect:SetMax(AmmoAmt)
 	amtselect:SetDecimals(0)
 	amtselect:SetValue(AmmoAmt)
-	amtselect.OnValueChanged = function(panel, val)
-		AmmoAmt = math.Round(val)
-	end
-
+	amtselect.OnValueChanged = function(panel, val) AmmoAmt = math.Round(val) end
 	local AmmoList = vgui.Create("DListView", MainPanel)
 	AmmoList:SetMultiSelect(false)
 	AmmoList:AddColumn(translate.ammoType)

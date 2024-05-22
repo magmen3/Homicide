@@ -2,7 +2,6 @@ AddCSLuaFile()
 SWEP.Author = "Jackarunda"
 SWEP.Base = "weapon_base"
 SWEP.Purpose = "The answer? Use a gun. An' if that don't work, use more gun."
-SWEP.Spawnable = false
 SWEP.Primary.ClipSize = 10
 SWEP.Primary.DefaultClip = 10
 SWEP.Primary.Ammo = "none"
@@ -80,14 +79,7 @@ function SWEP:Initialize()
 	self.NextThinkTime = CurTime() + .01
 	self:SetHoldType("ar2")
 	self.CurrentAmmo = self.MagSize
-	hook.Add(
-		"Think",
-		self,
-		function()
-			self:Think()
-		end
-	)
-
+	hook.Add("Think", self, function() self:Think() end)
 	self.LastHealth = 150
 	self.WanderDirection = VectorRand()
 	self.SocialityType = math.random(-1, 1)
@@ -101,7 +93,6 @@ end
 function SWEP:PrimaryAttack()
 	if math.random(1, self.AltRate) == 2 then
 		self:SecondaryAttack()
-
 		return
 	end
 
@@ -138,19 +129,11 @@ function SWEP:Think()
 		local Act = self:GetOwner():GetActivity()
 		if BG and IsValid(BG) and (Act == ACT_IDLE) and self:GetOwner():Visible(BG) then
 			local Dist = (BG:GetPos() - self:GetOwner():GetPos()):Length()
-			if Dist > self.MaxRange then
-				if self.NextChaseTime < CurTime() then
-					self:Chase(BG)
-				end
-			end
+			if Dist > self.MaxRange then if self.NextChaseTime < CurTime() then self:Chase(BG) end end
 		elseif BG and (Act == ACT_IDLE) then
-			if math.random(1, 50) == 2 then
-				self:RandomMove()
-			end
+			if math.random(1, 50) == 2 then self:RandomMove() end
 		elseif not BG and (Act == ACT_IDLE) then
-			if math.random(1, 30) == 2 then
-				self:RandomMove()
-			end
+			if math.random(1, 30) == 2 then self:RandomMove() end
 		end
 	end
 end
@@ -227,23 +210,18 @@ function SWEP:Fiah()
 	end
 
 	local Acc = math.Rand(.001, .02)
-	if (Enem:GetPhysicsObject():GetVelocity():Length() > 100) or (self:GetOwner():GetPhysicsObject():GetVelocity():Length() > 100) then
-		Acc = Acc + .02
-	end
-
+	if (Enem:GetPhysicsObject():GetVelocity():Length() > 100) or (self:GetOwner():GetPhysicsObject():GetVelocity():Length() > 100) then Acc = Acc + .02 end
 	local Vec = (EnemPos - self:GetOwner():GetShootPos()):GetNormalized()
 	local BulletTrajectory = (Vec + VectorRand() * Acc):GetNormalized()
-	self:FireBullets(
-		{
-			Src = self:GetOwner():GetShootPos(),
-			Dir = BulletTrajectory,
-			Tracer = 0,
-			Damage = math.random(80, 90),
-			Num = 1,
-			Attacker = self:GetOwner(),
-			Spread = Vector(0, 0, 0)
-		}
-	)
+	self:FireBullets({
+		Src = self:GetOwner():GetShootPos(),
+		Dir = BulletTrajectory,
+		Tracer = 0,
+		Damage = math.random(80, 90),
+		Num = 1,
+		Attacker = self:GetOwner(),
+		Spread = Vector(0, 0, 0)
+	})
 
 	self:BallisticSnap(BulletTrajectory)
 	local Pitch = math.random(85, 95)
@@ -263,15 +241,12 @@ function SWEP:BallisticSnap(traj)
 	}
 
 	local Tr, EndPos = util.TraceLine(TrDat), Src + traj * 20000
-	if Tr.Hit or Tr.HitSky then
-		EndPos = Tr.HitPos
-	end
-
+	if Tr.Hit or Tr.HitSky then EndPos = Tr.HitPos end
 	local Dist = (EndPos - Src):Length()
 	if Dist > 1000 then
 		for i = 1, math.floor(Dist / 500) do
 			local SoundSrc = Src + traj * i * 500
-			for key, ply in ipairs(player.GetAll()) do
+			for key, ply in player.Iterator() do
 				if ply ~= self:GetOwner() then
 					local PlyPos = ply:GetPos()
 					if (PlyPos - SoundSrc):Length() < 500 then

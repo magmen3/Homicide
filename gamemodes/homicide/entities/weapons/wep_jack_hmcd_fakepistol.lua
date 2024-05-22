@@ -23,8 +23,6 @@ SWEP.SwayScale = 1.5
 SWEP.Weight = 5
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Sound = ""
 SWEP.Primary.Damage = 0
 SWEP.Primary.NumShots = 0
@@ -110,7 +108,7 @@ end
 -- wat
 function SWEP:Think()
 	if SERVER then
-		local Sprintin, Aimin, AimAmt, SprintAmt = self:GetOwner():KeyDown(IN_SPEED), self:GetOwner():KeyDown(IN_ATTACK2), self:GetAiming(), self:GetSprinting()
+		local Sprintin, Aimin, AimAmt, SprintAmt = self:GetOwner():IsSprinting(), self:GetOwner():KeyDown(IN_ATTACK2), self:GetAiming(), self:GetSprinting()
 		if Sprintin or self:FrontBlocked() then
 			self:SetSprinting(math.Clamp(SprintAmt + 40 * (1 / self.BearTime), 0, 100))
 			self:SetAiming(math.Clamp(AimAmt - 30 * (1 / self.AimTime), 0, 100))
@@ -143,7 +141,6 @@ function SWEP:Deploy()
 	if not IsFirstTimePredicted() then
 		self:DoBFSAnimation("draw")
 		self:GetOwner():GetViewModel():SetPlaybackRate(.1)
-
 		return
 	end
 
@@ -151,15 +148,7 @@ function SWEP:Deploy()
 	self:GetOwner():GetViewModel():SetPlaybackRate(.75)
 	self:SetReady(false)
 	self:EmitSound("snd_jack_hmcd_pistoldraw.wav", 70, 110)
-	timer.Simple(
-		1,
-		function()
-			if IsValid(self) then
-				self:SetReady(true)
-			end
-		end
-	)
-
+	timer.Simple(1, function() if IsValid(self) then self:SetReady(true) end end)
 	return true
 end
 
@@ -177,7 +166,6 @@ end
 function SWEP:Holster()
 	if not self:GetReady() then return false end
 	self:SetReady(false)
-
 	return true
 end
 
@@ -202,23 +190,18 @@ function SWEP:FrontBlocked()
 		ShootPos = ShootPos + ShootVec * 15
 		Ang.p = 0
 		Ang.r = 0
-		local Tr = util.TraceLine(
-			{
-				start = ShootPos - Ang:Forward() * 5,
-				endpos = ShootPos + (ShootVec * self.BarrelLength) + Ang:Forward() * 15,
-				filter = {self:GetOwner()}
-			}
-		)
+		local Tr = util.TraceLine({
+			start = ShootPos - Ang:Forward() * 5,
+			endpos = ShootPos + (ShootVec * self.BarrelLength) + Ang:Forward() * 15,
+			filter = {self:GetOwner()}
+		})
 
 		if Tr.Hit then
-			if not Tr.Entity.JIBFS_NoBlock then
-				self.FrontallyBlocked = true
-			end
+			if not Tr.Entity.JIBFS_NoBlock then self.FrontallyBlocked = true end
 		else
 			self.FrontallyBlocked = false
 		end
 	end
-
 	return self.FrontallyBlocked
 end
 
@@ -250,7 +233,6 @@ if CLIENT then
 
 		Crouched = Crouched * (1 - (Aim / 100))
 		pos = pos + Up * Crouched * 2
-
 		return pos, ang
 	end
 end

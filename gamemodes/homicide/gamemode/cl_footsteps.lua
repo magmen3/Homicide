@@ -1,8 +1,5 @@
 local FootSteps = {}
-if FootStepsG then
-	FootSteps = FootStepsG
-end
-
+if FootStepsG then FootSteps = FootStepsG end
 FootStepsG = FootSteps
 function GM:FootStepsInit()
 end
@@ -39,7 +36,10 @@ function GM:DrawFootprints()
 end
 
 function GM:AddFootstep(ply, pos, ang)
-	if ply == LocalPlayer() then return end -- don't confuse the murderer
+	if ply == LocalPlayer() then -- don't confuse the murderer
+		return
+	end
+
 	ang.p = 0
 	ang.r = 0
 	local fpos = pos
@@ -77,7 +77,6 @@ end
 
 function GM:CanSeeFootsteps()
 	if LocalPlayer().Murderer and LocalPlayer():Alive() then return true end
-
 	return false
 end
 
@@ -85,22 +84,14 @@ function GM:ClearFootsteps()
 	table.Empty(FootSteps)
 end
 
-net.Receive(
-	"add_footstep",
-	function()
-		local ply = net.ReadEntity()
-		local pos = net.ReadVector()
-		local ang = net.ReadAngle()
-		if not IsValid(ply) then return end
-		if ply == LocalPlayer() then return end
-		if not GAMEMODE:CanSeeFootsteps() then return end
-		GAMEMODE:AddFootstep(ply, pos, ang)
-	end
-)
+net.Receive("add_footstep", function()
+	local ply = net.ReadEntity()
+	local pos = net.ReadVector()
+	local ang = net.ReadAngle()
+	if not IsValid(ply) then return end
+	if ply == LocalPlayer() then return end
+	if not GAMEMODE:CanSeeFootsteps() then return end
+	GAMEMODE:AddFootstep(ply, pos, ang)
+end)
 
-net.Receive(
-	"clear_footsteps",
-	function()
-		GAMEMODE:ClearFootsteps()
-	end
-)
+net.Receive("clear_footsteps", function() GAMEMODE:ClearFootsteps() end)

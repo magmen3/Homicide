@@ -32,23 +32,12 @@ SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
 SWEP.AttackSlowDown = .1
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
@@ -71,52 +60,30 @@ function SWEP:PrimaryAttack()
 	if not IsFirstTimePredicted() then
 		self:DoBFSAnimation("stab_miss")
 		self:GetOwner():GetViewModel():SetPlaybackRate(1.5)
-
 		return
 	end
 
 	if self:GetOwner().Stamina < 5 then return end
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	self:DoBFSAnimation("stab_miss")
 	self:UpdateNextIdle()
 	self:GetOwner():GetViewModel():SetPlaybackRate(1.5)
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	self:SetNextPrimaryFire(CurTime() + .65)
-	if SERVER then
-		timer.Simple(
-			.05,
-			function()
-				if IsValid(self) then
-					sound.Play("weapons/slam/throw.wav", self:GetPos(), 55, math.random(90, 110))
-				end
-			end
-		)
-	end
-
-	timer.Simple(
-		.15,
-		function()
-			if IsValid(self) then
-				self:AttackFront()
-			end
-		end
-	)
+	if SERVER then timer.Simple(.05, function() if IsValid(self) then sound.Play("weapons/slam/throw.wav", self:GetPos(), 55, math.random(90, 110)) end end) end
+	timer.Simple(.15, function() if IsValid(self) then self:AttackFront() end end)
 end
 
 function SWEP:Deploy()
 	if not IsFirstTimePredicted() then
 		self:DoBFSAnimation("draw")
 		self:GetOwner():GetViewModel():SetPlaybackRate(.1)
-
 		return
 	end
 
 	self:DoBFSAnimation("draw")
 	self:UpdateNextIdle()
-	if SERVER then
-		sound.Play("snd_jack_hmcd_knifedraw.wav", self:GetOwner():GetPos(), 55, math.random(90, 110))
-	end
-
+	if SERVER then sound.Play("snd_jack_hmcd_knifedraw.wav", self:GetOwner():GetPos(), 55, math.random(90, 110)) end
 	return true
 end
 
@@ -144,7 +111,7 @@ function SWEP:Think()
 
 	if SERVER then
 		local HoldType = "normal"
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if self:GetOwner():IsSprinting() then
 			HoldType = "normal"
 		else
 			HoldType = "knife"
@@ -178,23 +145,15 @@ function SWEP:AttackFront()
 			edata:SetNormal(HitNorm)
 			edata:SetEntity(Ent)
 			util.Effect("BloodImpact", edata, true, true)
-			if self:CanBackStab(Ent) then
-				Mul = 2
-			end
-
-			timer.Simple(
-				.05,
-				function()
-					if IsValid(self) then
-						for i = 1, 2 do
-							local BloodTr = util.QuickTrace(HitPos - AimVec * 10, AimVec * 100 + VectorRand() * 25, {self, self:GetOwner()})
-							if BloodTr.Hit then
-								util.Decal("Blood", BloodTr.HitPos + BloodTr.HitNormal, BloodTr.HitPos - BloodTr.HitNormal)
-							end
-						end
+			if self:CanBackStab(Ent) then Mul = 2 end
+			timer.Simple(.05, function()
+				if IsValid(self) then
+					for i = 1, 2 do
+						local BloodTr = util.QuickTrace(HitPos - AimVec * 10, AimVec * 100 + VectorRand() * 25, {self, self:GetOwner()})
+						if BloodTr.Hit then util.Decal("Blood", BloodTr.HitPos + BloodTr.HitNormal, BloodTr.HitPos - BloodTr.HitNormal) end
 					end
 				end
-			)
+			end)
 			--if(Ent:GetClass()=="prop_ragdoll")then
 			--	if not(Ent.Hiddenness)then Ent.Hiddenness=0 end
 			--	Ent.Hiddenness=Ent.Hiddenness+1
@@ -215,10 +174,7 @@ function SWEP:AttackFront()
 		Ent:TakeDamageInfo(Dam)
 		local Phys = Ent:GetPhysicsObject()
 		if IsValid(Phys) then
-			if Ent:IsPlayer() then
-				Ent:SetVelocity(-Ent:GetVelocity() / 2)
-			end
-
+			if Ent:IsPlayer() then Ent:SetVelocity(-Ent:GetVelocity() / 2) end
 			Phys:ApplyForceOffset(AimVec * 25 * Mul, HitPos)
 			self:GetOwner():SetVelocity(-AimVec * SelfForce / 100)
 		end
@@ -262,20 +218,17 @@ end
 if CLIENT then
 	local DownAmt = 0
 	function SWEP:GetViewModelPosition(pos, ang)
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if self:GetOwner():IsSprinting() then
 			DownAmt = math.Clamp(DownAmt + .1, 0, 8)
 		else
 			DownAmt = math.Clamp(DownAmt - .1, 0, 8)
 		end
 
 		ang:RotateAroundAxis(ang:Right(), 40)
-
 		return pos - ang:Up() * 7 - ang:Forward() * (3 + DownAmt) - ang:Up() * DownAmt, ang
 	end
 
 	function SWEP:DrawWorldModel()
-		if GAMEMODE:ShouldDrawWeaponWorldModel(self) then
-			self:DrawModel()
-		end
+		if GAMEMODE:ShouldDrawWeaponWorldModel(self) then self:DrawModel() end
 	end
 end

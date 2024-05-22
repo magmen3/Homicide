@@ -2,7 +2,6 @@ AddCSLuaFile()
 SWEP.Author = "Jackarunda"
 SWEP.Base = "weapon_base"
 SWEP.Purpose = "The answer? Use a gun. An' if that don't work, use more gun."
-SWEP.Spawnable = false
 SWEP.Primary.ClipSize = 10
 SWEP.Primary.DefaultClip = 10
 SWEP.Primary.Ammo = "none"
@@ -80,14 +79,7 @@ function SWEP:Initialize()
 	self.NextThinkTime = CurTime() + .01
 	self:SetHoldType("pistol")
 	self.CurrentAmmo = self.MagSize
-	hook.Add(
-		"Think",
-		self,
-		function()
-			self:Think()
-		end
-	)
-
+	hook.Add("Think", self, function() self:Think() end)
 	self.LastHealth = 150
 	self.WanderDirection = VectorRand()
 	self.SocialityType = math.random(-1, 1)
@@ -101,7 +93,6 @@ end
 function SWEP:PrimaryAttack()
 	if math.random(1, self.AltRate) == 2 then
 		self:SecondaryAttack()
-
 		return
 	end
 
@@ -215,23 +206,18 @@ function SWEP:Fiah()
 	end
 
 	local Acc = math.Rand(.001, .2)
-	if (Enem:GetPhysicsObject():GetVelocity():Length() > 100) or (self:GetOwner():GetPhysicsObject():GetVelocity():Length() > 100) then
-		Acc = Acc + .02
-	end
-
+	if (Enem:GetPhysicsObject():GetVelocity():Length() > 100) or (self:GetOwner():GetPhysicsObject():GetVelocity():Length() > 100) then Acc = Acc + .02 end
 	local Vec = (EnemPos - self:GetOwner():GetShootPos()):GetNormalized()
 	local BulletTrajectory = (Vec + VectorRand() * Acc):GetNormalized()
-	self:FireBullets(
-		{
-			Src = self:GetOwner():GetShootPos(),
-			Dir = BulletTrajectory,
-			Tracer = 0,
-			Damage = math.random(45, 55),
-			Num = 1,
-			Attacker = self:GetOwner(),
-			Spread = Vector(0, 0, 0)
-		}
-	)
+	self:FireBullets({
+		Src = self:GetOwner():GetShootPos(),
+		Dir = BulletTrajectory,
+		Tracer = 0,
+		Damage = math.random(45, 55),
+		Num = 1,
+		Attacker = self:GetOwner(),
+		Spread = Vector(0, 0, 0)
+	})
 
 	local Pitch = math.random(85, 95)
 	self:EmitSound(self.CloseFireSound, 70, Pitch)
@@ -241,9 +227,7 @@ function SWEP:Fiah()
 end
 
 function SWEP:SecondaryAttack()
-	if self:BadGuy() then
-		self:GetOwner():EmitSound("snd_jack_hmcd_cop" .. math.random(1, 3) .. ".wav", 75, math.random(100, 120))
-	end
+	if self:BadGuy() then self:GetOwner():EmitSound("snd_jack_hmcd_cop" .. math.random(1, 3) .. ".wav", 75, math.random(100, 120)) end
 end
 
 function SWEP:OnRemove()

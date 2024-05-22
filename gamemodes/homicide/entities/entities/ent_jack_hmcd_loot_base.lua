@@ -25,8 +25,7 @@ if SERVER then
 		if GAMEMODE.ZOMBIE and ply.Murderer then return end
 		if self.ContactPoisoned then
 			if ply.Murderer then
-				ply:PrintMessage(HUD_PRINTTALK, translate.poisoned)
-
+				ply:ChatPrint(translate.poisoned)
 				return
 			else
 				self.ContactPoisoned = false
@@ -40,15 +39,9 @@ if SERVER then
 
 	function ENT:Think()
 		if self.GameSpawned and not self.Touched then
-			if not self.Untouched then
-				self.Untouched = 0
-			end
-
+			if not self.Untouched then self.Untouched = 0 end
 			local Near, Pos, MaxDist = false, self:GetPos(), 500
-			if GAMEMODE.SHTF then
-				MaxDist = 1000
-			end
-
+			if GAMEMODE.SHTF then MaxDist = 1000 end
 			for key, found in pairs(team.GetPlayers(2)) do
 				if (found:GetPos() - Pos):Length() < MaxDist then
 					Near = true
@@ -64,22 +57,18 @@ if SERVER then
 
 			if self.Untouched > 10 then
 				self:Remove()
-
 				return
 			end
 		end
 
 		self:NextThink(CurTime() + 5)
-
 		return true
 	end
 
 	function ENT:PhysicsCollide(data, ent)
 		if data.DeltaTime > .1 then
 			self:EmitSound(self.ImpactSound, math.Clamp(data.Speed / 3, 20, 65), math.random(100, 120))
-			if self.SecondSound then
-				sound.Play(self.SecondSound, self:GetPos(), math.Clamp(data.Speed / 3, 20, 65), math.random(100, 120))
-			end
+			if self.SecondSound then sound.Play(self.SecondSound, self:GetPos(), math.Clamp(data.Speed / 3, 20, 65), math.random(100, 120)) end
 		end
 	end
 elseif CLIENT then

@@ -1,15 +1,12 @@
-net.Receive(
-	"spectating_status",
-	function(length)
-		GAMEMODE.SpectateMode = net.ReadInt(8)
-		GAMEMODE.Spectating = false
-		GAMEMODE.Spectatee = nil
-		if GAMEMODE.SpectateMode >= 0 then
-			GAMEMODE.Spectating = true
-			GAMEMODE.Spectatee = net.ReadEntity()
-		end
+net.Receive("spectating_status", function(length)
+	GAMEMODE.SpectateMode = net.ReadInt(8)
+	GAMEMODE.Spectating = false
+	GAMEMODE.Spectatee = nil
+	if GAMEMODE.SpectateMode >= 0 then
+		GAMEMODE.Spectating = true
+		GAMEMODE.Spectatee = net.ReadEntity()
 	end
-)
+end)
 
 -- wow, inefficient much?
 function GM:IsCSpectating()
@@ -27,11 +24,8 @@ end
 function GM:ShouldDrawWeaponWorldModel(wep)
 	if self.Spectating then
 		local Dude = self.Spectatee
-		if Dude and IsValid(Dude) and Dude:IsPlayer() and Dude:Alive() then
-			if Dude == wep.Owner then return false end
-		end
+		if Dude and IsValid(Dude) and Dude:IsPlayer() and Dude:Alive() then if Dude == wep:GetOwner() then return false end end
 	end
-
 	return true
 end
 
@@ -46,20 +40,31 @@ local function drawTextShadow(t, f, x, y, c, px, py)
 end
 
 local nextTipSwitch, tip = 0, ""
+local clr1 = Color(20, 120, 255)
+local clr2 = Color(190, 190, 190)
+local clr3 = Color(128, 128, 128)
+local clr4 = Color(0, 0, 0, 255)
+local clr5 = Color(255, 20, 20)
 function GM:RenderSpectate()
 	if self:IsCSpectating() then
-		if IsValid(self:GetCSpectatee()) and self:GetCSpectatee():IsPlayer() then
-			drawTextShadow(translate.spectating, "MersRadial", ScrW() / 2, 50, Color(20, 120, 255), 1)
+		local ply = self:GetCSpectatee()
+		if IsValid(ply) and ply:IsPlayer() then
+			drawTextShadow(translate.spectating, "MersRadial", ScrW() / 2, 50, clr1, 1)
 			local h = draw.GetFontHeight("MersRadial")
-			--drawTextShadow(self:GetCSpectatee():Nick(), "MersRadialSmall", ScrW()/2, ScrH()-100+h, Color(190, 190, 190), 1)
+			local name = ply:Nick() .. (ply:Nick() ~= ply:GetBystanderName() and (" | " .. ply:GetBystanderName()) or "")
+			drawTextShadow(name, "MersRadialSmall", ScrW() / 2, 45 + h, clr2, 1)
+			drawTextShadow(ply:Health() .. "/" .. ply:GetMaxHealth(), "MersRadialSmall", ScrW() / 2, 80 + h, clr2, 1)
+			local clrt = not self.DEATHMATCH and (ply.Murderer and clr5 or clr1) or clr3
+			--local txt = not self.DEATHMATCH and ((ply.Murderer and self.ZOMBIE and "Zombie" or ply.Murderer and "Traitor") or "Innocent") or "Fighter"
+			drawTextShadow(self:GetRoleName(ply), "MersRadialSmall", ScrW() / 2, 110 + h, clrt, 1)
 			local Time = CurTime()
 			if nextTipSwitch < Time then
 				nextTipSwitch = Time + 10
 				tip = table.Random(HMCD_Tips)
 			end
 
-			draw.SimpleText(tip, "MersRadialSemiSuperS", ScrW() / 2, ScrH() - 75, Color(128, 128, 128, 255), 1)
-			draw.SimpleText(tip, "MersRadialSemiSuperS", ScrW() / 2 + 1, ScrH() - 76, Color(0, 0, 0, 255), 1)
+			draw.SimpleText(tip, "MersRadialSemiSuperS", ScrW() / 2, ScrH() - 75, clr3, 1)
+			draw.SimpleText(tip, "MersRadialSemiSuperS", ScrW() / 2 + 1, ScrH() - 76, clr4, 1)
 		end
 	end
 end

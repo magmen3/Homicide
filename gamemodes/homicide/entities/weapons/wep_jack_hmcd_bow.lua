@@ -32,23 +32,12 @@ SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
 SWEP.ViewModelFlip = false
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = false
 SWEP.Primary.Ammo = "XBowBolt"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
@@ -81,7 +70,7 @@ end
 function SWEP:PrimaryAttack()
 	--for i=0,10 do PrintTable(self:GetOwner():GetViewModel():GetAnimInfo(i)) end
 	if not IsFirstTimePredicted() then return end
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	if self:GetReloading() then return end
 	if self:GetOwner():GetAmmoCount(self.Primary.Ammo) < 1 then
 		if SERVER then
@@ -89,7 +78,6 @@ function SWEP:PrimaryAttack()
 			net.Send(self:GetOwner())
 			net.Broadcast()
 		end
-
 		return
 	end
 
@@ -108,29 +96,18 @@ function SWEP:PrimaryAttack()
 	self:TakePrimaryAmmo(1)
 	self:SetReloading(true)
 	util.ScreenShake(self:GetOwner():GetShootPos(), 7, 255, .1, 20)
-	timer.Simple(
-		.01,
-		function()
-			if self:GetOwner():GetAmmoCount(self.Primary.Ammo) > 0 then
-				self:EmitSound("snd_jack_hmcd_bowload.wav", 55, 100)
+	timer.Simple(.01, function() if self:GetOwner():GetAmmoCount(self.Primary.Ammo) > 0 then self:EmitSound("snd_jack_hmcd_bowload.wav", 55, 100) end end)
+	timer.Simple(2.5, function()
+		if IsValid(self) then
+			self:SetReloading(false)
+			self:DoBFSAnimation("awm_idle")
+			if SERVER then
+				net.Start("HMCD_AmmoShow")
+				net.Send(self:GetOwner())
+				net.Broadcast()
 			end
 		end
-	)
-
-	timer.Simple(
-		2.5,
-		function()
-			if IsValid(self) then
-				self:SetReloading(false)
-				self:DoBFSAnimation("awm_idle")
-				if SERVER then
-					net.Start("HMCD_AmmoShow")
-					net.Send(self:GetOwner())
-					net.Broadcast()
-				end
-			end
-		end
-	)
+	end)
 
 	self:GetOwner():ViewPunch(Angle(0, -1, 0))
 	self:SetNextPrimaryFire(CurTime() + 2.75)
@@ -142,7 +119,7 @@ function SWEP:FireArrow()
 	local Arrow = ents.Create("ent_jack_hmcd_arrow")
 	Arrow.HmcdSpawned = self.HmcdSpawned
 	Arrow:SetPos(self:GetOwner():GetShootPos() + self:GetOwner():GetAimVector() * 60)
-	Arrow.Owner = self:GetOwner()
+	Arrow:SetOwner(self:GetOwner())
 	local Ang = self:GetOwner():GetAimVector():Angle()
 	Ang:RotateAroundAxis(Ang:Right(), -90)
 	Arrow:SetAngles(Ang)
@@ -161,25 +138,22 @@ function SWEP:Deploy()
 	if not (self and self:GetOwner() and self:GetOwner().GetViewModel) then return end
 	self.DownAmt = 10
 	self:DoBFSAnimation("awm_draw")
-	if self:GetOwner():GetAmmoCount(self.Primary.Ammo) > 0 then
-		self:EmitSound("snd_jack_hmcd_bowload.wav", 55, 150)
-	end
-
+	if self:GetOwner():GetAmmoCount(self.Primary.Ammo) > 0 then self:EmitSound("snd_jack_hmcd_bowload.wav", 55, 150) end
 	self:GetOwner():GetViewModel():SetPlaybackRate(.5)
 	self:SetNextPrimaryFire(CurTime() + 2)
 	self:EnforceHolsterRules(self)
-
 	return true
 end
 
 function SWEP:EnforceHolsterRules(newWep)
 	if CLIENT then return end
-	if not (newWep == self) then return end -- only enforce rules for us
+	if not (newWep == self) then -- only enforce rules for us
+		return
+	end
+
 	for key, wep in pairs(self:GetOwner():GetWeapons()) do
 		-- conflict
-		if wep.HolsterSlot and self.HolsterSlot and (wep.HolsterSlot == self.HolsterSlot) and not (wep == self) then
-			self:GetOwner():DropWeapon(wep)
-		end
+		if wep.HolsterSlot and self.HolsterSlot and (wep.HolsterSlot == self.HolsterSlot) and not (wep == self) then self:GetOwner():DropWeapon(wep) end
 	end
 end
 
@@ -190,25 +164,20 @@ end
 function SWEP:Think()
 	if SERVER then
 		local HoldType = "ar2"
-		if self:GetOwner():KeyDown(IN_SPEED) then
-			HoldType = "passive"
-		end
-
+		if self:GetOwner():IsSprinting() then HoldType = "passive" end
 		self:SetHoldType(HoldType)
 	end
 
 	if self.NextCheck < CurTime() then
 		self.NextCheck = CurTime() + .1
-		if self:GetOwner():KeyDown(IN_ATTACK2) and not self:GetReloading() and (self:GetOwner():GetAmmoCount(self.Primary.Ammo) > 0) and not self:GetOwner():KeyDown(IN_SPEED) and self:GetOwner():OnGround() then
+		if self:GetOwner():KeyDown(IN_ATTACK2) and not self:GetReloading() and (self:GetOwner():GetAmmoCount(self.Primary.Ammo) > 0) and not self:GetOwner():IsSprinting() and self:GetOwner():OnGround() then
 			self:SetAiming(math.Clamp(self:GetAiming() + 10, 0, 100))
 		else
 			self:SetAiming(math.Clamp(self:GetAiming() - 10, 0, 100))
 		end
 	end
 
-	if (self:GetOwner():GetAmmoCount(self.Primary.Ammo) < 1) or self:GetOwner():KeyDown(IN_SPEED) then
-		self:DoBFSAnimation("awm_draw")
-	end
+	if (self:GetOwner():GetAmmoCount(self.Primary.Ammo) < 1) or self:GetOwner():IsSprinting() then self:DoBFSAnimation("awm_draw") end
 end
 
 function SWEP:Reload()
@@ -233,7 +202,6 @@ end
 -- I do all this, bitch
 function SWEP:Holster(newWep)
 	self:EnforceHolsterRules(newWep)
-
 	return true
 end
 
@@ -251,9 +219,7 @@ end
 if CLIENT then
 	local Aim, Forward, Passive, Sprinting = 0, 0, 0, 0
 	function SWEP:PreDrawViewModel(vm, wep, ply)
-		if self:GetOwner():GetAmmoCount(self.Primary.Ammo) < 1 then
-			vm:SendViewModelMatchingSequence(vm:LookupSequence("awm_draw"))
-		end
+		if self:GetOwner():GetAmmoCount(self.Primary.Ammo) < 1 then vm:SendViewModelMatchingSequence(vm:LookupSequence("awm_draw")) end
 	end
 
 	function SWEP:GetViewModelPosition(pos, ang)
@@ -272,7 +238,7 @@ if CLIENT then
 		end
 
 		pos = pos - ang:Forward() * (Aim / 19 + 2 * Forward) - ang:Up() * Aim / 34 - ang:Right() * Aim / 48
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if self:GetOwner():IsSprinting() then
 			Sprinting = Lerp(4 * Ft, Sprinting, 1)
 		else
 			Sprinting = Lerp(2 * Ft, Sprinting, 0)
@@ -289,7 +255,6 @@ if CLIENT then
 		ang:RotateAroundAxis(ang:Forward(), -60 * Passive)
 		ang:RotateAroundAxis(ang:Right(), 20 * Passive)
 		ang:RotateAroundAxis(ang:Forward(), -Aim * .69)
-
 		return pos, ang
 	end
 

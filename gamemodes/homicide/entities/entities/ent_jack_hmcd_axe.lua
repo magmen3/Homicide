@@ -24,13 +24,15 @@ if SERVER then
 
 	function ENT:PickUp(ply)
 		local SWEP = self.SWEP
-		if (ply.Murderer or GAMEMODE.ZOMBIE) and not ply:HasWeapon(SWEP) then
-			ply:Give(SWEP)
-			ply:GetWeapon(self.SWEP).HmcdSpawned = self.HmcdSpawned
-			ply:GetWeapon(SWEP).Poisoned = self.Poisoned
-			ply:SelectWeapon(SWEP)
-			self:Remove()
-			ply:SelectWeapon(SWEP)
+		if not ply:HasWeapon(SWEP) then
+			if ply.Murderer or (GAMEMODE.ZOMBIE and not ply.Murderer) or GAMEMODE.DEATHMATCH then
+				ply:Give(SWEP)
+				ply:GetWeapon(self.SWEP).HmcdSpawned = self.HmcdSpawned
+				ply:GetWeapon(SWEP).Poisoned = self.Poisoned
+				ply:SelectWeapon(SWEP)
+				self:Remove()
+				ply:SelectWeapon(SWEP)
+			end
 		end
 	end
 end

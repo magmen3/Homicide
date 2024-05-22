@@ -52,18 +52,16 @@ if SERVER then
 	function ENT:Think()
 		if not self.Locked then
 			if self.Rope and IsValid(self.Rope) and not self.Stopped then
-				local Tr = util.TraceLine(
-					{
-						start = self:GetPos(),
-						endpos = self.Rope:GetPos(),
-						filter = {self, self.Rope, self.Rope.Owner}
-					}
-				)
+				local Tr = util.TraceLine({
+					start = self:GetPos(),
+					endpos = self.Rope:GetPos(),
+					filter = {self, self.Rope, self.Rope:GetOwner()}
+				})
 
 				if Tr.Hit then
 					self.Stopped = true
 					self.Rope:PullTaut()
-					--self:GetPhysicsObject():SetVelocity(self.Rope.Owner:GetVelocity()-self:GetPhysicsObject():GetVelocity()*.1)
+					--self:GetPhysicsObject():SetVelocity(self.Rope:GetOwner():GetVelocity()-self:GetPhysicsObject():GetVelocity()*.1)
 				end
 			end
 
@@ -79,7 +77,6 @@ if SERVER then
 			end
 
 			self:NextThink(CurTime() + .25)
-
 			return true
 		end
 	end
@@ -120,7 +117,6 @@ if SERVER then
 			local Tr = util.TraceLine(TrDat)
 			if Tr.Hit and not Tr.HitSky and IsValid(Tr.Entity:GetPhysicsObject()) then return (self:GetPhysicsObject():GetVelocity() - Tr.Entity:GetPhysicsObject():GetVelocity()):Length(), Tr.Entity end
 		end
-
 		return 100, nil
 	end
 elseif CLIENT then

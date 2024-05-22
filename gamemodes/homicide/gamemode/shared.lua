@@ -88,8 +88,51 @@ HMCD_DamageTypes = {
 
 HMCD_FlammableModels = {"models/props_c17/canister01a.mdl", "models/props_c17/canister02a.mdl", "models/props_c17/oildrum001_explosive.mdl", "models/props_junk/gascan001a.mdl", "models/props_junk/metalgascan.mdl", "models/props_junk/propane_tank001a.mdl", "models/props_junk/propanecanister001a.mdl"}
 HMCD_ContainerModels = {"models/props_junk/cardboard_box001a.mdl", "models/props_junk/cardboard_box001b.mdl", "models/props_junk/cardboard_box002a.mdl", "models/props_junk/cardboard_box002b.mdl", "models/props_junk/cardboard_box003a.mdl", "models/props_junk/cardboard_box003b.mdl", "models/props_junk/wood_crate001a.mdl", "models/props_junk/wood_crate001a_damaged.mdl", "models/props_junk/wood_crate001a_damagedmax.mdl", "models/props_junk/wood_crate002a.mdl", "models/props_c17/furnituredrawer001a.mdl", "models/props_c17/furnituredrawer003a.mdl", "models/props_c17/furnituredresser001a.mdl", "models/props_c17/woodbarrel001.mdl", "models/props_lab/dogobject_wood_crate001a_damagedmax.mdl", "models/items/item_item_crate.mdl", "models/props/de_inferno/claypot02.mdl", "models/props/de_inferno/claypot01.mdl"}
-HMCD_JunkLootModels = {"models/props_junk/cardboard_box001a.mdl", "models/props_junk/cardboard_box001b.mdl", "models/props_junk/cardboard_box002a.mdl", "models/props_junk/cardboard_box002b.mdl", "models/props_junk/cardboard_box003a.mdl", "models/props_junk/cardboard_box003b.mdl", "models/props_junk/cardboard_box004a.mdl", "models/props_junk/wood_crate001a.mdl", "models/props_junk/wood_crate001a_damaged.mdl", "models/props_junk/wood_crate001a_damagedmax.mdl", "models/props_junk/wood_crate002a.mdl", "models/props_c17/furnituredrawer001a.mdl", "models/props_c17/furnituredrawer003a.mdl", "models/props_lab/dogobject_wood_crate001a_damagedmax.mdl", "models/props_c17/canister01a.mdl", "models/props_c17/canister02a.mdl", "models/props_junk/gascan001a.mdl", "models/props_junk/metalgascan.mdl", "models/props_junk/propane_tank001a.mdl", "models/props_junk/propanecanister001a.mdl", "models/props_interiors/pot01a.mdl", "models/props_c17/oildrum001.mdl", "models/props_junk/metal_paintcan001a.mdl", "models/props_wasteland/controlroom_filecabinet001a.mdl", "models/props_junk/metal_paintcan001b.mdl", "models/props_trainstation/trashcan_indoor001a.mdl", "models/props_c17/suitcase001a.mdl", "models/props_c17/suitcase_passenger_physics.mdl", "models/props_c17/briefcase001a.mdl", "models/props_phx/construct/metal_plate1.mdl", "models/props_phx/construct/metal_plate1_tri.mdl", "models/props_phx/construct/glass/glass_plate1x1.mdl", "models/props_phx/construct/glass/glass_plate1x2.mdl", "models/hunter/plates/plate1x1.mdl", "models/hunter/plates/plate1x2.mdl", "models/props_phx/construct/wood/wood_panel1x1.mdl", "models/props_phx/construct/wood/wood_panel1x2.mdl", "models/props_phx/construct/wood/wood_panel2x2.mdl", "models/props_phx/construct/wood/wood_boardx1.mdl", "models/props_phx/construct/wood/wood_boardx2.mdl"} -- breakable containers -- flammable -- frag-able -- good for bombs -- good for construction
-HMCD_PersonContainers = {"models/props_junk/wood_crate001a.mdl", "models/props_junk/wood_crate001a_damaged.mdl", "models/props_junk/wood_crate001a_damagedmax.mdl", "models/props_junk/wood_crate002a.mdl", "models/props_borealis/bluebarrel001.mdl", "models/props_c17/oildrum001.mdl", "models/props_junk/trashbin01a.mdl", "models/props_c17/furnituredresser001a.mdl", "models/props_c17/woodbarrel001.mdl", "models/props_lab/dogobject_wood_crate001a_damagedmax.mdl", "models/props_wasteland/controlroom_storagecloset001a.mdl", "models/props_wasteland/controlroom_storagecloset001b.mdl", "models/props/cs_assault/dryer_box.mdl", "models/props/cs_assault/dryer_box2.mdl", "models/props/cs_assault/washer_box.mdl", "models/props/cs_assault/washer_box2.mdl", "models/props/cs_militia/crate_extrasmallmill.mdl", "models/props/de_dust/du_crate_64x64.mdl", "models/props/de_dust/du_crate_64x80.mdl", "models/props/de_inferno/wine_barrel.mdl", "models/props/de_nuke/crate_extrasmall.mdl", "models/props/de_nuke/crate_small.mdl", "models/props/de_prodigy/prodcratesb.mdl", "models/props_2fort/miningcrate002.mdl", "models/props_2fort/miningcrate001.mdl", "models/props_2fort/oildrum.mdl", "models/props_2fort/locker001.mdl", "models/props_junk/cardboard_box001a.mdl", "models/props_junk/cardboard_box001b.mdl", "models/props_junk/cardboard_box002a.mdl", "models/props_junk/cardboard_box002b.mdl", "models/props_trainstation/trashcan_indoor001a.mdl", "models/props_wasteland/kitchen_fridge001a.mdl", "models/props_wasteland/cargo_container01.mdl", "models/props_wasteland/laundry_washer001a.mdl", "models/props_c17/furniturefridge001a.mdl"} --[[,
+HMCD_JunkLootModels = {
+	"models/props_junk/cardboard_box001a.mdl", -- breakable containers -- flammable -- frag-able -- good for bombs -- good for construction
+	"models/props_junk/cardboard_box001b.mdl",
+	"models/props_junk/cardboard_box002a.mdl",
+	"models/props_junk/cardboard_box002b.mdl",
+	"models/props_junk/cardboard_box003a.mdl",
+	"models/props_junk/cardboard_box003b.mdl",
+	"models/props_junk/cardboard_box004a.mdl",
+	"models/props_junk/wood_crate001a.mdl",
+	"models/props_junk/wood_crate001a_damaged.mdl",
+	"models/props_junk/wood_crate001a_damagedmax.mdl",
+	"models/props_junk/wood_crate002a.mdl",
+	"models/props_c17/furnituredrawer001a.mdl",
+	"models/props_c17/furnituredrawer003a.mdl",
+	"models/props_lab/dogobject_wood_crate001a_damagedmax.mdl",
+	"models/props_c17/canister01a.mdl",
+	"models/props_c17/canister02a.mdl",
+	"models/props_junk/gascan001a.mdl",
+	"models/props_junk/metalgascan.mdl",
+	"models/props_junk/propane_tank001a.mdl",
+	"models/props_junk/propanecanister001a.mdl",
+	"models/props_interiors/pot01a.mdl",
+	"models/props_c17/oildrum001.mdl",
+	"models/props_junk/metal_paintcan001a.mdl",
+	"models/props_wasteland/controlroom_filecabinet001a.mdl",
+	"models/props_junk/metal_paintcan001b.mdl",
+	"models/props_trainstation/trashcan_indoor001a.mdl",
+	"models/props_c17/suitcase001a.mdl",
+	"models/props_c17/suitcase_passenger_physics.mdl",
+	"models/props_c17/briefcase001a.mdl",
+	"models/props_phx/construct/metal_plate1.mdl",
+	"models/props_phx/construct/metal_plate1_tri.mdl",
+	"models/props_phx/construct/glass/glass_plate1x1.mdl",
+	"models/props_phx/construct/glass/glass_plate1x2.mdl",
+	"models/hunter/plates/plate1x1.mdl",
+	"models/hunter/plates/plate1x2.mdl",
+	"models/props_phx/construct/wood/wood_panel1x1.mdl",
+	"models/props_phx/construct/wood/wood_panel1x2.mdl",
+	"models/props_phx/construct/wood/wood_panel2x2.mdl",
+	"models/props_phx/construct/wood/wood_boardx1.mdl",
+	"models/props_phx/construct/wood/wood_boardx2.mdl"
+}
+
+HMCD_PersonContainers = {"models/props_junk/wood_crate001a.mdl", "models/props_junk/wood_crate001a_damaged.mdl", "models/props_junk/wood_crate001a_damagedmax.mdl", "models/props_junk/wood_crate002a.mdl", "models/props_borealis/bluebarrel001.mdl", "models/props_c17/oildrum001.mdl", "models/props_junk/trashbin01a.mdl", "models/props_c17/furnituredresser001a.mdl", "models/props_c17/woodbarrel001.mdl", "models/props_lab/dogobject_wood_crate001a_damagedmax.mdl", "models/props_wasteland/controlroom_storagecloset001a.mdl", "models/props_wasteland/controlroom_storagecloset001b.mdl", "models/props/cs_assault/dryer_box.mdl", "models/props/cs_assault/dryer_box2.mdl", "models/props/cs_assault/washer_box.mdl", "models/props/cs_assault/washer_box2.mdl", "models/props/cs_militia/crate_extrasmallmill.mdl", "models/props/de_dust/du_crate_64x64.mdl", "models/props/de_dust/du_crate_64x80.mdl", "models/props/de_inferno/wine_barrel.mdl", "models/props/de_nuke/crate_extrasmall.mdl", "models/props/de_nuke/crate_small.mdl", "models/props/de_prodigy/prodcratesb.mdl", "models/props_2fort/miningcrate002.mdl", "models/props_2fort/miningcrate001.mdl", "models/props_2fort/oildrum.mdl", "models/props_2fort/locker001.mdl", "models/props_junk/cardboard_box001a.mdl", "models/props_junk/cardboard_box001b.mdl", "models/props_junk/cardboard_box002a.mdl", "models/props_junk/cardboard_box002b.mdl", "models/props_trainstation/trashcan_indoor001a.mdl", "models/props_wasteland/kitchen_fridge001a.mdl", "models/props_wasteland/cargo_container01.mdl", "models/props_wasteland/laundry_washer001a.mdl", "models/props_c17/furniturefridge001a.mdl"}
+--[[,
 	"models/props_junk/trashdumpster01a.mdl",
 	"models/props_trainstation/train003.mdl",
 	"models/props_vehicles/car002a_physics.mdl",
@@ -265,8 +308,25 @@ function table.FullCopy(tab)
 			res[k] = v
 		end
 	end
-
 	return res
+end
+
+function GM:GetRoleName(ply)
+	local str = "None"
+	if ply.Murderer then
+		if self.ZOMBIE then
+			str = translate.zombie
+		else
+			str = self.SHTF and translate.traitor or translate.murderer
+		end
+	else
+		if not self.DEATHMATCH then
+			str = self.SHTF and translate.innocent or translate.bystander
+		else
+			str = translate.fighter
+		end
+	end
+	return str
 end
 
 function GM:CreateTeams()
@@ -299,14 +359,8 @@ function GM:EntityEmitSound(t)
 	--	SoundModded=true
 	--end
 	local p = t.Pitch
-	if game.GetTimeScale() ~= 1 then
-		p = p * game.GetTimeScale()
-	end
-
-	if GetConVarNumber("host_timescale") ~= 1 and GetConVarNumber("sv_cheats") >= 1 then
-		p = p * GetConVarNumber("host_timescale")
-	end
-
+	if game.GetTimeScale() ~= 1 then p = p * game.GetTimeScale() end
+	if GetConVarNumber("host_timescale") ~= 1 and GetConVarNumber("sv_cheats") >= 1 then p = p * GetConVarNumber("host_timescale") end
 	if p ~= t.Pitch then
 		t.Pitch = math.Clamp(p, 0, 255)
 		SoundModded = true
@@ -340,7 +394,6 @@ function HMCD_WhomILookinAt(ply, cone, dist)
 	if CreatureTr then return CreatureTr.Entity, CreatureTr.HitPos, CreatureTr.HitNormal end
 	if ObjTr then return ObjTr.Entity, ObjTr.HitPos, ObjTr.HitNormal end
 	if OtherTr then return OtherTr.Entity, OtherTr.HitPos, OtherTr.HitNormal end
-
 	return nil, nil, nil
 end
 
@@ -352,23 +405,16 @@ function HMCD_ExplosiveType(self)
 	if IsValid(Phys) then
 		if table.HasValue(HMCD_FlammableModels, string.lower(self:GetModel())) then return 3 end
 		local Mass, Volume, Mat, MassRequirement = Phys:GetMass(), Phys:GetVolume(), Phys:GetMaterial(), 5
-		if (Mat == "weapon") or (Mat == "computer") then
-			MassRequirement = 20
-		end
-
+		if (Mat == "weapon") or (Mat == "computer") then MassRequirement = 20 end
 		local Density = Mass / self:OBBMaxs():Length()
 		--JackaPrint(Mat,Volume,Mass,Density)
-		if Mass and tonumber(Mass) and (Mass >= MassRequirement) and (Mass <= 100) and Volume and tonumber(Volume) and (Volume >= 300) and (Volume <= 30000) and (Density >= .38) then
-			if table.HasValue(FragMats, Mat) then return 2 end
-		end
+		if Mass and tonumber(Mass) and (Mass >= MassRequirement) and (Mass <= 100) and Volume and tonumber(Volume) and (Volume >= 300) and (Volume <= 30000) and (Density >= .38) then if table.HasValue(FragMats, Mat) then return 2 end end
 	end
-
 	return 1
 end
 
 function HMCD_IsDoor(ent)
 	local Class = ent:GetClass()
-
 	return (Class == "prop_door") or (Class == "prop_door_rotating") or (Class == "func_door") or (Class == "func_door_rotating") or (Class == "func_breakable")
 end
 
@@ -386,41 +432,32 @@ function GM:OnEntityCreated(ent)
 		if SERVER then
 			if (Class == "npc_headcrab") or (Class == "npc_headcrab_fast") or (Class == "npc_headcrab_black") then
 				SafeRemoveEntity(ent)
-
 				return
 			elseif Class == "npc_headcrab_poison" then
 				-- thrown
-				timer.Simple(
-					0,
-					function()
-						if IsValid(ent) and (ent:GetVelocity():Length() > 200) then
-							local Prop = ents.Create("prop_physics")
-							Prop:SetModel(table.Random(HMCD_ProjectileJunkModels))
-							Prop:SetPos(ent:GetPos())
-							Prop:SetAngles(VectorRand():Angle())
-							Prop.HmcdSpawned = true
-							Prop:Spawn()
-							Prop:Activate()
-							local Dir, Spd = ent:GetVelocity():GetNormalized(), ent:GetVelocity():Length()
-							Prop:GetPhysicsObject():SetMass(Prop:GetPhysicsObject():GetMass() * 2)
-							Prop:GetPhysicsObject():AddAngleVelocity(VectorRand() * 1000)
-							Prop:GetPhysicsObject():SetVelocity((Dir + Vector(math.Rand(-.1, .1), math.Rand(-.1, .1), math.Rand(-.3, -.1))) * Spd * 2)
-						end
-
-						if IsValid(ent) then
-							ent:Remove()
-						end
+				timer.Simple(0, function()
+					if IsValid(ent) and (ent:GetVelocity():Length() > 200) then
+						local Prop = ents.Create("prop_physics")
+						Prop:SetModel(table.Random(HMCD_ProjectileJunkModels))
+						Prop:SetPos(ent:GetPos())
+						Prop:SetAngles(VectorRand():Angle())
+						Prop.HmcdSpawned = true
+						Prop:Spawn()
+						Prop:Activate()
+						local Dir, Spd = ent:GetVelocity():GetNormalized(), ent:GetVelocity():Length()
+						Prop:GetPhysicsObject():SetMass(Prop:GetPhysicsObject():GetMass() * 2)
+						Prop:GetPhysicsObject():AddAngleVelocity(VectorRand() * 1000)
+						Prop:GetPhysicsObject():SetVelocity((Dir + Vector(math.Rand(-.1, .1), math.Rand(-.1, .1), math.Rand(-.3, -.1))) * Spd * 2)
 					end
-				)
 
+					if IsValid(ent) then ent:Remove() end
+				end)
 				return
 			end
 		elseif CLIENT then
 			if Class == "class C_ClientRagdoll" then
 				local Mod = ent:GetModel()
-				if (Mod == "models/headcrabclassic.mdl") or (Mod == "models/headcrabfast.mdl") or (Mod == "models/headcrabblack.mdl") then
-					ent:Remove()
-				end
+				if (Mod == "models/headcrabclassic.mdl") or (Mod == "models/headcrabfast.mdl") or (Mod == "models/headcrabblack.mdl") then ent:Remove() end
 			end
 		end
 	end
@@ -429,7 +466,6 @@ end
 function GM:DoAnimationEvent(pl, event, data)
 	if (event == PLAYERANIMEVENT_ATTACK_PRIMARY) and self.ZOMBIE and pl.Murderer then
 		pl:AnimRestartGesture(GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_GMOD_GESTURE_RANGE_ZOMBIE, true)
-
 		return ACT_INVALID
 	end
 end

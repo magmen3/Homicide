@@ -39,10 +39,7 @@ if SERVER then
 	end
 
 	function ENT:PhysicsCollide(data, ent)
-		if data.DeltaTime > .1 then
-			self:EmitSound(self.ImpactSound, math.Clamp(data.Speed / 3, 20, 65), math.random(100, 120))
-		end
-
+		if data.DeltaTime > .1 then self:EmitSound(self.ImpactSound, math.Clamp(data.Speed / 3, 20, 65), math.random(100, 120)) end
 		if (data.Speed > 500) and not self.GameSpawned and not self.Broken then
 			self.Broken = true
 			self:SetSkin(10)

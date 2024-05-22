@@ -29,9 +29,7 @@ if SERVER then
 			ply:GetWeapon(self.SWEP).HmcdSpawned = self.HmcdSpawned
 			self:Remove()
 			ply:SelectWeapon(SWEP)
-			if ply.Murderer and ply:HasWeapon(self.SWEP) then
-				ply:PrintMessage(HUD_PRINTTALK, translate.weaponWalkieTalkieHide)
-			end
+			if ply.Murderer and ply:HasWeapon(self.SWEP) then ply:ChatPrint(translate.weaponWalkieTalkieHide) end
 		end
 	end
 end

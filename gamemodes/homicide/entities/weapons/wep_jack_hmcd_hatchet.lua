@@ -32,23 +32,12 @@ SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
 SWEP.CommandDroppable = true
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
@@ -74,17 +63,9 @@ end
 function SWEP:PrimaryAttack()
 	--for i=0,10 do PrintTable(self:GetOwner():GetViewModel():GetAnimInfo(i)) end
 	if self:GetOwner().Stamina < 25 then return end
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	if not IsFirstTimePredicted() then
-		timer.Simple(
-			.1,
-			function()
-				if IsValid(self) then
-					self:DoBFSAnimation("stab")
-				end
-			end
-		)
-
+		timer.Simple(.1, function() if IsValid(self) then self:DoBFSAnimation("stab") end end)
 		return
 	end
 
@@ -93,49 +74,28 @@ function SWEP:PrimaryAttack()
 	self:DoBFSAnimation("idle")
 	self:SetNextPrimaryFire(CurTime() + 1.25)
 	self:GetOwner():ViewPunch(Angle(-15, 0, 0))
-	timer.Simple(
-		.05,
-		function()
-			if IsValid(self) then
-				self:GetOwner():SetAnimation(PLAYER_ATTACK1)
-				self:DoBFSAnimation("stab")
-				self:GetOwner():GetViewModel():SetPlaybackRate(1.5)
-			end
+	timer.Simple(.05, function()
+		if IsValid(self) then
+			self:GetOwner():SetAnimation(PLAYER_ATTACK1)
+			self:DoBFSAnimation("stab")
+			self:GetOwner():GetViewModel():SetPlaybackRate(1.5)
 		end
-	)
+	end)
 
-	timer.Simple(
-		.1,
-		function()
-			if IsValid(self) then
-				timer.Simple(
-					.1,
-					function()
-						if IsValid(self) then
-							self:AttackFront()
-						end
-					end
-				)
-			end
-		end
-	)
+	timer.Simple(.1, function() if IsValid(self) then timer.Simple(.1, function() if IsValid(self) then self:AttackFront() end end) end end)
 end
 
 function SWEP:Deploy()
 	if not IsFirstTimePredicted() then
 		self:DoBFSAnimation("draw")
 		self:GetOwner():GetViewModel():SetPlaybackRate(.1)
-
 		return
 	end
 
 	self:DoBFSAnimation("draw")
 	self:GetOwner():GetViewModel():SetPlaybackRate(.5)
 	self:SetNextPrimaryFire(CurTime() + .5)
-	if SERVER then
-		sound.Play("Wood_Plank.ImpactSoft", self:GetPos(), 65, math.random(90, 110))
-	end
-
+	if SERVER then sound.Play("Wood_Plank.ImpactSoft", self:GetPos(), 65, math.random(90, 110)) end
 	return true
 end
 
@@ -178,7 +138,7 @@ function SWEP:AttackFront()
 	Ax:SetAngles(Ang)
 	Ax.Thrown = true
 	Ax.Poisoned = self.Poisoned
-	Ax.Owner = self:GetOwner()
+	Ax:SetOwner(self:GetOwner())
 	Ax:Spawn()
 	Ax:Activate()
 	Ax:GetPhysicsObject():SetVelocity(self:GetOwner():GetVelocity() + AimVec * 1000)
@@ -219,14 +179,13 @@ end
 if CLIENT then
 	local DownAmt = 0
 	function SWEP:GetViewModelPosition(pos, ang)
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if self:GetOwner():IsSprinting() then
 			DownAmt = math.Clamp(DownAmt + .6, 0, 50)
 		else
 			DownAmt = math.Clamp(DownAmt - .6, 0, 50)
 		end
 
 		ang:RotateAroundAxis(ang:Forward(), 10)
-
 		return pos + ang:Up() * 0 - ang:Forward() * (DownAmt - 10) - ang:Up() * DownAmt + ang:Right() * (3 + self:GetWindUp() * 15), ang
 	end
 

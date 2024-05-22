@@ -2,7 +2,7 @@
 {
 	"base"			"base"
 	"title"			"Homicide"
-	"maps"			"^md_|^mu_|^murder_|^hmcd_"
+	"maps"			"^md_|^mu_|^murder_|^hmcd_|^homicide_"
 	"category"		"pvp"
 	"menusystem"	"1"
 	"version"		"1"

@@ -17,6 +17,5 @@ pt.default = function(n)
 			words = words .. " " .. word
 		end
 	end
-
 	return sleft .. words .. sright
 end

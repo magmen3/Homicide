@@ -8,6 +8,15 @@ function PlayerMeta:SetMurderer(bool)
 	net.Broadcast()
 end
 
+util.AddNetworkString("you_are_a_gunman")
+function PlayerMeta:SetGunman(bool)
+	self.ArmedAtSpawn = bool
+	net.Start("you_are_a_gunman")
+	net.WriteEntity(self)
+	net.WriteBit(bool)
+	net.Broadcast()
+end
+
 local NO_KNIFE_TIME = 30
 function GM:MurdererThink()
 	local players = team.GetPlayers(2)

@@ -28,8 +28,7 @@ if SERVER then
 		if self.Armed then return end
 		if self.ContactPoisoned then
 			if ply.Murderer then
-				ply:PrintMessage(HUD_PRINTTALK, translate.poisoned)
-
+				ply:ChatPrint(translate.poisoned)
 				return
 			else
 				self.ContactPoisoned = false
@@ -60,7 +59,7 @@ if SERVER then
 	function ENT:Detonate()
 		if self.Detonated then return end
 		self.Detonated = true
-		local Pos, Attacker = self:LocalToWorld(self:OBBCenter()) + Vector(0, 0, 5), self.Owner
+		local Pos, Attacker = self:LocalToWorld(self:OBBCenter()) + Vector(0, 0, 5), self:GetOwner()
 		ParticleEffect("pcf_jack_incendiary_air_sm2", Pos, VectorRand():Angle())
 		--local Foom=EffectData()
 		--Foom:SetOrigin(Pos)
@@ -69,47 +68,31 @@ if SERVER then
 		Flash:SetOrigin(Pos)
 		Flash:SetScale(2)
 		util.Effect("eff_jack_hmcd_dlight", Flash, true, true)
-		timer.Simple(
-			.01,
-			function()
-				for i = 0, 10 do
-					local Tr = util.QuickTrace(Pos, VectorRand() * math.random(10, 150), {self})
-					if Tr.Hit then
-						util.Decal("Scorch", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal)
-					end
-				end
+		timer.Simple(.01, function()
+			for i = 0, 10 do
+				local Tr = util.QuickTrace(Pos, VectorRand() * math.random(10, 150), {self})
+				if Tr.Hit then util.Decal("Scorch", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal) end
 			end
-		)
+		end)
 
-		timer.Simple(
-			.02,
-			function()
-				sound.Play("snd_jack_firebomb.wav", Pos, 80, 100)
-				for i = 1, 10 do
-					sound.Play("GlassBottle.Break", Pos, 80 + i, 100)
-				end
+		timer.Simple(.02, function()
+			sound.Play("snd_jack_firebomb.wav", Pos, 80, 100)
+			for i = 1, 10 do
+				sound.Play("GlassBottle.Break", Pos, 80 + i, 100)
 			end
-		)
+		end)
 
-		timer.Simple(
-			.03,
-			function()
-				local Fire = ents.Create("ent_jack_hmcd_fire")
-				Fire.HmcdSpawned = self.HmcdSpawned
-				Fire.Initiator = Attacker
-				Fire.Small = true
-				Fire:SetPos(Pos)
-				Fire:Spawn()
-				Fire:Activate()
-			end
-		)
+		timer.Simple(.03, function()
+			local Fire = ents.Create("ent_jack_hmcd_fire")
+			Fire.HmcdSpawned = self.HmcdSpawned
+			Fire.Initiator = Attacker
+			Fire.Small = true
+			Fire:SetPos(Pos)
+			Fire:Spawn()
+			Fire:Activate()
+		end)
 
-		timer.Simple(
-			.04,
-			function()
-				SafeRemoveEntity(self)
-			end
-		)
+		timer.Simple(.04, function() SafeRemoveEntity(self) end)
 	end
 
 	function ENT:PhysicsCollide(data, physobj)

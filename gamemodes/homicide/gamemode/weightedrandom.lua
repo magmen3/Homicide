@@ -3,7 +3,6 @@ WRandom.__index = WRandom
 function WeightedRandom()
 	local tab = {}
 	setmetatable(tab, WRandom)
-
 	return tab
 end
 
@@ -19,14 +18,9 @@ function WRandom:FindSetDefaultAverages()
 	GunnaAvg = math.ceil(GunnaAvg / NumPlayas) or 0
 	KillaAvg = math.ceil(KillaAvg / NumPlayas) or 0
 	-- likewise update the numbers to average for those who aren't playing
-	for key, playa in pairs(player.GetAll()) do
-		if (not playa.GunnaChance) or (playa:Team() ~= 2) then
-			playa.GunnaChance = GunnaAvg
-		end
-
-		if (not playa.KillaChance) or (playa:Team() ~= 2) then
-			playa.KillaChance = KillaAvg
-		end
+	for key, playa in player.Iterator() do
+		if (not playa.GunnaChance) or (playa:Team() ~= 2) then playa.GunnaChance = GunnaAvg end
+		if (not playa.KillaChance) or (playa:Team() ~= 2) then playa.KillaChance = KillaAvg end
 	end
 end
 
@@ -36,10 +30,7 @@ function WRandom:Roll()
 	self:FindSetDefaultAverages()
 	for key, playa in pairs(Playas) do
 		local Record = GAMEMODE.SHITLIST[playa:SteamID()] or 0
-		if GetConVar("sv_cheats"):GetInt() == "1" then
-			Record = 0
-		end
-
+		if GetConVar("sv_cheats"):GetInt() == "1" then Record = 0 end
 		if (Record < GAMEMODE.GimpPunishmentThreshold) or (GetConVar("sv_cheats"):GetInt() == "1") then
 			for i = 1, playa.KillaChance do
 				table.insert(PotentialKillas, playa)
@@ -68,14 +59,8 @@ function WRandom:Roll()
 		Gunna = Playas[2]
 	end
 
-	if GAMEMODE.PUSSY or GAMEMODE.EPIC or GAMEMODE.DEATHMATCH then
-		Gunna = nil
-	end
-
-	if GAMEMODE.DEATHMATCH then
-		Killa = nil
-	end
-
+	if GAMEMODE.PUSSY or GAMEMODE.EPIC or GAMEMODE.DEATHMATCH then Gunna = nil end
+	if GAMEMODE.DEATHMATCH then Killa = nil end
 	for key, playa in pairs(Playas) do
 		if playa == Killa then
 			playa.KillaChance = 1
@@ -91,12 +76,11 @@ function WRandom:Roll()
 
 		local Record = GAMEMODE.SHITLIST[playa:SteamID()] or 0
 		if (Record >= GAMEMODE.GimpPunishmentThreshold) and (GetConVar("sv_cheats"):GetInt() == 0) then
-			playa:PrintMessage(HUD_PRINTTALK, "Your guilt is at " .. math.Round((Record / GAMEMODE.KickbanPunishmentThreshold) * 100) .. "%. Keep RDMing and you'll be banned.")
+			playa:ChatPrint("Your guilt is at " .. math.Round((Record / GAMEMODE.KickbanPunishmentThreshold) * 100) .. "%. Keep RDMing and you'll be banned.")
 			playa.KillaChance = 1
 			playa.GunnaChance = 1
 		end
 	end
-
 	return Killa, Gunna
 end
 -- local murds=WeightedRandom()

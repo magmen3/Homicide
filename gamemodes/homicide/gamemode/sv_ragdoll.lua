@@ -26,12 +26,7 @@ dtypes[DMG_DISSOLVE] = "Energy"
 dtypes[DMG_BLAST_SURFACE] = ""
 dtypes[DMG_DIRECT] = "Fire"
 dtypes[DMG_BUCKSHOT] = "Bullet"
-local DeathRagdollsPerPlayer = 3
-local DeathRagdollsPerServer = 22
-if not PlayerMeta.CreateRagdollOld then
-	PlayerMeta.CreateRagdollOld = PlayerMeta.CreateRagdoll
-end
-
+if not PlayerMeta.CreateRagdollOld then PlayerMeta.CreateRagdollOld = PlayerMeta.CreateRagdoll end
 function PlayerMeta:CreateRagdoll(attacker, dmginfo)
 	local Data = duplicator.CopyEntTable(self)
 	local ent = ents.Create("prop_ragdoll")
@@ -39,10 +34,7 @@ function PlayerMeta:CreateRagdoll(attacker, dmginfo)
 	duplicator.DoGeneric(ent, Data)
 	ent:Spawn()
 	ent:SetCollisionGroup(COLLISION_GROUP_WEAPON)
-	if ent.SetPlayerColor then
-		ent:SetPlayerColor(self:GetPlayerColor())
-	end
-
+	if ent.SetPlayerColor then ent:SetPlayerColor(self:GetPlayerColor()) end
 	ent:SetNWEntity("RagdollOwner", self)
 	ent:SetBodyProportions(self.UpperBody, self.CoreBody, self.LowerBody)
 	ent.ClothingMatIndex = self.ClothingMatIndex
@@ -68,59 +60,69 @@ function PlayerMeta:CreateRagdoll(attacker, dmginfo)
 	self:SetNWEntity("DeathRagdoll", ent)
 end
 
-if not PlayerMeta.GetRagdollEntityOld then
-	PlayerMeta.GetRagdollEntityOld = PlayerMeta.GetRagdollEntity
-end
-
+if not PlayerMeta.GetRagdollEntityOld then PlayerMeta.GetRagdollEntityOld = PlayerMeta.GetRagdollEntity end
 function PlayerMeta:GetRagdollEntity()
 	local ent = self:GetNWEntity("DeathRagdoll")
 	if IsValid(ent) then return ent end
-
 	return self:GetRagdollEntityOld()
 end
 
-if not PlayerMeta.GetRagdollOwnerOld then
-	PlayerMeta.GetRagdollOwnerOld = PlayerMeta.GetRagdollOwner
-end
-
+if not PlayerMeta.GetRagdollOwnerOld then PlayerMeta.GetRagdollOwnerOld = PlayerMeta.GetRagdollOwner end
 function EntityMeta:GetRagdollOwner()
 	local ent = self:GetNWEntity("RagdollOwner")
 	if IsValid(ent) then return ent end
-
 	return self:GetRagdollOwnerOld()
 end
 
 function EntityMeta:SetChestArmor(typ)
 	self.ChestArmor = typ
-	timer.Simple(
-		.1,
-		function()
-			net.Start("hmcd_armor")
-			net.WriteEntity(self)
-			net.WriteString(self.HeadArmor or "")
-			net.WriteString(typ or "")
-			net.Send(player.GetAll())
-		end
-	)
+	timer.Simple(.1, function()
+		net.Start("hmcd_armor")
+		net.WriteEntity(self)
+		net.WriteString(self.HeadArmor or "")
+		net.WriteString(typ or "")
+		net.Send(player.GetAll())
+	end)
 end
 
 function EntityMeta:SetHeadArmor(typ)
 	self.HeadArmor = typ
-	timer.Simple(
-		.1,
-		function()
-			net.Start("hmcd_armor")
-			net.WriteEntity(self)
-			net.WriteString(typ or "")
-			net.WriteString(self.ChestArmor or "")
-			net.Send(player.GetAll())
-		end
-	)
+	timer.Simple(.1, function()
+		net.Start("hmcd_armor")
+		net.WriteEntity(self)
+		net.WriteString(typ or "")
+		net.WriteString(self.ChestArmor or "")
+		net.Send(player.GetAll())
+	end)
 end
 
 function GM:RagdollSetDeathDetails(victim, inflictor, attacker)
 	local rag = victim:GetRagdollEntity()
-	if rag then end -- fuck you and your weird shit
+	if IsValid(rag) then
+		if IsValid(attacker:GetActiveWeapon()) then
+			local attwep = attacker:GetActiveWeapon()
+			local wep
+			if attwep.AmmoType and attwep.AmmoType ~= nil then
+				wep = translate.bodysearchWeaponwith .. tostring(HMCD_AmmoNames[attwep.AmmoType]) .. translate.bodysearchCaliber
+			else
+				wep = tostring(attwep:GetPrintName() or inflictor.PrintName)
+			end
+
+			rag:SetNWString("KilledWith", wep or translate.bodysearchNothing)
+		end
+
+		if IsValid(attacker) then
+			local attpos = IsValid(attacker) and attacker:GetPos() or inflictor:GetPos()
+			rag:SetNWInt("KillDistance", rag:GetPos():Distance(attpos) * 0.0254)
+		end
+
+		if IsValid(victim:GetActiveWeapon()) and victim:GetActiveWeapon():GetPrintName() ~= nil then
+			local wep = tostring(victim:GetActiveWeapon():GetPrintName())
+			rag:SetNWString("LastWeapon", wep or translate.bodysearchNothing)
+		end
+
+		if victim:LastHitGroup() ~= nil then rag:SetNWInt("LastHitGroup", victim:LastHitGroup() or 0) end
+	end
 end
 
 function EntityMeta:NearGround()
@@ -139,22 +141,6 @@ function EntityMeta:CanSee(ent)
 		endpos = pos,
 		filter = {self, filterent}
 	}
-
-	return not Tr.Hit
-end
-
-local function ClearLoS(pos1, pos2, filter)
-	if not filter then
-		filter = {}
-	end
-
-	local Tr = util.TraceLine(
-		{
-			start = pos1,
-			endpos = pos2
-		}
-	)
-
 	return not Tr.Hit
 end
 
@@ -188,161 +174,132 @@ function EntityMeta:ExplodeIED()
 	Flash:SetOrigin(Pos)
 	Flash:SetScale(2)
 	util.Effect("eff_jack_hmcd_dlight", Flash, true, true)
-	timer.Simple(
-		.01,
-		function()
-			if not (SplodeType == 3) then
-				sound.Play("snd_jack_hmcd_explosion_debris.mp3", Pos, 85, math.random(90, 110))
-				sound.Play("snd_jack_hmcd_explosion_far.wav", Pos - vector_up, 140, 100)
-				sound.Play("snd_jack_hmcd_debris.mp3", Pos + vector_up, 85, math.random(90, 110))
-			end
-
-			for i = 0, 10 do
-				local Tr = util.QuickTrace(Pos, VectorRand() * math.random(10, 150), {self})
-				if Tr.Hit then
-					util.Decal("Scorch", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal)
-				end
-			end
+	timer.Simple(.01, function()
+		if not (SplodeType == 3) then
+			sound.Play("snd_jack_hmcd_explosion_debris.mp3", Pos, 85, math.random(90, 110))
+			sound.Play("snd_jack_hmcd_explosion_far.wav", Pos - vector_up, 140, 100)
+			sound.Play("snd_jack_hmcd_debris.mp3", Pos + vector_up, 85, math.random(90, 110))
 		end
-	)
 
-	timer.Simple(
-		.02,
-		function()
-			if SplodeType == 3 then
-				sound.Play("snd_jack_hmcd_explosion_close.wav", Pos, 70, 100)
-				sound.Play("snd_jack_firebomb.wav", Pos, 80, 100)
-			else
-				sound.Play("snd_jack_hmcd_explosion_close.wav", Pos, 80, 100)
-				sound.Play("snd_jack_hmcd_explosion_close.wav", Pos + vector_up, 80, 100)
-				sound.Play("snd_jack_hmcd_explosion_close.wav", Pos - vector_up, 80, 100)
-			end
+		for i = 0, 10 do
+			local Tr = util.QuickTrace(Pos, VectorRand() * math.random(10, 150), {self})
+			if Tr.Hit then util.Decal("Scorch", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal) end
 		end
-	)
+	end)
 
-	timer.Simple(
-		.03,
-		function()
-			if not (SplodeType == 3) then
-				if not (SplodeType == 2) then
-					for key, ent in pairs(ents.FindInSphere(Pos, 75)) do
-						if (ent ~= self) and (ent:GetClass() == "func_breakable") and ent:CanSee(Pos) then
-							ent:Fire("break", "", 0)
-						elseif (ent ~= self) and HMCD_IsDoor(ent) and not ent:GetNoDraw() and ent:CanSee(Pos) then
-							HMCD_BlastThatDoor(ent)
-						end
-					end
-				else
-					local Poof = EffectData()
-					Poof:SetOrigin(Pos)
-					Poof:SetScale(1)
-					util.Effect("eff_jack_hmcd_shrapnel", Poof, true, true)
-				end
-			else
-				local Fire = ents.Create("ent_jack_hmcd_fire")
-				Fire.HmcdSpawned = true
-				Fire.Initiator = Attacker
-				Fire:SetPos(Pos)
-				Fire:Spawn()
-				Fire:Activate()
-			end
+	timer.Simple(.02, function()
+		if SplodeType == 3 then
+			sound.Play("snd_jack_hmcd_explosion_close.wav", Pos, 70, 100)
+			sound.Play("snd_jack_firebomb.wav", Pos, 80, 100)
+		else
+			sound.Play("snd_jack_hmcd_explosion_close.wav", Pos, 80, 100)
+			sound.Play("snd_jack_hmcd_explosion_close.wav", Pos + vector_up, 80, 100)
+			sound.Play("snd_jack_hmcd_explosion_close.wav", Pos - vector_up, 80, 100)
 		end
-	)
+	end)
 
-	timer.Simple(
-		.04,
-		function()
-			if SplodeType ~= 3 then
-				util.BlastDamage(self, Attacker, Pos, 150 * Mul, 75 * Mul)
-				local shake = ents.Create("env_shake")
-				shake.HmcdSpawned = true
-				shake:SetPos(Pos)
-				shake:SetKeyValue("amplitude", tostring(100))
-				shake:SetKeyValue("radius", tostring(200))
-				shake:SetKeyValue("duration", tostring(1))
-				shake:SetKeyValue("frequency", tostring(200))
-				shake:SetKeyValue("spawnflags", bit.bor(4, 8, 16))
-				shake:Spawn()
-				shake:Activate()
-				shake:Fire("StartShake", "", 0)
-				SafeRemoveEntityDelayed(shake, 2) -- don't clutter up the world
-				local shake2 = ents.Create("env_shake")
-				shake2.HmcdSpawned = true
-				shake2:SetPos(Pos)
-				shake2:SetKeyValue("amplitude", tostring(100))
-				shake2:SetKeyValue("radius", tostring(400))
-				shake2:SetKeyValue("duration", tostring(1))
-				shake2:SetKeyValue("frequency", tostring(200))
-				shake2:SetKeyValue("spawnflags", bit.bor(4))
-				shake2:Spawn()
-				shake2:Activate()
-				shake2:Fire("StartShake", "", 0)
-				SafeRemoveEntityDelayed(shake2, 2) -- don't clutter up the world
-				util.BlastDamage(self, Attacker, Pos, 500 * Mul, 50 * Mul)
-			end
-		end
-	)
-
-	timer.Simple(
-		.05,
-		function()
-			if SplodeType == 2 then
-				local Shrap = DamageInfo()
-				Shrap:SetAttacker(Attacker)
-				if IsValid(self) then
-					Shrap:SetInflictor(self)
-				else
-					Shrap:SetInflictor(game.GetWorld())
-				end
-
-				Shrap:SetDamageType(DMG_BUCKSHOT)
-				Shrap:SetDamage(100 * Mul)
-				util.BlastDamageInfo(Shrap, Pos, 750 * Mul)
-			end
-
-			if not self:IsPlayer() then
-				SafeRemoveEntity(self)
-			end
-		end
-	)
-
-	timer.Simple(
-		.1,
-		function()
-			for key, rag in pairs(ents.FindInSphere(Pos, 750)) do
-				if (rag:GetClass() == "prop_ragdoll") or rag:IsPlayer() then
-					for i = 1, 20 do
-						local Tr = util.TraceLine(
-							{
-								start = Pos,
-								endpos = rag:GetPos() + VectorRand() * 50
-							}
-						)
-
-						if Tr.Hit and (Tr.Entity == rag) then
-							util.Decal("Blood", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal)
-						end
+	timer.Simple(.03, function()
+		if not (SplodeType == 3) then
+			if not (SplodeType == 2) then
+				for key, ent in pairs(ents.FindInSphere(Pos, 75)) do
+					if (ent ~= self) and (ent:GetClass() == "func_breakable") and ent:CanSee(Pos) then
+						ent:Fire("break", "", 0)
+					elseif (ent ~= self) and HMCD_IsDoor(ent) and not ent:GetNoDraw() and ent:CanSee(Pos) then
+						HMCD_BlastThatDoor(ent)
 					end
 				end
+			else
+				local Poof = EffectData()
+				Poof:SetOrigin(Pos)
+				Poof:SetScale(1)
+				util.Effect("eff_jack_hmcd_shrapnel", Poof, true, true)
+			end
+		else
+			local Fire = ents.Create("ent_jack_hmcd_fire")
+			Fire.HmcdSpawned = true
+			Fire.Initiator = Attacker
+			Fire:SetPos(Pos)
+			Fire:Spawn()
+			Fire:Activate()
+		end
+	end)
+
+	timer.Simple(.04, function()
+		if SplodeType ~= 3 then
+			util.BlastDamage(self, Attacker, Pos, 150 * Mul, 75 * Mul)
+			local shake = ents.Create("env_shake")
+			shake.HmcdSpawned = true
+			shake:SetPos(Pos)
+			shake:SetKeyValue("amplitude", tostring(100))
+			shake:SetKeyValue("radius", tostring(200))
+			shake:SetKeyValue("duration", tostring(1))
+			shake:SetKeyValue("frequency", tostring(200))
+			shake:SetKeyValue("spawnflags", bit.bor(4, 8, 16))
+			shake:Spawn()
+			shake:Activate()
+			shake:Fire("StartShake", "", 0)
+			SafeRemoveEntityDelayed(shake, 2) -- don't clutter up the world
+			local shake2 = ents.Create("env_shake")
+			shake2.HmcdSpawned = true
+			shake2:SetPos(Pos)
+			shake2:SetKeyValue("amplitude", tostring(100))
+			shake2:SetKeyValue("radius", tostring(400))
+			shake2:SetKeyValue("duration", tostring(1))
+			shake2:SetKeyValue("frequency", tostring(200))
+			shake2:SetKeyValue("spawnflags", bit.bor(4))
+			shake2:Spawn()
+			shake2:Activate()
+			shake2:Fire("StartShake", "", 0)
+			SafeRemoveEntityDelayed(shake2, 2) -- don't clutter up the world
+			util.BlastDamage(self, Attacker, Pos, 500 * Mul, 50 * Mul)
+		end
+	end)
+
+	timer.Simple(.05, function()
+		if SplodeType == 2 then
+			local Shrap = DamageInfo()
+			Shrap:SetAttacker(Attacker)
+			if IsValid(self) then
+				Shrap:SetInflictor(self)
+			else
+				Shrap:SetInflictor(game.GetWorld())
+			end
+
+			Shrap:SetDamageType(DMG_BUCKSHOT)
+			Shrap:SetDamage(100 * Mul)
+			util.BlastDamageInfo(Shrap, Pos, 750 * Mul)
+		end
+
+		if not self:IsPlayer() then SafeRemoveEntity(self) end
+	end)
+
+	timer.Simple(.1, function()
+		for key, rag in pairs(ents.FindInSphere(Pos, 750)) do
+			if (rag:GetClass() == "prop_ragdoll") or rag:IsPlayer() then
+				for i = 1, 20 do
+					local Tr = util.TraceLine({
+						start = Pos,
+						endpos = rag:GetPos() + VectorRand() * 50
+					})
+
+					if Tr.Hit and (Tr.Entity == rag) then util.Decal("Blood", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal) end
+				end
 			end
 		end
-	)
+	end)
 end
 
 function EntityMeta:SetAccessory(acc)
 	if not acc then return end
 	self.Accessory = acc
 	local ent, sex = self, self.ModelSex -- delay to ensure the entity exists on the client
-	timer.Simple(
-		.1,
-		function()
-			net.Start("hmcd_player_accessory")
-			net.WriteEntity(ent)
-			net.WriteString(sex) -- Homicide sex update
-			net.WriteString(acc)
-			net.Send(player.GetAll())
-		end
-	)
+	timer.Simple(.1, function()
+		net.Start("hmcd_player_accessory")
+		net.WriteEntity(ent)
+		net.WriteString(sex) -- Homicide sex update
+		net.WriteString(acc)
+		net.Send(player.GetAll())
+	end)
 end
 
 function EntityMeta:IsUsingValidModel()
@@ -353,10 +310,7 @@ function EntityMeta:IsUsingValidModel()
 	end
 
 	if GAMEMODE.ZOMBIE and (Mod == "models/player/zombie_classic.mdl") then return true end
-	if self:IsPlayer() then
-		self:PrintMessage(HUD_PRINTTALK, translate.miscUnsupportedPM)
-	end
-
+	if self:IsPlayer() then self:ChatPrint(translate.miscUnsupportedPM) end
 	return false
 end
 
@@ -390,48 +344,35 @@ function EntityMeta:HideBody(body)
 	HMCD_HideBody(body)
 	self:GetPhysicsObject():SetMass(self:GetPhysicsObject():GetMass() + 150)
 	for i = 1, 10 do
-		timer.Simple(
-			i / 10 * math.Rand(.75, 1.25),
-			function()
-				self:EmitSound("Flesh.ImpactSoft")
-			end
-		)
+		timer.Simple(i / 10 * math.Rand(.75, 1.25), function() self:EmitSound("Flesh.ImpactSoft") end)
 	end
 end
 
 function EntityMeta:GenerateBody()
 	local Upper, Core, Lower = math.Rand(.8, 1.3), math.Rand(.75, 1.2), math.Rand(.8, 1.3)
-	if self.CustomUpperBody then
-		Upper = self.CustomUpperBody / 100
-	end
-
-	if self.CustomCoreBody then
-		Core = self.CustomCoreBody / 100
-	end
-
-	if self.CustomLowerBody then
-		Lower = self.CustomLowerBody / 100
-	end
-
+	if self.CustomUpperBody then Upper = self.CustomUpperBody / 100 end
+	if self.CustomCoreBody then Core = self.CustomCoreBody / 100 end
+	if self.CustomLowerBody then Lower = self.CustomLowerBody / 100 end
 	self:SetBodyProportions(Upper, Core, Lower)
 end
 
-local Clothes = {"normal", "normal", "normal", "striped", "plaid", "casual", "formal", "young", "cold"} -- some styles are more common
+local Clothes = {
+	"normal", -- some styles are more common
+	"normal",
+	"normal",
+	"striped",
+	"plaid",
+	"casual",
+	"formal",
+	"young",
+	"cold"
+}
+
 function EntityMeta:GenerateClothes()
 	local Type = table.Random(Clothes)
-	if self.CustomClothes then
-		Type = self.CustomClothes
-	end
-
+	if self.CustomClothes then Type = self.CustomClothes end
 	self:SetSubMaterial() -- reset
-	timer.Simple(
-		2,
-		function()
-			if IsValid(self) then
-				self:SetClothing(Type)
-			end
-		end
-	)
+	timer.Simple(2, function() if IsValid(self) then self:SetClothing(Type) end end)
 end
 
 function EntityMeta:GenerateColor()
@@ -440,10 +381,7 @@ function EntityMeta:GenerateColor()
 	vec.x = Lerp(.2, vec.x, Avg) -- muted colors more common
 	vec.y = Lerp(.2, vec.y, Avg)
 	vec.z = Lerp(.2, vec.z, Avg)
-	if self.CustomColor then
-		vec = self.CustomColor
-	end
-
+	if self.CustomColor then vec = self.CustomColor end
 	self:SetPlayerColor(vec)
 end
 
@@ -453,14 +391,8 @@ function EntityMeta:GenerateAccessories()
 	table.insert(AccTable, "eyeglasses")
 	table.insert(AccTable, "nerd glasses")
 	local AccessoryName = table.Random(AccTable)
-	if math.random(1, 3) == 2 then
-		AccessoryName = "none"
-	end
-
-	if self.CustomAccessory then
-		AccessoryName = self.CustomAccessory
-	end
-
+	if math.random(1, 3) == 2 then AccessoryName = "none" end
+	if self.CustomAccessory then AccessoryName = self.CustomAccessory end
 	self:SetAccessory(AccessoryName)
 end
 
@@ -477,10 +409,7 @@ function GM:CreateFirstVictim()
 	end
 
 	local spawnPoint = self:PlayerSelectTeamSpawn(2, ply)
-	if IsValid(spawnPoint) then
-		ply:SetPos(spawnPoint:GetPos() + vector_up * 20)
-	end
-
+	if IsValid(spawnPoint) then ply:SetPos(spawnPoint:GetPos() + vector_up * 20) end
 	--player.GetAll()[1]:SetPos(ply:GetPos())
 	ply:SetAngles(Angle(0, 0, 0))
 	ply:Spawn()
@@ -498,34 +427,24 @@ function GM:CreateFirstVictim()
 		end
 	end
 
-	timer.Simple(
-		10,
-		function()
-			if IsValid(ply) then
-				local Pit = math.random(70, 140)
-				sound.Play("ambient/creatures/town_child_scream1.wav", ply:GetPos(), 90, pit)
-				sound.Play("ambient/creatures/town_child_scream1.wav", ply:GetPos() + vector_up, 60, pit)
-				sound.Play("ambient/creatures/town_child_scream1.wav", ply:GetPos() + vector_up * 2, 50, pit)
-			end
+	timer.Simple(10, function()
+		if IsValid(ply) then
+			local Pit = math.random(70, 140)
+			sound.Play("ambient/creatures/town_child_scream1.wav", ply:GetPos(), 90, pit)
+			sound.Play("ambient/creatures/town_child_scream1.wav", ply:GetPos() + vector_up, 60, pit)
+			sound.Play("ambient/creatures/town_child_scream1.wav", ply:GetPos() + vector_up * 2, 50, pit)
 		end
-	)
+	end)
 
 	self.FirstVictim = ply
-	timer.Simple(
-		.1,
-		function()
-			for i = 1, 5 do
-				local Tr = util.TraceLine(
-					{
-						start = ply:GetPos() + vector_up * 50 + VectorRand() * math.Rand(0, 40),
-						endpos = ply:GetPos() - vector_up * 200 + VectorRand() * math.Rand(0, 40)
-					}
-				)
+	timer.Simple(.1, function()
+		for i = 1, 5 do
+			local Tr = util.TraceLine({
+				start = ply:GetPos() + vector_up * 50 + VectorRand() * math.Rand(0, 40),
+				endpos = ply:GetPos() - vector_up * 200 + VectorRand() * math.Rand(0, 40)
+			})
 
-				if Tr.Hit then
-					util.Decal("Blood", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal)
-				end
-			end
+			if Tr.Hit then util.Decal("Blood", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal) end
 		end
-	)
+	end)
 end

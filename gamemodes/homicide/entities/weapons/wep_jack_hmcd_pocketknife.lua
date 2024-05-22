@@ -34,23 +34,12 @@ SWEP.AutoSwitchFrom = false
 SWEP.AttackSlowDown = .75
 SWEP.CommandDroppable = true
 --SWEP.SHTF_NoDrop=true
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
@@ -75,57 +64,40 @@ function SWEP:PrimaryAttack()
 	if not IsFirstTimePredicted() then
 		self:DoBFSAnimation("slash1")
 		self:GetOwner():GetViewModel():SetPlaybackRate(2)
-
 		return
 	end
 
 	if self:GetOwner().Stamina < 5 then return end
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	self:DoBFSAnimation("slash1")
 	self:UpdateNextIdle()
 	self:SetHoldType("melee")
 	self:GetOwner():GetViewModel():SetPlaybackRate(2)
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	local FirstStrike = false
-	if self.NextDownTime < CurTime() then
-		FirstStrike = true
-	end
-
+	if self.NextDownTime < CurTime() then FirstStrike = true end
 	self.NextDownTime = CurTime() + 1
 	self:SetNextPrimaryFire(CurTime() + .5)
 	self:GetOwner():ViewPunch(Angle(0, -3, 0))
-	if SERVER then
-		sound.Play("weapons/slam/throw.wav", self:GetOwner():GetPos(), 60, math.random(90, 110))
-	end
-
-	timer.Simple(
-		.05,
-		function()
-			if IsValid(self) then
-				if FirstStrike then
-					self:GetOwner():SetAnimation(PLAYER_ATTACK1)
-				end
-
-				self:AttackFront()
-			end
+	if SERVER then sound.Play("weapons/slam/throw.wav", self:GetOwner():GetPos(), 60, math.random(90, 110)) end
+	timer.Simple(.05, function()
+		if IsValid(self) then
+			if FirstStrike then self:GetOwner():SetAnimation(PLAYER_ATTACK1) end
+			self:AttackFront()
 		end
-	)
+	end)
 end
 
 function SWEP:Deploy()
 	if not IsFirstTimePredicted() then
 		self:DoBFSAnimation("draw")
 		self:GetOwner():GetViewModel():SetPlaybackRate(.1)
-
 		return
 	end
 
 	self:DoBFSAnimation("draw")
 	self:UpdateNextIdle()
-	if SERVER then
-		sound.Play("snd_jack_hmcd_crkt.wav", self:GetOwner():GetPos(), 60, math.random(90, 110))
-	end
-
+	if SERVER then sound.Play("snd_jack_hmcd_crkt.wav", self:GetOwner():GetPos(), 60, math.random(90, 110)) end
 	return true
 end
 
@@ -153,12 +125,10 @@ function SWEP:Think()
 
 	if SERVER then
 		local HoldType = "normal"
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if self:GetOwner():IsSprinting() then
 			HoldType = "normal"
 		else
-			if self.NextDownTime > CurTime() then
-				HoldType = "melee"
-			end
+			if self.NextDownTime > CurTime() then HoldType = "melee" end
 		end
 
 		self:SetHoldType(HoldType)
@@ -198,10 +168,7 @@ function SWEP:AttackFront()
 		Ent:TakeDamageInfo(Dam)
 		local Phys = Ent:GetPhysicsObject()
 		if IsValid(Phys) then
-			if Ent:IsPlayer() then
-				Ent:SetVelocity(AimVec * SelfForce / 5)
-			end
-
+			if Ent:IsPlayer() then Ent:SetVelocity(AimVec * SelfForce / 5) end
 			Phys:ApplyForceOffset(AimVec * 2500 * Mul, HitPos)
 			self:GetOwner():SetVelocity(-AimVec * SelfForce / 10)
 		end
@@ -243,20 +210,17 @@ end
 if CLIENT then
 	local DownAmt = 0
 	function SWEP:GetViewModelPosition(pos, ang)
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if self:GetOwner():IsSprinting() then
 			DownAmt = math.Clamp(DownAmt + .6, 0, 50)
 		else
 			DownAmt = math.Clamp(DownAmt - .6, 0, 50)
 		end
 
 		ang:RotateAroundAxis(ang:Up(), -30)
-
 		return pos + ang:Up() * 3 - ang:Forward() * (DownAmt - 10) - ang:Up() * DownAmt - ang:Right() * 25, ang
 	end
 
 	function SWEP:DrawWorldModel()
-		if GAMEMODE:ShouldDrawWeaponWorldModel(self) then
-			self:DrawModel()
-		end
+		if GAMEMODE:ShouldDrawWeaponWorldModel(self) then self:DrawModel() end
 	end
 end

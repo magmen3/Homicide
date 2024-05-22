@@ -27,10 +27,7 @@ if SERVER then
 			self:EmitSound(self.ImpactSound, 60, 100)
 			ply:Give(SWEP)
 			ply:GetWeapon(self.SWEP).HmcdSpawned = self.HmcdSpawned
-			if self.GameSpawned then
-				ply:GiveAmmo(3, "AirboatGun", true)
-			end
-
+			if self.GameSpawned then ply:GiveAmmo(3, "AirboatGun", true) end
 			self:Remove()
 			ply:SelectWeapon(SWEP)
 		else

@@ -7,7 +7,7 @@ util.AddNetworkString("hmcd_openammomenu")
 util.AddNetworkString("hmcd_openappearancemenu")
 function GM:PlayerConnect(name, ip)
 	timer.Simple(.1, function()
-		for key, found in ipairs(player.GetAll()) do
+		for key, found in player.Iterator() do
 			if found:Nick() == name then
 				net.Start("HMCD_Identity")
 				net.Send(found)
@@ -178,7 +178,7 @@ function GM:PlayerSpawn(ply)
 					aargh = aargh .. msg.text
 				end
 
-				ply:PrintMessage(HUD_PRINTTALK, aargh)
+				ply:ChatPrint(aargh)
 			else
 				local argh = Translator:AdvVarTranslate(translate.policeIn, {
 					mins = {
@@ -191,7 +191,7 @@ function GM:PlayerSpawn(ply)
 					aargh = aargh .. msg.text
 				end
 
-				ply:PrintMessage(HUD_PRINTTALK, aargh)
+				ply:ChatPrint(aargh)
 			end
 		end
 	end)
@@ -341,7 +341,7 @@ end
 function GM:DoPlayerDeath(ply, attacker, dmginfo)
 	local Infl = dmginfo:GetInflictor()
 	if Infl and Infl:IsVehicle() and Infl:GetDriver() then attacker = Infl:GetDriver() end
-	if IsValid(Infl) and (Infl:GetClass() == "ent_jack_hmcd_grapl") then attacker = Infl.Owner end
+	if IsValid(Infl) and (Infl:GetClass() == "ent_jack_hmcd_grapl") then attacker = Infl:GetOwner() end
 	if (self:GetRound() == 1) and not ply:IsBot() then
 		if IsValid(attacker) and attacker:IsPlayer() and not (attacker == ply) then
 			local Slash, Blast, Bullet, Buckshot, Burn, Club, Crush, Poison, Bleed = dmginfo:IsDamageType(DMG_SLASH), dmginfo:IsDamageType(DMG_BLAST), dmginfo:IsDamageType(DMG_BULLET), dmginfo:IsDamageType(DMG_BUCKSHOT), dmginfo:IsDamageType(DMG_BURN), dmginfo:IsDamageType(DMG_CLUB), dmginfo:IsDamageType(DMG_CRUSH), dmginfo:IsDamageType(DMG_POISON), dmginfo:IsDamageType(DMG_GENERIC)
@@ -460,14 +460,14 @@ function GM:DoPlayerDeath(ply, attacker, dmginfo)
 		DeathString = DeathString .. translate.attBy .. Att
 	end
 
-	ply:PrintMessage(HUD_PRINTTALK, DeathString)
+	ply:ChatPrint(DeathString)
 end
 
 local plyMeta = FindMetaTable("Player")
 function plyMeta:CalculateSpeed()
 	--print(self:GetEyeTrace().HitPos:Distance(self:GetShootPos())/52)
 	if self:InVehicle() then return end
-	local walk, run, jumppower, wep, DSM, ground, ballsToWall, gMul, Time = 120, 390, 245, self:GetActiveWeapon(), self.DynamicSprintSpeed, self:IsOnGround(), self:KeyDown(IN_SPEED), GAMEMODE.PLAYER_SPEED_MUL, CurTime()
+	local walk, run, jumppower, wep, DSM, ground, ballsToWall, gMul, Time = 120, 390, 245, self:GetActiveWeapon(), self.DynamicSprintSpeed, self:IsOnGround(), self:IsSprinting(), GAMEMODE.PLAYER_SPEED_MUL, CurTime()
 	if GAMEMODE.ZOMBIE and self.Murderer then
 		walk = walk * .5
 		run = run * .5
@@ -585,9 +585,9 @@ end
 function GM:PlayerSelectTeamSpawn(TeamID, pl)
 	local SpawnPoints = generateSpawnEntities(TeamSpawns)
 	if not SpawnPoints or table.Count(SpawnPoints) < 2 then
-		SpawnPoints = table.Add(ents.FindByClass("info_player_deathmatch"), ents.FindByClass("info_player_start"))
-		SpawnPoints = table.Add(SpawnPoints, ents.FindByClass("info_player_terrorist"))
-		SpawnPoints = table.Add(SpawnPoints, ents.FindByClass("info_player_counterterrorist"))
+		SpawnPoints = table.Add(ents.FindByClass("info_player_deathmatch"), ents.FindByClass("info_player_start"), ents.FindByClass("info_player_zombie"), ents.FindByClass("info_spawnpoint"))
+		SpawnPoints = table.Add(SpawnPoints, ents.FindByClass("info_player_terrorist"), ents.FindByClass("info_player_axis"), ents.FindByClass("info_player_red"))
+		SpawnPoints = table.Add(SpawnPoints, ents.FindByClass("info_player_counterterrorist"), ents.FindByClass("info_player_allies"), ents.FindByClass("info_player_blue"))
 	end
 
 	if not SpawnPoints or table.Count(SpawnPoints) < 2 then return end
@@ -693,7 +693,7 @@ end
 
 function GM:PlayerDeath(ply, Inflictor, attacker)
 	if Inflictor and Inflictor:IsVehicle() and Inflictor:GetDriver() then attacker = Inflictor:GetDriver() end
-	if IsValid(Inflictor) and (Inflictor:GetClass() == "ent_jack_hmcd_grapl") then attacker = Inflictor.Owner end
+	if IsValid(Inflictor) and (Inflictor:GetClass() == "ent_jack_hmcd_grapl") then attacker = Inflictor:GetOwner() end
 	self:DoRoundDeaths(ply, attacker)
 	if attacker.ModelSex == "male" then
 		s = translate.ms
@@ -770,7 +770,6 @@ function GM:PlayerDeath(ply, Inflictor, attacker)
 					ct:SendAll()
 				end
 			end
-		else
 		end
 	else
 		if attacker ~= ply and IsValid(attacker) and attacker:IsPlayer() then
@@ -910,7 +909,7 @@ function GM:PlayerFootstep(ply, pos, foot, snd, volume, filter)
 	self:FootstepsOnFootstep(ply, pos, foot, snd, volume, filter)
 	net.Start("hmcd_playersilent")
 	net.WriteEntity(ply)
-	if ply.Murderer and ply:KeyDown(IN_WALK) and not ply:KeyDown(IN_SPEED) then
+	if ply.Murderer and ply:KeyDown(IN_WALK) and not ply:IsSprinting() then
 		net.WriteBit(true)
 	else
 		net.WriteBit(false)
@@ -966,7 +965,7 @@ function GM:PlayerOnChangeTeam(ply, newTeam, oldTeam)
 	ply:KillSilent()
 end
 
-concommand.Add("mu_jointeam", function(ply, com, args)
+concommand.Add("hmcd_jointeam", function(ply, com, args)
 	local newTeam = tonumber(args[1] or "") or 0
 	if ply.LastChangeTeam and ply.LastChangeTeam + 5 > CurTime() then return end
 	ply.LastChangeTeam = CurTime()
@@ -1017,7 +1016,7 @@ concommand.Add("hmcd_movetospectate", function(ply, com, args)
 	end
 end)
 
-concommand.Add("mu_spectate", function(ply, com, args)
+concommand.Add("hmcd_spectate", function(ply, com, args)
 	if not ply:IsAdmin() then return end
 	if #args < 1 then return end
 	local ent = Entity(tonumber(args[1]) or -1)
@@ -1070,7 +1069,7 @@ function GM:PlayerSay(ply, text, teem)
 
 				if (Wall or Playa or Still) and not ply:InVehicle() and not ply.HiddenInContainer then
 					ply.Unstickable = false
-					ply:PrintMessage(HUD_PRINTTALK, translate.stuck)
+					ply:ChatPrint(translate.stuck)
 					local Tr = util.TraceLine({
 						start = ply:GetShootPos(),
 						endpos = ply:GetShootPos() + ply:GetAimVector() * 500,
@@ -1094,10 +1093,10 @@ function GM:PlayerSay(ply, text, teem)
 						ply:SetPos(ply:GetShootPos() + ply:GetAimVector() * 500)
 					end
 				else
-					ply:PrintMessage(HUD_PRINTTALK, translate.stuckUnable)
+					ply:ChatPrint(translate.stuckUnable)
 				end
 			else
-				ply:PrintMessage(HUD_PRINTTALK, translate.stuckAlready)
+				ply:ChatPrint(translate.stuckAlready)
 			end
 		elseif ply.Seizuring then
 			local Chars = string.Explode("", string.lower(text))
@@ -1123,7 +1122,7 @@ function GM:PlayerSay(ply, text, teem)
 		local Wep, WalkieTalkie = ply:GetActiveWeapon(), false
 		if IsValid(Wep) and (Wep:GetClass() == "wep_jack_hmcd_walkietalkie") then WalkieTalkie = true end
 		local col = ply:GetPlayerColor()
-		for k, ply2 in pairs(player.GetAll()) do
+		for k, ply2 in player.Iterator() do
 			local can = hook.Call("PlayerCanSeePlayersChat", GAMEMODE, text, teem, ply2, ply)
 			if can then
 				local ct = ChatText()
@@ -1164,7 +1163,7 @@ function GM:PlayerUse(ply, ent)
 
 	if ent.ContactPoisoned then
 		if ply.Murderer then
-			ply:PrintMessage(HUD_PRINTTALK, translate.poisoned)
+			ply:ChatPrint(translate.poisoned)
 			return false
 		else
 			ent.ContactPoisoned = false
@@ -1183,6 +1182,18 @@ function GM:KeyPress(ply, key)
 			-- disguise as ragdolls
 			if IsValid(tr.Entity) then
 				local Dist = tr.HitPos:Distance(tr.StartPos)
+				if (ply.ArmedAtSpawn or self.DEATHMATCH or self.ZOMBIE) and not ply.Murderer then
+					local Class = tr.Entity:GetClass()
+					if Class == "prop_ragdoll" and Dist < 65 and tr.Entity:GetNWString("KilledWith", translate.bodysearchNothing) ~= nil then
+						local rag = tr.Entity
+						local name = tostring(rag:GetBystanderName())
+						ply:ChatPrint(tostring(name .. translate.bodysearchKilledwith .. tostring(rag:GetNWString("KilledWith", translate.bodysearchNothing))))
+						ply:ChatPrint(tostring(name .. translate.bodysearchKilledfrom .. math.Round(rag:GetNWInt("KillDistance", 0), 1) .. translate.bodysearchMeters))
+						ply:ChatPrint(tostring(name .. translate.bodysearchLastweapon .. tostring(rag:GetNWString("LastWeapon", translate.bodysearchNothing))))
+						if rag:GetNWInt("LastHitGroup", 0) ~= 0 then ply:ChatPrint(tostring(name .. translate.bodysearchLasthitgroup .. tostring(HitLocationPhrases[rag:GetNWInt("LastHitGroup", 0)]))) end
+					end
+				end
+
 				if ply.Murderer then
 					local Class = tr.Entity:GetClass()
 					if Class == "prop_ragdoll" and Dist < 65 and not self.ZOMBIE then ply:MurdererDisguise(tr.Entity) end
@@ -1264,7 +1275,7 @@ function PlayerMeta:AntiCheat()
 	if Weps then
 		for key, wep in pairs(Weps) do
 			if not wep.HomicideSWEP then
-				self:PrintMessage(HUD_PRINTTALK, wep:GetClass() .. translate.notAllowedWithSVC0)
+				self:ChatPrint(wep:GetClass() .. translate.notAllowedWithSVC0)
 				SafeRemoveEntity(wep)
 			end
 		end
@@ -1272,25 +1283,25 @@ function PlayerMeta:AntiCheat()
 
 	if self:GetMoveType() == MOVETYPE_NOCLIP then
 		self:SetMoveType(MOVETYPE_WALK)
-		self:PrintMessage(HUD_PRINTTALK, translate.notAllowedNoclip)
+		self:ChatPrint(translate.notAllowedNoclip)
 	end
 
 	if self:HasGodMode() then
 		self:GodDisable()
-		self:PrintMessage(HUD_PRINTTALK, translate.notAllowedGodmode)
+		self:ChatPrint(translate.notAllowedGodmode)
 	end
 
 	local Health = self:Health()
 	if Health and (Health > 105) then
 		if GAMEMODE.ZOMBIE and self.Murderer then return end
 		self:SetHealth(100)
-		self:PrintMessage(HUD_PRINTTALK, translate.notAllowedAdditionalHealth)
+		self:ChatPrint(translate.notAllowedAdditionalHealth)
 	end
 
 	local Armor = self:Armor()
 	if Armor and (Armor > 0) then
 		self:SetArmor(0)
-		self:PrintMessage(HUD_PRINTTALK, translate.notAllowedHL2Armor)
+		self:ChatPrint(translate.notAllowedHL2Armor)
 	end
 
 	if not self:HasWeapon("wep_jack_hmcd_hands") and not self:HasWeapon("wep_jack_hmcd_zombhands") then
@@ -1302,6 +1313,7 @@ end
 function PlayerMeta:MurdererDisguise(copyent)
 	if GAMEMODE.ZOMBIE then return end
 	if self.MurdererIdentityHidden then return end
+	if not copyent.ClothingMatIndex then return end
 	if not self.Disguised then
 		self.DisguiseColor = self:GetPlayerColor()
 		self.DisguiseName = self:GetBystanderName()
@@ -1578,7 +1590,7 @@ function PlayerMeta:GodCheck()
 				net.Start("hmcd_seizure")
 				net.WriteBit(true)
 				net.Send(self)
-				self:PrintMessage(HUD_PRINTTALK, translate.youAreHavingASeizure)
+				self:ChatPrint(translate.youAreHavingASeizure)
 				self:PrintMessage(HUD_PRINTCENTER, translate.seizure)
 				local LifeID = self.LifeID
 				timer.Simple(30, function()

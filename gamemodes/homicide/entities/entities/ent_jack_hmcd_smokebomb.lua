@@ -30,7 +30,6 @@ if SERVER then
 	function ENT:Think()
 		if self:WaterLevel() >= 3 then
 			self:Remove()
-
 			return
 		end
 
@@ -39,16 +38,10 @@ if SERVER then
 			ParticleEffect("pcf_jack_smokebomb3", self:GetPos(), Angle(0, 0, 0), self)
 		end
 
-		if self.NextHide < CurTime() then
-			self:SetDTBool(0, true)
-		end
-
+		if self.NextHide < CurTime() then self:SetDTBool(0, true) end
 		self:EmitSound("snd_jack_hmcd_flare.wav", 65, math.random(95, 105))
 		self:NextThink(CurTime() + .15)
-		if self.BurnoutTime < CurTime() then
-			self:Remove()
-		end
-
+		if self.BurnoutTime < CurTime() then self:Remove() end
 		return true
 	end
 elseif CLIENT then

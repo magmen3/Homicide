@@ -38,29 +38,25 @@ function EFFECT:Init(data)
 			particle:SetColor(darg, darg, darg)
 			particle:SetCollide(true)
 			particle:SetBounce(.01)
-			particle:SetCollideCallback(
-				function(part, hitpos, hitnormal)
-					local Dist = (hitpos - SelfPos):Length()
-					if Dist < Radius then
-						local Vel = part:GetVelocity()
-						Vel.x = 0
-						Vel.y = 0
-						part:SetVelocity(Vel)
-						part:SetStartSize(50 + Dist / 3.5)
-						part:SetStartAlpha(255)
-						part:SetEndAlpha(255)
-						part:SetLifeTime(.1)
-						part:SetDieTime(math.Rand(.75, 1.5))
-						part:SetPos(hitpos + hitnormal)
-						if math.random(1, 25) == 5 then
-							util.Decal("Scorch", hitpos + hitnormal, hitpos - hitnormal)
-						end
-					else
-						part:SetLifeTime(0)
-						part:SetDieTime(.01)
-					end
+			particle:SetCollideCallback(function(part, hitpos, hitnormal)
+				local Dist = (hitpos - SelfPos):Length()
+				if Dist < Radius then
+					local Vel = part:GetVelocity()
+					Vel.x = 0
+					Vel.y = 0
+					part:SetVelocity(Vel)
+					part:SetStartSize(50 + Dist / 3.5)
+					part:SetStartAlpha(255)
+					part:SetEndAlpha(255)
+					part:SetLifeTime(.1)
+					part:SetDieTime(math.Rand(.75, 1.5))
+					part:SetPos(hitpos + hitnormal)
+					if math.random(1, 25) == 5 then util.Decal("Scorch", hitpos + hitnormal, hitpos - hitnormal) end
+				else
+					part:SetLifeTime(0)
+					part:SetDieTime(.01)
 				end
-			)
+			end)
 		end
 	end
 

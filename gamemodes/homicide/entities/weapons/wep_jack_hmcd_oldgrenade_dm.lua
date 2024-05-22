@@ -32,23 +32,12 @@ SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
 SWEP.ViewModelFlip = true
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = false
 SWEP.Primary.Ammo = "none"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
@@ -69,30 +58,14 @@ end
 --
 function SWEP:PrimaryAttack()
 	if not IsFirstTimePredicted() then return end
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	self:DoBFSAnimation("throw")
 	self:GetOwner():GetViewModel():SetPlaybackRate(1.5)
 	self:EmitSound("snd_jack_hmcd_throw.wav")
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	self:GetOwner():ViewPunch(Angle(-10, -5, 0))
-	timer.Simple(
-		.2,
-		function()
-			if IsValid(self) then
-				self:GetOwner():ViewPunch(Angle(20, 10, 0))
-			end
-		end
-	)
-
-	timer.Simple(
-		.25,
-		function()
-			if IsValid(self) then
-				self:ThrowGrenade()
-			end
-		end
-	)
-
+	timer.Simple(.2, function() if IsValid(self) then self:GetOwner():ViewPunch(Angle(20, 10, 0)) end end)
+	timer.Simple(.25, function() if IsValid(self) then self:ThrowGrenade() end end)
 	self:SetNextPrimaryFire(CurTime() + 1)
 	self:SetNextSecondaryFire(CurTime() + 1)
 end
@@ -103,27 +76,16 @@ function SWEP:Deploy()
 	self.DownAmt = 10
 	self:DoBFSAnimation("deploy")
 	self:GetOwner():GetViewModel():SetPlaybackRate(.6)
-	timer.Simple(
-		1,
-		function()
-			if IsValid(self) then
-				self:DoBFSAnimation("pullpin")
-				self:GetOwner():GetViewModel():SetPlaybackRate(.75)
-				timer.Simple(
-					.8,
-					function()
-						if IsValid(self) then
-							self:EmitSound("snd_jack_hmcd_pinpull.wav")
-						end
-					end
-				)
-			end
+	timer.Simple(1, function()
+		if IsValid(self) and IsValid(self:GetOwner()) and IsValid(self:GetOwner():GetViewModel()) then
+			self:DoBFSAnimation("pullpin")
+			self:GetOwner():GetViewModel():SetPlaybackRate(.75)
+			timer.Simple(.8, function() if IsValid(self) then self:EmitSound("snd_jack_hmcd_pinpull.wav") end end)
 		end
-	)
+	end)
 
 	self:SetNextPrimaryFire(CurTime() + 2.5)
 	self:SetNextSecondaryFire(CurTime() + 2.5)
-
 	return true
 end
 
@@ -134,20 +96,13 @@ function SWEP:ThrowGrenade()
 	Grenade.HmcdSpawned = self.HmcdSpawned
 	Grenade:SetAngles(VectorRand():Angle())
 	Grenade:SetPos(self:GetOwner():GetShootPos() + self:GetOwner():GetAimVector() * 20)
-	Grenade.Owner = self:GetOwner()
+	Grenade:SetOwner(self:GetOwner())
 	Grenade:Spawn()
 	Grenade:Activate()
 	Grenade:GetPhysicsObject():SetVelocity(self:GetOwner():GetVelocity() + self:GetOwner():GetAimVector() * 1000)
 	Grenade:Arm()
 	self:GetOwner():SetLagCompensated(false)
-	timer.Simple(
-		.1,
-		function()
-			if IsValid(self) then
-				self:Remove()
-			end
-		end
-	)
+	timer.Simple(.1, function() if IsValid(self) then self:Remove() end end)
 end
 
 function SWEP:RigGrenade()
@@ -159,7 +114,7 @@ function SWEP:RigGrenade()
 		Grenade.HmcdSpawned = self.HmcdSpawned
 		Grenade:SetAngles(Tr.HitNormal:Angle())
 		Grenade:SetPos(Tr.HitPos + Tr.HitNormal * 2)
-		Grenade.Owner = self:GetOwner()
+		Grenade:SetOwner(self:GetOwner())
 		Grenade.Rigged = true
 		Grenade:Spawn()
 		Grenade:Activate()
@@ -167,24 +122,14 @@ function SWEP:RigGrenade()
 		Grenade.Constraint = constraint.Weld(Grenade, Tr.Entity, 0, 0, 300, true, false)
 		sound.Play("snd_jack_hmcd_detonator.wav", Tr.HitPos, 60, 100)
 		local Ply = self:GetOwner()
-		timer.Simple(
-			.3,
-			function()
-				net.Start("hmcd_hudhalo")
-				net.WriteEntity(Grenade)
-				net.WriteInt(4, 32)
-				net.Send(Ply)
-			end
-		)
+		timer.Simple(.3, function()
+			net.Start("hmcd_hudhalo")
+			net.WriteEntity(Grenade)
+			net.WriteInt(4, 32)
+			net.Send(Ply)
+		end)
 
-		timer.Simple(
-			.2,
-			function()
-				if IsValid(self) then
-					self:Remove()
-				end
-			end
-		)
+		timer.Simple(.2, function() if IsValid(self) then self:Remove() end end)
 	end
 
 	self:GetOwner():SetLagCompensated(false)
@@ -192,7 +137,7 @@ end
 
 function SWEP:SecondaryAttack()
 	if not IsFirstTimePredicted() then return end
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	self:RigGrenade()
 	self:SetNextPrimaryFire(CurTime() + 1)
 	self:SetNextSecondaryFire(CurTime() + 1)
@@ -201,10 +146,7 @@ end
 function SWEP:Think()
 	if SERVER then
 		local HoldType = "grenade"
-		if self:GetOwner():KeyDown(IN_SPEED) then
-			HoldType = "normal"
-		end
-
+		if self:GetOwner():IsSprinting() then HoldType = "normal" end
 		self:SetHoldType(HoldType)
 	end
 end
@@ -232,8 +174,6 @@ if CLIENT then
 
 	--
 	function SWEP:DrawWorldModel()
-		if GAMEMODE:ShouldDrawWeaponWorldModel(self) then
-			self:DrawModel()
-		end
+		if GAMEMODE:ShouldDrawWeaponWorldModel(self) then self:DrawModel() end
 	end
 end

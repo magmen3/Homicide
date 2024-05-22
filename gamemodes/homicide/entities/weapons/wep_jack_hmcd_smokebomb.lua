@@ -31,23 +31,12 @@ SWEP.SwayScale = 2
 SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
-SWEP.Spawnable = true
-SWEP.AdminOnly = true
 SWEP.Primary.Delay = 0.5
-SWEP.Primary.Recoil = 3
-SWEP.Primary.Damage = 120
-SWEP.Primary.NumShots = 1
-SWEP.Primary.Cone = 0.04
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.Force = 900
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
 SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.Recoil = 0
-SWEP.Secondary.Damage = 0
-SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Cone = 0
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
@@ -66,7 +55,7 @@ end
 --
 function SWEP:PrimaryAttack()
 	if not IsFirstTimePredicted() then return end
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	self:SetNextPrimaryFire(CurTime() + 1)
 	if CLIENT then return end
 	local Bom = ents.Create("ent_jack_hmcd_smokebomb")
@@ -83,7 +72,6 @@ end
 function SWEP:Deploy()
 	if not IsFirstTimePredicted() then return end
 	self.DownAmt = 8
-
 	return true
 end
 
@@ -109,18 +97,14 @@ end
 --
 if CLIENT then
 	function SWEP:GetViewModelPosition(pos, ang)
-		if not self.DownAmt then
-			self.DownAmt = 8
-		end
-
-		if self:GetOwner():KeyDown(IN_SPEED) then
+		if not self.DownAmt then self.DownAmt = 8 end
+		if self:GetOwner():IsSprinting() then
 			self.DownAmt = math.Clamp(self.DownAmt + .1, 0, 8)
 		else
 			self.DownAmt = math.Clamp(self.DownAmt - .1, 0, 8)
 		end
 
 		local NewPos = pos + ang:Forward() * 30 - ang:Up() * (12 + self.DownAmt) + ang:Right() * 10
-
 		return NewPos, ang
 	end
 

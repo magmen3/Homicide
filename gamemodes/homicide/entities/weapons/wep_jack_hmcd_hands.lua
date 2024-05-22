@@ -37,7 +37,6 @@ end
 SWEP.SwayScale = 3
 SWEP.BobScale = 3
 SWEP.Instructions = translate.weaponHandsDesc
-SWEP.Spawnable = false
 SWEP.AdminOnly = true
 SWEP.HoldType = "normal"
 SWEP.ViewModel = "models/weapons/c_arms_citizen.mdl"
@@ -78,7 +77,6 @@ function SWEP:Deploy()
 	if not IsFirstTimePredicted() then
 		self:DoBFSAnimation("fists_draw")
 		self:GetOwner():GetViewModel():SetPlaybackRate(.1)
-
 		return
 	end
 
@@ -86,13 +84,11 @@ function SWEP:Deploy()
 	self:SetFists(false)
 	self:SetNextDown(CurTime())
 	self:DoBFSAnimation("fists_draw")
-
 	return true
 end
 
 function SWEP:Holster()
 	self:OnRemove()
-
 	return true
 end
 
@@ -111,7 +107,6 @@ function SWEP:CanPickup(ent)
 	if ent.IsLoot then return true end
 	local class = ent:GetClass()
 	if pickupWhiteList[class] then return true end
-
 	return false
 end
 
@@ -126,8 +121,7 @@ function SWEP:SecondaryAttack()
 			if Dist < self.ReachDistance then
 				if tr.Entity.ContactPoisoned then
 					if self:GetOwner().Murderer then
-						self:GetOwner():PrintMessage(HUD_PRINTTALK, translate.poisoned)
-
+						self:GetOwner():ChatPrint(translate.poisoned)
 						return
 					else
 						tr.Entity.ContactPoisoned = false
@@ -158,22 +152,15 @@ function SWEP:ApplyForce()
 	local phys = self.CarryEnt:GetPhysicsObjectNum(self.CarryBone)
 	if IsValid(phys) then
 		local TargetPos = phys:GetPos()
-		if self.CarryPos then
-			TargetPos = self.CarryEnt:LocalToWorld(self.CarryPos)
-		end
-
+		if self.CarryPos then TargetPos = self.CarryEnt:LocalToWorld(self.CarryPos) end
 		local vec = target - TargetPos
 		local len, mul = vec:Length(), self.CarryEnt:GetPhysicsObject():GetMass()
 		if (len > self.ReachDistance) or (mul > 170) then
 			self:SetCarrying()
-
 			return
 		end
 
-		if self.CarryEnt:GetClass() == "prop_ragdoll" then
-			mul = mul * 2
-		end
-
+		if self.CarryEnt:GetClass() == "prop_ragdoll" then mul = mul * 2 end
 		vec:Normalize()
 		local avec, velo = vec * len, phys:GetVelocity() - self:GetOwner():GetVelocity()
 		local CounterDir, CounterAmt = velo:GetNormalized(), velo:Length()
@@ -191,9 +178,7 @@ end
 function SWEP:OnRemove()
 	if IsValid(self:GetOwner()) and CLIENT and self:GetOwner():IsPlayer() then
 		local vm = self:GetOwner():GetViewModel()
-		if IsValid(vm) then
-			vm:SetMaterial("")
-		end
+		if IsValid(vm) then vm:SetMaterial("") end
 	end
 end
 
@@ -221,9 +206,7 @@ end
 
 function SWEP:Think()
 	if IsValid(self:GetOwner()) and self:GetOwner():KeyDown(IN_ATTACK2) and not self:GetFists() then
-		if IsValid(self.CarryEnt) then
-			self:ApplyForce()
-		end
+		if IsValid(self.CarryEnt) then self:ApplyForce() end
 	elseif self.CarryEnt then
 		self:SetCarrying()
 	end
@@ -249,7 +232,7 @@ function SWEP:Think()
 			HoldType = "camera"
 		end
 
-		if (self:GetNextDown() < Time) or self:GetOwner():KeyDown(IN_SPEED) then
+		if (self:GetNextDown() < Time) or self:GetOwner():IsSprinting() then
 			self:SetNextDown(Time + 1)
 			self:SetFists(false)
 			self:SetBlocking(false)
@@ -259,42 +242,29 @@ function SWEP:Think()
 		self:DoBFSAnimation("fists_draw")
 	end
 
-	if IsValid(self.CarryEnt) or self.CarryEnt then
-		HoldType = "magic"
-	end
-
-	if self:GetOwner():KeyDown(IN_SPEED) then
-		HoldType = "normal"
-	end
-
-	if SERVER then
-		self:SetHoldType(HoldType)
-	end
+	if IsValid(self.CarryEnt) or self.CarryEnt then HoldType = "magic" end
+	if self:GetOwner():IsSprinting() then HoldType = "normal" end
+	if SERVER then self:SetHoldType(HoldType) end
 end
 
 function SWEP:PrimaryAttack()
 	local side = "fists_left"
-	if math.random(1, 2) == 1 then
-		side = "fists_right"
-	end
-
+	if math.random(1, 2) == 1 then side = "fists_right" end
 	self:SetNextDown(CurTime() + 7)
 	if not self:GetFists() then
 		self:SetFists(true)
 		self:DoBFSAnimation("fists_draw")
 		self:SetNextPrimaryFire(CurTime() + .35)
-
 		return
 	end
 
 	if self:GetBlocking() then return end
 	if not self:GetOwner().Stamina then return end
 	if self:GetOwner().Stamina < 5 then return end
-	if self:GetOwner():KeyDown(IN_SPEED) then return end
+	if self:GetOwner():IsSprinting() then return end
 	if not IsFirstTimePredicted() then
 		self:DoBFSAnimation(side)
 		self:GetOwner():GetViewModel():SetPlaybackRate(1.25)
-
 		return
 	end
 
@@ -307,14 +277,7 @@ function SWEP:PrimaryAttack()
 		HMCD_StaminaPenalize(self:GetOwner(), 4)
 		sound.Play("weapons/slam/throw.wav", self:GetPos(), 65, math.random(90, 110))
 		self:GetOwner():ViewPunch(Angle(0, 0, math.random(-2, 2)))
-		timer.Simple(
-			.075,
-			function()
-				if IsValid(self) then
-					self:AttackFront()
-				end
-			end
-		)
+		timer.Simple(.075, function() if IsValid(self) then self:AttackFront() end end)
 	end
 
 	self:SetNextPrimaryFire(CurTime() + .35)
@@ -350,19 +313,12 @@ function SWEP:AttackFront()
 		Ent:TakeDamageInfo(Dam)
 		local Phys = Ent:GetPhysicsObject()
 		if IsValid(Phys) then
-			if Ent:IsPlayer() then
-				Ent:SetVelocity(AimVec * SelfForce * 1.5)
-			end
-
+			if Ent:IsPlayer() then Ent:SetVelocity(AimVec * SelfForce * 1.5) end
 			Phys:ApplyForceOffset(AimVec * 5000 * Mul, HitPos)
 			self:GetOwner():SetVelocity(-AimVec * SelfForce * .8)
 		end
 
-		if Ent:GetClass() == "func_breakable_surf" then
-			if math.random(1, 20) == 10 then
-				Ent:Fire("break", "", 0)
-			end
-		end
+		if Ent:GetClass() == "func_breakable_surf" then if math.random(1, 20) == 10 then Ent:Fire("break", "", 0) end end
 	end
 
 	self:GetOwner():LagCompensation(false)
@@ -404,7 +360,6 @@ if CLIENT then
 
 		pos = pos - ang:Up() * 15 * BlockAmt
 		ang:RotateAroundAxis(ang:Right(), BlockAmt * 60)
-
 		return pos, ang
 	end
 end

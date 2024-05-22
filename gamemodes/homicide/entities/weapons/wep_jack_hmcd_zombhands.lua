@@ -17,7 +17,6 @@ end
 SWEP.SwayScale = 3
 SWEP.BobScale = 3
 SWEP.Instructions = translate.weaponZombHandsDesc
-SWEP.Spawnable = false
 SWEP.AdminOnly = true
 SWEP.HoldType = "normal"
 SWEP.ViewModel = Model("models/Weapons/v_zombiearms.mdl")
@@ -45,15 +44,12 @@ function SWEP:Initialize()
 	self:SetNextIdle(CurTime() + 5)
 	self:SetHoldType(self.HoldType)
 	if SERVER then
-		timer.Simple(
-			1,
-			function()
-				if IsValid(self) and IsValid(self:GetOwner()) then
-					self:GetOwner():SetHealth(450)
-					self:GetOwner():SetMaxHealth(450)
-				end
+		timer.Simple(1, function()
+			if IsValid(self) and IsValid(self:GetOwner()) then
+				self:GetOwner():SetHealth(450)
+				self:GetOwner():SetMaxHealth(450)
 			end
-		)
+		end)
 	end
 
 	self.PrintName = translate and translate.hands or "Hands"
@@ -62,13 +58,11 @@ end
 
 function SWEP:Deploy()
 	self:SetNextPrimaryFire(CurTime() + .1)
-
 	return true
 end
 
 function SWEP:Holster()
 	self:OnRemove()
-
 	return true
 end
 
@@ -117,9 +111,7 @@ end
 function SWEP:OnRemove()
 	if IsValid(self:GetOwner()) and CLIENT and self:GetOwner():IsPlayer() then
 		local vm = self:GetOwner():GetViewModel()
-		if IsValid(vm) then
-			vm:SetMaterial("")
-		end
+		if IsValid(vm) then vm:SetMaterial("") end
 	end
 end
 
@@ -131,46 +123,24 @@ function SWEP:Think()
 		self:UpdateNextIdle()
 	end
 
-	if SERVER then
-		self:SetHoldType(HoldType)
-	end
+	if SERVER then self:SetHoldType(HoldType) end
 end
 
 function SWEP:PrimaryAttack()
 	local side = ACT_VM_HITCENTER
-	if math.random(1, 2) == 1 then
-		side = ACT_VM_SECONDARYATTACK
-	end
-
+	if math.random(1, 2) == 1 then side = ACT_VM_SECONDARYATTACK end
 	if not IsFirstTimePredicted() then
 		self:SendWeaponAnim(side)
-
 		return
 	end
 
-	if self:GetOwner():KeyDown(IN_SPEED) then
-		DamMul = .25
-	end
-
+	if self:GetOwner():IsSprinting() then DamMul = .25 end
 	self:GetOwner():ViewPunch(Angle(0, 0, math.random(-2, 2)))
 	self:SendWeaponAnim(side)
 	self:UpdateNextIdle()
 	self:GetOwner():DoAttackEvent()
-	if SERVER then
-		self:PlayAttackSound()
-	end
-
-	if SERVER then
-		timer.Simple(
-			.65,
-			function()
-				if IsValid(self) then
-					self:AttackFront()
-				end
-			end
-		)
-	end
-
+	if SERVER then self:PlayAttackSound() end
+	if SERVER then timer.Simple(.65, function() if IsValid(self) then self:AttackFront() end end) end
 	self:SetNextPrimaryFire(CurTime() + 1.5)
 	self:SetNextSecondaryFire(CurTime() + 1)
 end
@@ -200,10 +170,7 @@ function SWEP:AttackFront()
 		end
 
 		local DamageAmt = math.random(20, 40)
-		if Ent and Ent.HMCD_Zomb then
-			DamageAmt = DamageAmt / 2
-		end
-
+		if Ent and Ent.HMCD_Zomb then DamageAmt = DamageAmt / 2 end
 		local Dam = DamageInfo()
 		Dam:SetAttacker(self:GetOwner())
 		Dam:SetInflictor(self)
@@ -221,10 +188,7 @@ function SWEP:AttackFront()
 		local Phys = Ent:GetPhysicsObject()
 		if IsValid(Phys) then
 			Ent:SetPhysicsAttacker(self:GetOwner())
-			if Ent:IsPlayer() then
-				Ent:SetVelocity(AimVec * SelfForce * 1.5)
-			end
-
+			if Ent:IsPlayer() then Ent:SetVelocity(AimVec * SelfForce * 1.5) end
 			if Soft then
 				Phys:ApplyForceOffset(AimVec * 5000 * Mul, HitPos)
 			else
@@ -235,9 +199,7 @@ function SWEP:AttackFront()
 		end
 
 		if Ent:GetClass() == "func_breakable_surf" then
-			if math.random(1, 10) == 10 then
-				Ent:Fire("break", "", 0)
-			end
+			if math.random(1, 10) == 10 then Ent:Fire("break", "", 0) end
 		elseif HMCD_IsDoor(Ent) and (math.random(1, 10) == 5) then
 			HMCD_BlastThatDoor(Ent)
 		end
@@ -303,7 +265,6 @@ if CLIENT then
 		BlockAmt = math.Clamp(BlockAmt - FrameTime() * 1.5, 0, 1)
 		pos = pos - ang:Up() * 15 * BlockAmt
 		ang:RotateAroundAxis(ang:Right(), BlockAmt * 60)
-
 		return pos, ang
 	end
 end

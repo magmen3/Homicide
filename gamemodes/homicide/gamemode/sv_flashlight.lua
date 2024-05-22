@@ -1,7 +1,7 @@
 util.AddNetworkString("hmcd_flashlight_light")
 util.AddNetworkString("stamina")
 function GM:FlashlightThink()
-	for k, ply in pairs(player.GetAll()) do
+	for k, ply in player.Iterator() do
 		if ply:Alive() and ply.HasFlashlight and ply.HMCD_Light then
 			ply.HMCD_Light.RenderPos = LerpVector(.3, ply.HMCD_Light.RenderPos, ply:GetShootPos())
 			ply.HMCD_Light.RenderAng = LerpAngle(.3, ply.HMCD_Light.RenderAng, ply:GetAimVector():Angle())
@@ -38,10 +38,7 @@ function GM:PlayerSwitchFlashlight(ply, turningOn)
 			ply.HMCD_Light:SetKeyValue("lightfov", 60)
 			local Col = ply:GetPlayerColor()
 			local c, b = Color(128 + 127 * Col.x, 128 + 127 * Col.y, 128 + 127 * Col.z), 1.25
-			if not self.SHTF then
-				b = 1
-			end
-
+			if not self.SHTF then b = 1 end
 			ply.HMCD_Light:SetKeyValue("lightcolor", Format("%i %i %i 255", c.r * b, c.g * b, c.b * b))
 			ply.HMCD_Light:Spawn()
 			ply.HMCD_Light:Input("SpotlightTexture", NULL, NULL, "effects/flashlight001")
@@ -51,6 +48,5 @@ function GM:PlayerSwitchFlashlight(ply, turningOn)
 			net.Send(player.GetAll())
 		end
 	end
-
 	return false
 end

@@ -2,24 +2,30 @@ util.AddNetworkString("SetRound")
 util.AddNetworkString("DeclareWinner")
 util.AddNetworkString("hmcd_mode")
 --util.AddNetworkString("Polizei")
-local ForceZombi, ForceJihad = false, false
-concommand.Add(
-	"homicide_forcejihad",
-	function(ply, cmd, args)
-		if IsValid(ply) and not ply:IsSuperAdmin() then return end
-		ForceJihad = true
-		print("jihad forced for next round")
-	end
-)
+local ForceZombi, ForceJihad, ForceDM, ForceStandard = false, false, false, false
+concommand.Add("homicide_forcejihad", function(ply, cmd, args)
+	if IsValid(ply) and not ply:IsSuperAdmin() then return end
+	ForceJihad = true
+	print("jihad forced for next round")
+end)
 
-concommand.Add(
-	"homicide_forcezombie",
-	function(ply, cmd, args)
-		if IsValid(ply) and not ply:IsSuperAdmin() then return end
-		ForceZombi = true
-		print("zombies forced for next round")
-	end
-)
+concommand.Add("homicide_forcezombie", function(ply, cmd, args)
+	if IsValid(ply) and not ply:IsSuperAdmin() then return end
+	ForceZombi = true
+	print("zombies forced for next round")
+end)
+
+concommand.Add("homicide_forcedm", function(ply, cmd, args)
+	if IsValid(ply) and not ply:IsSuperAdmin() then return end
+	ForceDM = true
+	print("dm forced for next round")
+end)
+
+concommand.Add("homicide_forcestandard", function(ply, cmd, args)
+	if IsValid(ply) and not ply:IsSuperAdmin() then return end
+	ForceDM = true
+	print("standard forced for next round")
+end)
 
 GM.RoundStage = 0
 GM.RoundCount = 0
@@ -81,23 +87,20 @@ function GM:RoundThink()
 			self:StartNewRound()
 		elseif (#players == 1) and (not self.LastPlayerSpawn or self.LastPlayerSpawn + 1 < CurTime()) then
 			RunConsoleCommand("bot")
-			timer.Simple(
-				2,
-				function()
-					local PlayersNow = team.GetPlayers(2)
-					if #PlayersNow > 1 then
-						for key, ply in pairs(PlayersNow) do
-							if ply:IsBot() then
-								ply.AutoSpawnedBot = true
-								break
-							end
+			timer.Simple(2, function()
+				local PlayersNow = team.GetPlayers(2)
+				if #PlayersNow > 1 then
+					for key, ply in pairs(PlayersNow) do
+						if ply:IsBot() then
+							ply.AutoSpawnedBot = true
+							break
 						end
 					end
 				end
-			)
+			end)
 		elseif #players == 0 then
 			if #player.GetAll() > 0 then
-				for key, ply in pairs(player.GetAll()) do
+				for key, ply in player.Iterator() do
 					ply:AddToShitList(-100)
 				end
 			end
@@ -112,9 +115,7 @@ function GM:RoundThink()
 
 		if #players > 2 then
 			for key, playa in pairs(players) do
-				if playa:IsBot() and playa.AutoSpawnedBot then
-					playa:Kick()
-				end
+				--if playa:IsBot() and playa.AutoSpawnedBot then playa:Kick() end
 			end
 		end
 
@@ -129,13 +130,10 @@ function GM:RoundThink()
 		end
 
 		if (self.ForceRoundEndTime < CurTime()) and not self.DEATHMATCH then
-			if not self.MurdererLastKill then
-				self.MurdererLastKill = CurTime()
-			end
-
+			if not self.MurdererLastKill then self.MurdererLastKill = CurTime() end
 			if (self.MurdererLastKill + 100) < CurTime() then
 				local murderer
-				for key, ply in pairs(player.GetAll()) do
+				for key, ply in player.Iterator() do
 					if ply.Murderer then
 						murderer = ply
 						break
@@ -143,18 +141,13 @@ function GM:RoundThink()
 				end
 
 				self:EndTheRound(4, murderer)
-
 				return
 			end
 		end
 
-		if not self.RoundLastDeath or self.RoundLastDeath < CurTime() then
-			self:RoundCheckForWin()
-		end
+		if not self.RoundLastDeath or self.RoundLastDeath < CurTime() then self:RoundCheckForWin() end
 	elseif self.RoundStage == 2 then
-		if self.RoundTime + 5 < CurTime() then
-			self:StartNewRound()
-		end
+		if self.RoundTime + 5 < CurTime() then self:StartNewRound() end
 	end
 end
 
@@ -163,19 +156,13 @@ function GM:RoundCheckForWin()
 	local players = team.GetPlayers(2)
 	if #players <= 0 then
 		self:SetRound(0)
-
 		return
 	end
 
 	local survivors = {}
 	for k, v in pairs(players) do
-		if v:Alive() and not v.Murderer then
-			table.insert(survivors, v)
-		end
-
-		if v.Murderer then
-			murderer = v
-		end
+		if v:Alive() and not v.Murderer then table.insert(survivors, v) end
+		if v.Murderer then murderer = v end
 	end
 
 	if self.DEATHMATCH then
@@ -185,37 +172,31 @@ function GM:RoundCheckForWin()
 			self.HeroPlayer = survivors[1]
 			self:EndTheRound(5, survivors[1])
 		end
-
 		return
 	end
 
 	-- check we have a murderer
 	if not IsValid(murderer) then
 		self:EndTheRound(3, murderer)
-
 		return
 	end
 
 	-- has the murderer killed everyone?
 	if #survivors < 1 then
 		self:EndTheRound(1, murderer)
-
 		return
 	end
 
 	-- is the murderer dead?
 	if not murderer:Alive() then
 		self:EndTheRound(2, murderer)
-
 		return
 	end
 	-- keep playing.
 end
 
 function GM:DoRoundDeaths(dead, attacker)
-	if self.RoundStage == 1 then
-		self.RoundLastDeath = CurTime() + 2
-	end
+	if self.RoundStage == 1 then self.RoundLastDeath = CurTime() + 2 end
 end
 
 -- 1 Murderer wins
@@ -246,25 +227,19 @@ function GM:EndTheRound(reason, murderer)
 			local col = murderer:GetPlayerColor()
 			local msgs
 			if self.SHTF then
-				msgs = Translator:AdvVarTranslate(
-					translate.murdererLostWill,
-					{
-						murderer = {
-							text = murderer:Nick() .. ", " .. murderer:GetBystanderName(),
-							color = Color(col.x * 255, col.y * 255, col.z * 255)
-						}
+				msgs = Translator:AdvVarTranslate(translate.murdererLostWill, {
+					murderer = {
+						text = murderer:Nick() .. ", " .. murderer:GetBystanderName(),
+						color = Color(col.x * 255, col.y * 255, col.z * 255)
 					}
-				)
+				})
 			else
-				msgs = Translator:AdvVarTranslate(
-					translate.traitorLostWill,
-					{
-						murderer = {
-							text = murderer:Nick() .. ", " .. murderer:GetBystanderName(),
-							color = Color(col.x * 255, col.y * 255, col.z * 255)
-						}
+				msgs = Translator:AdvVarTranslate(translate.traitorLostWill, {
+					murderer = {
+						text = murderer:Nick() .. ", " .. murderer:GetBystanderName(),
+						color = Color(col.x * 255, col.y * 255, col.z * 255)
 					}
-				)
+				})
 			end
 
 			local ct = ChatText(msgs)
@@ -279,25 +254,19 @@ function GM:EndTheRound(reason, murderer)
 			local col = murderer:GetPlayerColor()
 			local msgs
 			if self.SHTF then
-				msgs = Translator:AdvVarTranslate(
-					translate.traitorDisconnectKnown,
-					{
-						murderer = {
-							text = murderer:Nick() .. ", " .. murderer:GetBystanderName(),
-							color = Color(col.x * 255, col.y * 255, col.z * 255)
-						}
+				msgs = Translator:AdvVarTranslate(translate.traitorDisconnectKnown, {
+					murderer = {
+						text = murderer:Nick() .. ", " .. murderer:GetBystanderName(),
+						color = Color(col.x * 255, col.y * 255, col.z * 255)
 					}
-				)
+				})
 			else
-				msgs = Translator:AdvVarTranslate(
-					translate.murdererDisconnectKnown,
-					{
-						murderer = {
-							text = murderer:Nick() .. ", " .. murderer:GetBystanderName(),
-							color = Color(col.x * 255, col.y * 255, col.z * 255)
-						}
+				msgs = Translator:AdvVarTranslate(translate.murdererDisconnectKnown, {
+					murderer = {
+						text = murderer:Nick() .. ", " .. murderer:GetBystanderName(),
+						color = Color(col.x * 255, col.y * 255, col.z * 255)
 					}
-				)
+				})
 			end
 
 			local ct = ChatText(msgs)
@@ -320,59 +289,47 @@ function GM:EndTheRound(reason, murderer)
 		local msgs, RealName, GameName = nil, murderer:Nick(), murderer:GetBystanderName()
 		if RealName == GameName then
 			if self.SHTF then
-				msgs = Translator:AdvVarTranslate(
-					translate.winInnocentsTraitorWas,
-					{
-						murderer = {
-							text = GameName,
-							color = Color(col.x * 255, col.y * 255, col.z * 255)
-						},
-						s = {
-							text = s
-						}
+				msgs = Translator:AdvVarTranslate(translate.winInnocentsTraitorWas, {
+					murderer = {
+						text = GameName,
+						color = Color(col.x * 255, col.y * 255, col.z * 255)
+					},
+					s = {
+						text = s
 					}
-				)
+				})
 			else
-				msgs = Translator:AdvVarTranslate(
-					translate.winBystandersMurdererWas,
-					{
-						murderer = {
-							text = GameName,
-							color = Color(col.x * 255, col.y * 255, col.z * 255)
-						},
-						s = {
-							text = s
-						}
+				msgs = Translator:AdvVarTranslate(translate.winBystandersMurdererWas, {
+					murderer = {
+						text = GameName,
+						color = Color(col.x * 255, col.y * 255, col.z * 255)
+					},
+					s = {
+						text = s
 					}
-				)
+				})
 			end
 		else
 			if self.SHTF then
-				msgs = Translator:AdvVarTranslate(
-					translate.winInnocentsTraitorWas,
-					{
-						murderer = {
-							text = RealName .. ", " .. GameName,
-							color = Color(col.x * 255, col.y * 255, col.z * 255)
-						},
-						s = {
-							text = translate.ms
-						}
+				msgs = Translator:AdvVarTranslate(translate.winInnocentsTraitorWas, {
+					murderer = {
+						text = RealName .. ", " .. GameName,
+						color = Color(col.x * 255, col.y * 255, col.z * 255)
+					},
+					s = {
+						text = translate.ms
 					}
-				)
+				})
 			else
-				msgs = Translator:AdvVarTranslate(
-					translate.winBystandersMurdererWas,
-					{
-						murderer = {
-							text = RealName .. ", " .. GameName,
-							color = Color(col.x * 255, col.y * 255, col.z * 255)
-						},
-						s = {
-							text = translate.ms
-						}
+				msgs = Translator:AdvVarTranslate(translate.winBystandersMurdererWas, {
+					murderer = {
+						text = RealName .. ", " .. GameName,
+						color = Color(col.x * 255, col.y * 255, col.z * 255)
+					},
+					s = {
+						text = translate.ms
 					}
-				)
+				})
 			end
 		end
 
@@ -391,31 +348,25 @@ function GM:EndTheRound(reason, murderer)
 		local col = murderer:GetPlayerColor()
 		local msgs, RealName, GameName = nil, murderer:Nick(), murderer:GetBystanderName()
 		if RealName == GameName then
-			msgs = Translator:AdvVarTranslate(
-				translate.winMurdererMurdererWas,
-				{
-					murderer = {
-						text = GameName,
-						color = Color(col.x * 255, col.y * 255, col.z * 255)
-					},
-					s = {
-						text = s
-					}
+			msgs = Translator:AdvVarTranslate(translate.winMurdererMurdererWas, {
+				murderer = {
+					text = GameName,
+					color = Color(col.x * 255, col.y * 255, col.z * 255)
+				},
+				s = {
+					text = s
 				}
-			)
+			})
 		else
-			msgs = Translator:AdvVarTranslate(
-				translate.winMurdererMurdererWas,
-				{
-					murderer = {
-						text = RealName .. ", " .. GameName,
-						color = Color(col.x * 255, col.y * 255, col.z * 255)
-					},
-					s = {
-						text = translate.ms
-					}
+			msgs = Translator:AdvVarTranslate(translate.winMurdererMurdererWas, {
+				murderer = {
+					text = RealName .. ", " .. GameName,
+					color = Color(col.x * 255, col.y * 255, col.z * 255)
+				},
+				s = {
+					text = translate.ms
 				}
-			)
+			})
 		end
 
 		local ct = ChatText()
@@ -434,18 +385,15 @@ function GM:EndTheRound(reason, murderer)
 		murderer:AddMerit(5)
 		local col = murderer:GetPlayerColor()
 		local msgs, RealName, GameName = nil, murderer:Nick(), murderer:GetBystanderName()
-		msgs = Translator:AdvVarTranslate(
-			translate.winDM,
-			{
-				murderer = {
-					text = GameName,
-					color = Color(col.x * 255, col.y * 255, col.z * 255)
-				},
-				s = {
-					text = s
-				}
+		msgs = Translator:AdvVarTranslate(translate.winDM, {
+			murderer = {
+				text = GameName,
+				color = Color(col.x * 255, col.y * 255, col.z * 255)
+			},
+			s = {
+				text = s
 			}
-		)
+		})
 
 		local ct = ChatText()
 		ct:AddParts(msgs)
@@ -507,19 +455,16 @@ function GM:EndTheRound(reason, murderer)
 			ply:SetTeam(1)
 			GAMEMODE:PlayerOnChangeTeam(ply, 1, oldTeam)
 			local col = ply:GetPlayerColor()
-			local msgs = Translator:AdvVarTranslate(
-				translate.teamMoved,
-				{
-					player = {
-						text = ply:Nick(),
-						color = Color(col.x * 255, col.y * 255, col.z * 255)
-					},
-					team = {
-						text = team.GetName(1),
-						color = team.GetColor(2)
-					}
+			local msgs = Translator:AdvVarTranslate(translate.teamMoved, {
+				player = {
+					text = ply:Nick(),
+					color = Color(col.x * 255, col.y * 255, col.z * 255)
+				},
+				team = {
+					text = team.GetName(1),
+					color = team.GetColor(2)
 				}
-			)
+			})
 
 			local ct = ChatText()
 			ct:AddParts(msgs)
@@ -541,21 +486,15 @@ function GM:EndTheRound(reason, murderer)
 		if self.RoundCount >= limit then
 			self:ChangeMap()
 			self:SetRound(4)
-
 			return
 		end
 	end
 
 	print("Homicide balance reporting: murderer " .. tostring(self.MurdererWins) .. " bystanders " .. tostring(self.BystanderWins))
-	for key, playa in pairs(player.GetAll()) do
+	for key, playa in player.Iterator() do
 		local Record = self.SHITLIST[playa:SteamID()] or 0
-		if playa.Innocent and (Record > self.BonusForgiveness) then
-			playa:AddToShitList(-self.BonusForgiveness)
-		end
-
-		if Record > GAMEMODE.KickbanPunishmentThreshold then
-			playa:KickForTeamKilling()
-		end
+		if playa.Innocent and (Record > self.BonusForgiveness) then playa:AddToShitList(-self.BonusForgiveness) end
+		if Record > GAMEMODE.KickbanPunishmentThreshold then playa:KickForTeamKilling() end
 	end
 end
 
@@ -565,6 +504,18 @@ function GM:StartNewRound()
 	self.ISLAM_MODE_ENGAGED = false
 	self.DEATHMATCH_MODE_ENGAGED = false
 	self.ZOMBIE_MODE_ENGAGED = false
+	if ForceZombi then
+		self.DEATHMATCH_MODE_ENGAGED = false
+		self.ZOMBIE_MODE_ENGAGED = true
+	elseif ForceDM then
+		self.DEATHMATCH_MODE_ENGAGED = true
+		self.ZOMBIE_MODE_ENGAGED = false
+	elseif ForceStandard then
+		self.SHTF_MODE_ENGAGED = false
+		self.ZOMBIE_MODE_ENGAGED = false
+		self.DEATHMATCH_MODE_ENGAGED = false
+	end
+
 	if not self.SHTF_MODE_ENGAGED then
 		if math.random(1, 7) == 2 then
 			self.PUSSY_MODE_ENGAGED = true
@@ -587,10 +538,7 @@ function GM:StartNewRound()
 			self.DEATHMATCH_MODE_ENGAGED = true
 		else
 			local Chance = .8
-			if string.find(game.GetMap(), "zs_") then
-				Chance = .4
-			end
-
+			if string.find(game.GetMap(), "zs_") then Chance = .4 end
 			if math.Rand(0, 1) > Chance then
 				if self.EnoughAINodes then
 					self.ZOMBIE_MODE_ENGAGED = true
@@ -604,15 +552,21 @@ function GM:StartNewRound()
 			ForceZombi = false
 			self.DEATHMATCH_MODE_ENGAGED = false
 			self.ZOMBIE_MODE_ENGAGED = true
+		elseif ForceDM then
+			ForceDM = false
+			self.DEATHMATCH_MODE_ENGAGED = true
+			self.ZOMBIE_MODE_ENGAGED = false
+		elseif ForceStandard then
+			ForceStandard = false
+			self.SHTF_MODE_ENGAGED = false
+			self.ZOMBIE_MODE_ENGAGED = false
+			self.DEATHMATCH_MODE_ENGAGED = false
 		end
 	end
 
 	self.ZombiesLeft = #team.GetPlayers(2) * 60
 	self:RoundModeCheck()
-	if not self.RoundNumber then
-		self.RoundNumber = 0
-	end
-
+	if not self.RoundNumber then self.RoundNumber = 0 end
 	self.RoundNumber = self.RoundNumber + 1
 	local players = team.GetPlayers(2)
 	if #players <= 1 then
@@ -620,31 +574,37 @@ function GM:StartNewRound()
 		ct:Add(translate.minimumPlayers, Color(255, 150, 50))
 		ct:SendAll()
 		self:SetRound(0)
-
 		return
 	end
 
 	local ct, DaText = ChatText(), translate.roundStarted
-	if GetConVar("sv_cheats"):GetInt() == 1 then
-		DaText = DaText .. translate.miscTKPenaltiesDisabled
-	end
-
+	if GetConVar("sv_cheats"):GetInt() == 1 then DaText = DaText .. translate.miscTKPenaltiesDisabled end
 	ct:Add(DaText)
 	ct:SendAll()
 	self.HeroPlayer = nil
 	self.VillainPlayer = nil
 	self:SetRound(1)
 	self.RoundUnFreezePlayers = CurTime() + 10
-	for k, ply in pairs(players) do
+	for k, ply in ipairs(players) do
 		ply:UnSpectate()
 	end
 
 	game.CleanUpMap()
 	self:InitPostEntityAndMapCleanup()
 	self:ClearAllFootsteps()
-	for k, ply in pairs(players) do
+	for k, ply in ipairs(players) do
+		if self.ForceNextMurderer and IsValid(self.ForceNextMurderer) and self.ForceNextMurderer:Team() == 2 then
+			self.ForceNextMurderer:SetMurderer(true)
+			self.ForceNextMurderer = nil
+		end
+
 		ply:SetMurderer(false)
-		ply.ArmedAtSpawn = false
+		if self.ForceNextMurderer and IsValid(self.ForceNextMurderer) and self.ForceNextMurderer:Team() == 2 then
+			self.ForceNextMurderer:SetMurderer(true)
+			self.ForceNextMurderer = nil
+		end
+
+		ply:SetGunman(false)
 		ply.HMCD_MarkedForDeath = false
 		ply:KillSilent()
 		ply:Freeze(true)
@@ -662,20 +622,14 @@ function GM:StartNewRound()
 	-- pick the roles
 	local rand = WeightedRandom()
 	local murderer, gunman = rand:Roll()
-	if murderer then
-		murderer:SetMurderer(true)
-	end
-
-	if gunman then
-		gunman.ArmedAtSpawn = true
-	end
-
+	if murderer then murderer:SetMurderer(true) end
+	if gunman then gunman:SetGunman(true) end
 	self.MurdererLastKill = CurTime()
-	for key, playah in pairs(player.GetAll()) do
+	for key, playah in player.Iterator() do
 		playah.StartedRoundAsTeam = playah:Team()
 	end
 
-	local Minutes = math.ceil(2 + (#team.GetPlayers(2) * 1))
+	local Minutes = math.ceil(2 + (#players * 1))
 	if self.PUSSY then
 		Minutes = Minutes / 2
 	elseif self.EPIC then
@@ -688,7 +642,7 @@ function GM:StartNewRound()
 	self.DeathmatchEndTime = CurTime() + (Minutes * 60 * 2)
 	self.PoliceNotified = false
 	self.ForceRoundEndTime = CurTime() + (Minutes * 90)
-	for key, dude in pairs(team.GetPlayers(2)) do
+	for key, dude in ipairs(players) do
 		dude:Spawn()
 		dude:GenerateClothes()
 		dude:GenerateBystanderName()
@@ -697,9 +651,7 @@ function GM:StartNewRound()
 		dude:GenerateAccessories()
 		if not (dude.ArmedAtSpawn or dude.Murderer) then
 			local Record = self.SHITLIST[dude:SteamID()] or 0
-			if Record > self.GodPunishmentThreshold then
-				dude.HMCD_MarkedForDeath = true
-			end
+			if Record > self.GodPunishmentThreshold then dude.HMCD_MarkedForDeath = true end
 		end
 
 		if self.ZOMBIE and dude.Murderer then
@@ -739,37 +691,32 @@ function GM:RoundModeCheck()
 end
 
 function GM:PlayerLeavePlay(ply)
-	if ply:HasWeapon("wep_jack_hmcd_smallpistol") then
-		ply:DropWeapon(ply:GetWeapon("wep_jack_hmcd_smallpistol"))
-	end
-
-	if self.RoundStage == 1 then
-		if ply.Murderer then
-			self:EndTheRound(3, ply)
-		end
-	end
+	if ply:HasWeapon("wep_jack_hmcd_smallpistol") then ply:DropWeapon(ply:GetWeapon("wep_jack_hmcd_smallpistol")) end
+	if self.RoundStage == 1 and ply.Murderer then self:EndTheRound(3, ply) end
 end
 
---[[
-concommand.Add("mu_forcenextmurderer", function (ply, com, args)
-	if !ply:IsAdmin() then return end
+concommand.Add("hmcd_forcenextmurderer", function(ply, com, args)
+	if not ply:IsAdmin() then return end
 	if #args < 1 then return end
-
-	local ent=Entity(tonumber(args[1]) or -1)
-	if !IsValid(ent) || !ent:IsPlayer() then 
+	local ent = Entity(tonumber(args[1]) or -1)
+	if not IsValid(ent) or not ent:IsPlayer() then
 		ply:ChatPrint("not a player")
-		return 
+		return
 	end
 
-	GAMEMODE.ForceNextMurderer=ent
-	local msgs=Translator:AdvVarTranslate(translate.adminMurdererSelect, {
-		player={text=ent:Nick(), color=team.GetColor(2)}
+	GAMEMODE.ForceNextMurderer = ent
+	local msgs = Translator:AdvVarTranslate(translate.adminMurdererSelect, {
+		player = {
+			text = ent:Nick(),
+			color = team.GetColor(2)
+		}
 	})
-	local ct=ChatText()
+
+	local ct = ChatText()
 	ct:AddParts(msgs)
 	ct:Send(ply)
 end)
---]]
+
 function GM:ChangeMap()
 	if #self.MapList > 0 then
 		if MapVote then
@@ -780,7 +727,6 @@ function GM:ChangeMap()
 			end
 
 			MapVote.Start(nil, nil, nil, prefix)
-
 			return
 		end
 
@@ -792,32 +738,19 @@ function GM:RotateMap()
 	local map = game.GetMap()
 	local index
 	for k, map2 in pairs(self.MapList) do
-		if map == map2 then
-			index = k
-		end
+		if map == map2 then index = k end
 	end
 
-	if not index then
-		index = 1
-	end
-
+	if not index then index = 1 end
 	index = index + 1
-	if index > #self.MapList then
-		index = 1
-	end
-
+	if index > #self.MapList then index = 1 end
 	local nextMap = self.MapList[index]
 	print("[Homicide] Rotate changing map to " .. nextMap)
 	local ct = ChatText()
 	ct:Add(Translator:QuickVar(translate.mapChange, "map", nextMap))
 	ct:SendAll()
 	hook.Call("OnChangeMap", GAMEMODE)
-	timer.Simple(
-		5,
-		function()
-			RunConsoleCommand("changelevel", nextMap)
-		end
-	)
+	timer.Simple(5, function() RunConsoleCommand("changelevel", nextMap) end)
 end
 
 GM.MapList = {}
@@ -843,9 +776,7 @@ function GM:LoadMapList()
 	else
 		local tbl = {}
 		for k, map in pairs(defaultMapList) do
-			if file.Exists("maps/" .. map .. ".bsp", "GAME") then
-				table.insert(tbl, map)
-			end
+			if file.Exists("maps/" .. map .. ".bsp", "GAME") then table.insert(tbl, map) end
 		end
 
 		self.MapList = tbl

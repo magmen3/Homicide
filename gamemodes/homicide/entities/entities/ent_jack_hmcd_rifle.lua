@@ -23,10 +23,7 @@ if SERVER then
 
 	function ENT:PickUp(ply)
 		local SWEP = self.SWEP
-		if not self.RoundsInMag then
-			self.RoundsInMag = 5
-		end
-
+		if not self.RoundsInMag then self.RoundsInMag = 5 end
 		if ply:HasWeapon(self.SWEP) then
 			if self.RoundsInMag > 0 then
 				ply:GiveAmmo(self.RoundsInMag, "AR2", true)

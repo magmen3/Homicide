@@ -30,8 +30,7 @@ if SERVER then
 		if self.Armed then return end
 		if self.ContactPoisoned then
 			if ply.Murderer then
-				ply:PrintMessage(HUD_PRINTTALK, translate.poisoned)
-
+				ply:ChatPrint(translate.poisoned)
 				return
 			else
 				self.ContactPoisoned = false
@@ -71,7 +70,6 @@ if SERVER then
 		end
 
 		self:NextThink(CurTime() + .01)
-
 		return true
 	end
 
@@ -89,7 +87,7 @@ if SERVER then
 	function ENT:Detonate()
 		if self.Detonated then return end
 		self.Detonated = true
-		local Pos, Ground, Attacker = self:LocalToWorld(self:OBBCenter()) + Vector(0, 0, 5), self:NearGround(), self.Owner
+		local Pos, Ground, Attacker = self:LocalToWorld(self:OBBCenter()) + Vector(0, 0, 5), self:NearGround(), self:GetOwner()
 		if Ground then
 			ParticleEffect("pcf_jack_groundsplode_small3", Pos, vector_up:Angle())
 		else
@@ -103,110 +101,86 @@ if SERVER then
 		Flash:SetOrigin(Pos)
 		Flash:SetScale(2)
 		util.Effect("eff_jack_hmcd_dlight", Flash, true, true)
-		timer.Simple(
-			.01,
-			function()
-				sound.Play("snd_jack_hmcd_explosion_debris.mp3", Pos, 85, math.random(90, 110))
-				sound.Play("snd_jack_hmcd_explosion_far.wav", Pos - vector_up, 140, 100)
-				sound.Play("snd_jack_hmcd_debris.mp3", Pos + vector_up, 85, math.random(90, 110))
-				for i = 0, 10 do
-					local Tr = util.QuickTrace(Pos, VectorRand() * math.random(10, 150), {self})
-					if Tr.Hit then
-						util.Decal("Scorch", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal)
+		timer.Simple(.01, function()
+			sound.Play("snd_jack_hmcd_explosion_debris.mp3", Pos, 85, math.random(90, 110))
+			sound.Play("snd_jack_hmcd_explosion_far.wav", Pos - vector_up, 140, 100)
+			sound.Play("snd_jack_hmcd_debris.mp3", Pos + vector_up, 85, math.random(90, 110))
+			for i = 0, 10 do
+				local Tr = util.QuickTrace(Pos, VectorRand() * math.random(10, 150), {self})
+				if Tr.Hit then util.Decal("Scorch", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal) end
+			end
+		end)
+
+		timer.Simple(.02, function()
+			sound.Play("snd_jack_hmcd_explosion_close.wav", Pos, 80, 100)
+			sound.Play("snd_jack_hmcd_explosion_close.wav", Pos + vector_up, 80, 100)
+			sound.Play("snd_jack_hmcd_explosion_close.wav", Pos - vector_up, 80, 100)
+		end)
+
+		timer.Simple(.03, function()
+			local Poof = EffectData()
+			Poof:SetOrigin(Pos)
+			Poof:SetScale(1)
+			util.Effect("eff_jack_hmcd_shrapnel", Poof, true, true)
+		end)
+
+		timer.Simple(.04, function()
+			local shake = ents.Create("env_shake")
+			shake.HmcdSpawned = self.HmcdSpawned
+			shake:SetPos(Pos)
+			shake:SetKeyValue("amplitude", tostring(100))
+			shake:SetKeyValue("radius", tostring(200))
+			shake:SetKeyValue("duration", tostring(1))
+			shake:SetKeyValue("frequency", tostring(200))
+			shake:SetKeyValue("spawnflags", bit.bor(4, 8, 16))
+			shake:Spawn()
+			shake:Activate()
+			shake:Fire("StartShake", "", 0)
+			SafeRemoveEntityDelayed(shake, 2) -- don't clutter up the world
+			local shake2 = ents.Create("env_shake")
+			shake2.HmcdSpawned = self.HmcdSpawned
+			shake2:SetPos(Pos)
+			shake2:SetKeyValue("amplitude", tostring(100))
+			shake2:SetKeyValue("radius", tostring(400))
+			shake2:SetKeyValue("duration", tostring(1))
+			shake2:SetKeyValue("frequency", tostring(200))
+			shake2:SetKeyValue("spawnflags", bit.bor(4))
+			shake2:Spawn()
+			shake2:Activate()
+			shake2:Fire("StartShake", "", 0)
+			SafeRemoveEntityDelayed(shake2, 2) -- don't clutter up the world
+			util.BlastDamage(self, Attacker, Pos, 100, 50)
+		end)
+
+		timer.Simple(.05, function()
+			local Shrap = DamageInfo()
+			Shrap:SetAttacker(Attacker)
+			if IsValid(self) then
+				Shrap:SetInflictor(self)
+			else
+				Shrap:SetInflictor(game.GetWorld())
+			end
+
+			Shrap:SetDamageType(DMG_BUCKSHOT)
+			Shrap:SetDamage(75)
+			util.BlastDamageInfo(Shrap, Pos, 600)
+			SafeRemoveEntity(self)
+		end)
+
+		timer.Simple(.1, function()
+			for key, rag in pairs(ents.FindInSphere(Pos, 750)) do
+				if (rag:GetClass() == "prop_ragdoll") or rag:IsPlayer() then
+					for i = 1, 20 do
+						local Tr = util.TraceLine({
+							start = Pos,
+							endpos = rag:GetPos() + VectorRand() * 50
+						})
+
+						if Tr.Hit and (Tr.Entity == rag) then util.Decal("Blood", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal) end
 					end
 				end
 			end
-		)
-
-		timer.Simple(
-			.02,
-			function()
-				sound.Play("snd_jack_hmcd_explosion_close.wav", Pos, 80, 100)
-				sound.Play("snd_jack_hmcd_explosion_close.wav", Pos + vector_up, 80, 100)
-				sound.Play("snd_jack_hmcd_explosion_close.wav", Pos - vector_up, 80, 100)
-			end
-		)
-
-		timer.Simple(
-			.03,
-			function()
-				local Poof = EffectData()
-				Poof:SetOrigin(Pos)
-				Poof:SetScale(1)
-				util.Effect("eff_jack_hmcd_shrapnel", Poof, true, true)
-			end
-		)
-
-		timer.Simple(
-			.04,
-			function()
-				local shake = ents.Create("env_shake")
-				shake.HmcdSpawned = self.HmcdSpawned
-				shake:SetPos(Pos)
-				shake:SetKeyValue("amplitude", tostring(100))
-				shake:SetKeyValue("radius", tostring(200))
-				shake:SetKeyValue("duration", tostring(1))
-				shake:SetKeyValue("frequency", tostring(200))
-				shake:SetKeyValue("spawnflags", bit.bor(4, 8, 16))
-				shake:Spawn()
-				shake:Activate()
-				shake:Fire("StartShake", "", 0)
-				SafeRemoveEntityDelayed(shake, 2) -- don't clutter up the world
-				local shake2 = ents.Create("env_shake")
-				shake2.HmcdSpawned = self.HmcdSpawned
-				shake2:SetPos(Pos)
-				shake2:SetKeyValue("amplitude", tostring(100))
-				shake2:SetKeyValue("radius", tostring(400))
-				shake2:SetKeyValue("duration", tostring(1))
-				shake2:SetKeyValue("frequency", tostring(200))
-				shake2:SetKeyValue("spawnflags", bit.bor(4))
-				shake2:Spawn()
-				shake2:Activate()
-				shake2:Fire("StartShake", "", 0)
-				SafeRemoveEntityDelayed(shake2, 2) -- don't clutter up the world
-				util.BlastDamage(self, Attacker, Pos, 100, 50)
-			end
-		)
-
-		timer.Simple(
-			.05,
-			function()
-				local Shrap = DamageInfo()
-				Shrap:SetAttacker(Attacker)
-				if IsValid(self) then
-					Shrap:SetInflictor(self)
-				else
-					Shrap:SetInflictor(game.GetWorld())
-				end
-
-				Shrap:SetDamageType(DMG_BUCKSHOT)
-				Shrap:SetDamage(75)
-				util.BlastDamageInfo(Shrap, Pos, 600)
-				SafeRemoveEntity(self)
-			end
-		)
-
-		timer.Simple(
-			.1,
-			function()
-				for key, rag in pairs(ents.FindInSphere(Pos, 750)) do
-					if (rag:GetClass() == "prop_ragdoll") or rag:IsPlayer() then
-						for i = 1, 20 do
-							local Tr = util.TraceLine(
-								{
-									start = Pos,
-									endpos = rag:GetPos() + VectorRand() * 50
-								}
-							)
-
-							if Tr.Hit and (Tr.Entity == rag) then
-								util.Decal("Blood", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal)
-							end
-						end
-					end
-				end
-			end
-		)
+		end)
 	end
 
 	function ENT:PhysicsCollide(data, physobj)
