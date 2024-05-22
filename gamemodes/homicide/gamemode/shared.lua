@@ -471,5 +471,9 @@ function GM:DoAnimationEvent(pl, event, data)
 end
 
 function GM:CanPlayerEnterVehicle(ply, veh, role)
-	if self.ZOMBIE and ply.Murderer then return false end
+	if self.ZOMBIE and ply.Murderer then
+		return false
+	else
+		return --!! true или nil
+	end
 end

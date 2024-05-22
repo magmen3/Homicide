@@ -1,7 +1,6 @@
 util.AddNetworkString("SetRound")
 util.AddNetworkString("DeclareWinner")
 util.AddNetworkString("hmcd_mode")
---util.AddNetworkString("Polizei")
 local ForceZombi, ForceJihad, ForceDM, ForceStandard = false, false, false, false
 concommand.Add("homicide_forcejihad", function(ply, cmd, args)
 	if IsValid(ply) and not ply:IsSuperAdmin() then return end
@@ -23,7 +22,7 @@ end)
 
 concommand.Add("homicide_forcestandard", function(ply, cmd, args)
 	if IsValid(ply) and not ply:IsSuperAdmin() then return end
-	ForceDM = true
+	ForceStandard = true
 	print("standard forced for next round")
 end)
 
