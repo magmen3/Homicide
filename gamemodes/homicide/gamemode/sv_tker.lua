@@ -29,7 +29,7 @@ function PlayerMeta:KickForTeamKilling()
 	local Pos = self:GetShootPos()
 	local SteamID, Name = self:SteamID(), self:Nick()
 	if not self:IsListenServerHost() then
-		for key, wep in pairs(self:GetWeapons()) do
+		for key, wep in ipairs(self:GetWeapons()) do
 			if wep.DeathDroppable then self:DropWeapon(wep) end
 		end
 

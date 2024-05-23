@@ -152,17 +152,13 @@ function GM:PlayerSpawn(ply)
 		end)
 	end
 
-	-- fuck you garry
 	timer.Simple(1, function()
-		-- fuck you robot boy
 		if IsValid(ply) and ply:Alive() then
-			umsg.Start("HMCD_FixViewModelGlitch", ply) -- fuck all of you
-			umsg.End() -- why do i have to do this
+			umsg.Start("HMCD_FixViewModelGlitch", ply)
+			umsg.End()
 		end
 	end)
 
-	-- this is so fucking hacky
-	-- you pricks, just make your game work properly
 	timer.Simple(10, function()
 		if ply and IsValid(ply) and ply:Alive() and ply.Murderer then
 			local mins = math.ceil((self.PoliceTime - CurTime()) / 60)
@@ -242,7 +238,7 @@ function GM:PlayerLoadout(ply)
 					ply:Give("wep_jack_hmcd_adrenaline")
 					ply:Give("wep_jack_hmcd_suppressed")
 					ply:Give("wep_jack_hmcd_walkietalkie")
-					ply:Give("wep_jack_hmcd_oldgrenade")
+					ply:Give("wep_jack_hmcd_oldgrenade_dm") --!! wep_jack_hmcd_oldgrenade
 					ply:Give("wep_jack_hmcd_poisoncanister")
 					ply:Give("wep_jack_hmcd_poisonliquid")
 					ply:Give("wep_jack_hmcd_mask")
@@ -302,7 +298,7 @@ function GM:PlayerLoadout(ply)
 		end
 	end
 
-	for key, wep in pairs(ply:GetWeapons()) do
+	for key, wep in ipairs(ply:GetWeapons()) do
 		if wep.HomicideSWEP then wep.HmcdSpawned = true end
 	end
 
@@ -321,7 +317,6 @@ function GM:PlayerSetModel(ply)
 			clothes = ""
 		}
 	elseif ply.CustomModel then
-		-- WOW FAGGOT
 		for key, maudhayle in pairs(HMCD_PlayerModelInfoTable) do
 			if maudhayle.model == ply.CustomModel then
 				playerModel = maudhayle
@@ -371,7 +366,7 @@ function GM:DoPlayerDeath(ply, attacker, dmginfo)
 		end
 	end
 
-	for k, weapon in pairs(ply:GetWeapons()) do
+	for k, weapon in ipairs(ply:GetWeapons()) do
 		if weapon.DeathDroppable then ply:DropWeapon(weapon) end
 	end
 
@@ -507,7 +502,7 @@ function plyMeta:CalculateSpeed()
 	if self.NextWeightCalcTime < Time then
 		self.NextWeightCalcTime = Time + 1
 		local Weight = 0
-		for key, wep in pairs(self:GetWeapons()) do
+		for key, wep in ipairs(self:GetWeapons()) do
 			if wep.CarryWeight then Weight = Weight + wep.CarryWeight end
 		end
 
@@ -705,17 +700,15 @@ function GM:PlayerDeath(ply, Inflictor, attacker)
 		self.MurdererLastKill = CurTime()
 		local murderer
 		local players = team.GetPlayers(2)
-		for k, v in pairs(players) do
+		for k, v in ipairs(players) do
 			if v.Murderer then murderer = v end
 		end
 
-		if IsValid(attacker) and attacker:IsPlayer() then
-			if attacker.Murderer then
-			elseif attacker ~= ply then
-				-- self:SendMessageAll("The murderer has struck again")
-				local col, msgs, col2 = attacker:GetPlayerColor(), nil, ply:GetPlayerColor()
-				if ply.Innocent then
-					if self.SHTF then
+		if IsValid(attacker) and attacker:IsPlayer() and attacker ~= ply then
+			-- self:SendMessageAll("The murderer has struck again")
+			local col, msgs, col2 = attacker:GetPlayerColor(), nil, ply:GetPlayerColor()
+			if ply.Innocent then --!!
+				--[[if self.SHTF then
 						msgs = Translator:AdvVarTranslate(translate.killedTeamKillInnocent, {
 							player = {
 								text = attacker:GetBystanderName(),
@@ -735,19 +728,19 @@ function GM:PlayerDeath(ply, Inflictor, attacker)
 								text = s
 							}
 						})
-					end
-				else
-					msgs = Translator:AdvVarTranslate(translate.killedTeamKillAggressive, {
-						player = {
-							text = attacker:GetBystanderName(),
-							color = Color(col.x * 255, col.y * 255, col.z * 255)
-						},
-						s = {
-							text = s
-						}
-					})
-				end
+					end]]
+			elseif not attacker.Murderer then
+				msgs = Translator:AdvVarTranslate(translate.killedTeamKillAggressive, {
+					player = {
+						text = attacker:GetBystanderName(),
+						color = Color(col.x * 255, col.y * 255, col.z * 255)
+					},
+					s = {
+						text = s
+					}
+				})
 
+				--end
 				if self.DEATHMATCH then
 					msgs = Translator:AdvVarTranslate(translate.killedDM, {
 						player = {

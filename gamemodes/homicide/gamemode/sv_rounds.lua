@@ -114,7 +114,7 @@ function GM:RoundThink()
 
 		if #players > 2 then
 			for key, playa in pairs(players) do
-				--if playa:IsBot() and playa.AutoSpawnedBot then playa:Kick() end
+				if playa:IsBot() and playa.AutoSpawnedBot then playa:Kick() end
 			end
 		end
 
@@ -503,18 +503,6 @@ function GM:StartNewRound()
 	self.ISLAM_MODE_ENGAGED = false
 	self.DEATHMATCH_MODE_ENGAGED = false
 	self.ZOMBIE_MODE_ENGAGED = false
-	if ForceZombi then
-		self.DEATHMATCH_MODE_ENGAGED = false
-		self.ZOMBIE_MODE_ENGAGED = true
-	elseif ForceDM then
-		self.DEATHMATCH_MODE_ENGAGED = true
-		self.ZOMBIE_MODE_ENGAGED = false
-	elseif ForceStandard then
-		self.SHTF_MODE_ENGAGED = false
-		self.ZOMBIE_MODE_ENGAGED = false
-		self.DEATHMATCH_MODE_ENGAGED = false
-	end
-
 	if not self.SHTF_MODE_ENGAGED then
 		if math.random(1, 7) == 2 then
 			self.PUSSY_MODE_ENGAGED = true
@@ -553,6 +541,7 @@ function GM:StartNewRound()
 			self.ZOMBIE_MODE_ENGAGED = true
 		elseif ForceDM then
 			ForceDM = false
+			self.SHTF_MODE_ENGAGED = false
 			self.DEATHMATCH_MODE_ENGAGED = true
 			self.ZOMBIE_MODE_ENGAGED = false
 		elseif ForceStandard then
@@ -637,7 +626,7 @@ function GM:StartNewRound()
 		Minutes = Minutes * 2
 	end
 
-	self.PoliceTime = CurTime() + (Minutes * 60)
+	self.PoliceTime = CurTime() + (Minutes * 80)
 	self.DeathmatchEndTime = CurTime() + (Minutes * 60 * 2)
 	self.PoliceNotified = false
 	self.ForceRoundEndTime = CurTime() + (Minutes * 90)

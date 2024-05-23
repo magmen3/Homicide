@@ -90,20 +90,27 @@ local function SpecSHTF(ply, cmd, args)
 		return
 	end
 
-	if args[1] >= "1" then
+	if args[1] == "1" then
 		GAMEMODE.SHTF_MODE_ENGAGED = true
 		GAMEMODE.PUSSY_MODE_ENGAGED = false
 		GAMEMODE.EPIC_MODE_ENGAGED = false
 		GAMEMODE.ISLAM_MODE_ENGAGED = false
-	elseif args[1] <= "0" then
+	elseif args[1] == "0" then
 		GAMEMODE.SHTF_MODE_ENGAGED = false
 		GAMEMODE.DEATHMATCH_MODE_ENGAGED = false
 		GAMEMODE.ZOMBIE_MODE_ENGAGED = false
+	elseif args[1] == "2" then
+		GAMEMODE.SHTF_MODE_ENGAGED = false
+		GAMEMODE.DEATHMATCH_MODE_ENGAGED = true
+		GAMEMODE.ZOMBIE_MODE_ENGAGED = false
+	elseif args[1] == "3" then
+		GAMEMODE.SHTF_MODE_ENGAGED = true
+		GAMEMODE.DEATHMATCH_MODE_ENGAGED = false
+		GAMEMODE.ZOMBIE_MODE_ENGAGED = true
 	end
 
 	GAMEMODE.SHTF_Specified = true
 	print("SHTF mode specified as " .. tostring(GAMEMODE.SHTF_MODE_ENGAGED))
-	ply:ChatPrint("SHTF mode specified as " .. tostring(GAMEMODE.SHTF_MODE_ENGAGED))
 end
 
 concommand.Add("homicide_setmode", SpecSHTF)
@@ -802,7 +809,7 @@ function GM:Think()
 		end
 
 		if (ply:Team() == 2) and ply:Alive() and self.DEATHMATCH then if self.RoundTime + 20 > CurTime() then if (self.RoundTime + 20 - CurTime()) < 10 then ply:PrintMessage(HUD_PRINTCENTER, translate.battleStartsIn .. tostring(math.Round(self.RoundTime + 20 - CurTime()))) end end end
-		for key, wep in pairs(ply:GetWeapons()) do
+		for key, wep in ipairs(ply:GetWeapons()) do
 			if wep.NoHolster and not (ActiveWep == wep) and not ActiveWep.NoHolsterForce then ply:DropWeapon(wep) end
 		end
 

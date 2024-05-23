@@ -419,6 +419,11 @@ function GM:CreateFirstVictim()
 	ply:GenerateBody()
 	ply:GenerateColor()
 	ply:GenerateAccessories()
+	ply:SetCollisionGroup(COLLISION_GROUP_WEAPON)
+	ply:SetNWString("KilledWith", math.random(1, 4) == 2 and translate.weaponKnife or translate.weaponAxe)
+	ply:SetNWInt("KillDistance", rag:GetPos():Distance(VectorRand(-2, 2)) * 0.0254)
+	ply:SetNWString("LastWeapon", translate.bodysearchNothing)
+	rag:SetNWInt("LastHitGroup", math.random(0, 7))
 	for i = 0, 50 do
 		local Ph = ply:GetPhysicsObjectNum(i)
 		if Ph then

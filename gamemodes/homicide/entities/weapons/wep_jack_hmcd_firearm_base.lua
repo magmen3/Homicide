@@ -100,7 +100,7 @@ SWEP.Spread = 0
 SWEP.NumProjectiles = 1
 SWEP.ShotPitch = 100
 SWEP.VReloadTime = 0
-SWEP.HipFireInaccuracy = .175
+SWEP.HipFireInaccuracy = .18
 SWEP.CycleType = "auto"
 SWEP.ReloadType = "magazine"
 SWEP.LastFire = 0
@@ -417,7 +417,7 @@ function SWEP:EnforceHolsterRules(newWep)
 		return
 	end
 
-	for key, wep in pairs(self:GetOwner():GetWeapons()) do
+	for key, wep in ipairs(self:GetOwner():GetWeapons()) do
 		-- conflict
 		if wep.HolsterSlot and self.HolsterSlot and (wep.HolsterSlot == self.HolsterSlot) and not (wep == self) then self:GetOwner():DropWeapon(wep) end
 	end

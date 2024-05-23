@@ -167,7 +167,7 @@ function GM:DrawStartRoundInformation()
 	end
 
 	local hasMagnum = false
-	for k, wep in pairs(client:GetWeapons()) do
+	for k, wep in ipairs(client:GetWeapons()) do
 		local Class = wep:GetClass()
 		if (Class == "wep_jack_hmcd_smallpistol") or (Class == "wep_jack_hmcd_shotgun") or (Class == "wep_jack_hmcd_rifle") then
 			hasMagnum = true

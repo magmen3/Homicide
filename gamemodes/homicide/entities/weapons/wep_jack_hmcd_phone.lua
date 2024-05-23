@@ -92,7 +92,7 @@ function SWEP:PrimaryAttack()
 				else
 					local Until = GAMEMODE.PoliceTime - CurTime()
 					if Until > 0 then
-						DatTime = Until / 2
+						DatTime = Until / 3
 						GAMEMODE.PoliceTime = CurTime() + DatTime
 					end
 				end

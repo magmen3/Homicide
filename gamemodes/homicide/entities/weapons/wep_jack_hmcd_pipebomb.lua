@@ -46,8 +46,6 @@ SWEP.HomicideSWEP = true
 SWEP.CommandDroppable = true
 SWEP.ENT = "ent_jack_hmcd_pipebomb"
 SWEP.CarryWeight = 1200
---models/w_models/weapons/w_eq_pipebomb.mdl
---models/w_models/weapons/w_eq_painpills.mdl
 function SWEP:Initialize()
 	self:SetHoldType("grenade")
 	self.Thrown = false

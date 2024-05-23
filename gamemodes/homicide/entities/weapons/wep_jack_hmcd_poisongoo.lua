@@ -179,10 +179,8 @@ if CLIENT then
 	function SWEP:ViewModelDrawn()
 	end
 
-	--
 	function SWEP:OpenMenu()
 		local ply, weps = self:GetOwner(), self:GetOwner():GetWeapons()
-		--
 	end
 elseif SERVER then
 	local function Poison(ply, cmd, args)

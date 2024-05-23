@@ -151,7 +151,7 @@ function SWEP:EnforceHolsterRules(newWep)
 		return
 	end
 
-	for key, wep in pairs(self:GetOwner():GetWeapons()) do
+	for key, wep in ipairs(self:GetOwner():GetWeapons()) do
 		-- conflict
 		if wep.HolsterSlot and self.HolsterSlot and (wep.HolsterSlot == self.HolsterSlot) and not (wep == self) then self:GetOwner():DropWeapon(wep) end
 	end
