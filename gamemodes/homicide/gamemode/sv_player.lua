@@ -1757,3 +1757,11 @@ end
 function PlayerMeta:GetAwardStats()
 	return tonumber(self:GetPData("JackHMCD_TotalMerit")) or 0, tonumber(self:GetPData("JackHMCD_TotalDemerit")) or 1, tonumber(self:GetPData("JackHMCD_TotalExperience")) or 0
 end
+
+function GM:MouthMoveAnimation(ply)
+	local flexes = {ply:GetFlexIDByName("jaw_drop"), ply:GetFlexIDByName("left_part"), ply:GetFlexIDByName("right_part"), ply:GetFlexIDByName("left_mouth_drop"), ply:GetFlexIDByName("right_mouth_drop")}
+	local weight = ply:IsSpeaking() and math.Clamp(ply:VoiceVolume() * 8, 0, 8) or 0
+	for k, v in ipairs(flexes) do
+		ply:SetFlexWeight(v, weight)
+	end
+end

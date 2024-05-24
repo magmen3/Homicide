@@ -75,6 +75,25 @@ function GM:DoScoreboardActionPopup(ply)
 		function mute:DoClick()
 			if IsValid(ply) then ply:SetMuted(not ply:IsMuted()) end
 		end
+
+		--------------------------
+		local volume = actions:AddOption("Volume")
+		volume:SetIcon("icon16/sound.png")
+		function volume:DoClick()
+			local DermaPanel = vgui.Create("DFrame") -- Create a panel to parent it to
+			DermaPanel:SetSize(500, 200) -- Set the size
+			DermaPanel:Center() -- Center it
+			DermaPanel:MakePopup() -- Make it a popup
+			local DermaNumSlider = vgui.Create("DNumSlider", DermaPanel)
+			DermaNumSlider:SetPos(50, 50) -- Set the position
+			DermaNumSlider:SetSize(300, 100) -- Set the size
+			DermaNumSlider:SetText("Change player volume") -- Set the text above the slider
+			DermaNumSlider:SetMin(0) -- Set the minimum number you can slide to
+			DermaNumSlider:SetMax(1) -- Set the maximum number you can slide to
+			DermaNumSlider:SetDecimals(2) -- Decimal places - zero for whole number
+			-- If not using convars, you can use this hook + Panel.SetValue()
+			DermaNumSlider.OnValueChanged = function(self, value) ply:SetVoiceVolumeScale(value) end
+		end
 	end
 
 	if IsValid(LocalPlayer()) and LocalPlayer():IsAdmin() then
