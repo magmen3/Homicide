@@ -45,7 +45,7 @@ local function SendIdentity(len, ply)
 	if not lply.ConCommand then return end
 	if file.Exists("homicide_identity.txt", "DATA") then
 		local RawData = string.Split(file.Read("homicide_identity.txt", "DATA"), "\n")
-		if #RawData == 10 then
+		if #RawData >= 10 then
 			local DatName, DatAccessory = string.Replace(RawData[1], " ", "_"), string.Replace(RawData[10], " ", "_")
 			lply:ConCommand("homicide_identity " .. DatName .. " " .. RawData[2] .. " " .. RawData[3] .. " " .. RawData[4] .. " " .. RawData[5] .. " " .. RawData[6] .. " " .. RawData[7] .. " " .. RawData[8] .. " " .. RawData[9] .. " " .. DatAccessory)
 		else
@@ -264,7 +264,6 @@ function GM:RenderAccessories(ply)
 		if ply.HelmetModel then
 			local Pos, Ang = ply:GetBonePosition(ply:LookupBone("ValveBiped.Bip01_Head1"))
 			if Pos and Ang then
-				local Dist = 4.5
 				if ply.ModelSex == "male" then Dist = 6 end
 				Pos = Pos + Ang:Forward() * 1 + Ang:Right()
 				ply.HelmetModel:SetRenderOrigin(Pos)
@@ -454,10 +453,8 @@ function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
 		return CamData
 	end
 end
-
-local PUNCH_DAMPING = 9
+--[[local PUNCH_DAMPING = 9
 local PUNCH_SPRING_CONSTANT = 65
-local vp_is_calc = false
 local vp_punch_angle = Angle()
 local vp_punch_angle_velocity = Angle()
 local vp_punch_angle_last = vp_punch_angle
@@ -519,4 +516,4 @@ end
 
 function GetViewPunchVelocity()
 	return vp_punch_angle_velocity
-end
+end]]

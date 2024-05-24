@@ -86,7 +86,7 @@ function SWEP:FindObjects()
 		Tries = 0
 		while not GotOne and (Tries < 100) do
 			local Tr = util.QuickTrace(Pos, Vec * 60 + VectorRand() * 2, {self:GetOwner()})
-			if Tr.Hit and not Tr.HitSky and not table.HasValue(self.UnTapeables, Tr.MatType) and not (Tr.Entity == TrOne.Entity) then
+			if Tr.Hit and not Tr.HitSky and not table.HasValue(self.UnTapeables, Tr.MatType) and (Tr.Entity ~= TrOne.Entity) then
 				GotOne = true
 				TrTwo = Tr
 			end

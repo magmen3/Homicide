@@ -99,7 +99,6 @@ function SWEP:PrimaryAttack()
 		end
 
 		timer.Simple(.05, function()
-			local Own = self:GetOwner()
 			self:SetRigged(false)
 			self:Remove()
 		end)

@@ -225,7 +225,7 @@ if CLIENT then
 		end
 
 		pos = pos + Vec.x * Right + Vec.y * Forward + Vec.z * Up
-		if self:GetOwner():KeyDown(IN_DUCK) then
+		if self:GetOwner():Crouching() then
 			Crouched = math.Clamp(Crouched + .01, 0, 1)
 		else
 			Crouched = math.Clamp(Crouched - .01, 0, 1)

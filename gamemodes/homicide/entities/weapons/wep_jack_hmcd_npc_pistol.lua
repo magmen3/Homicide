@@ -125,8 +125,6 @@ function SWEP:Think()
 			self:GotHurt()
 		end
 
-		local BG = self:BadGuy()
-		local SelfPos = self:GetOwner():GetPos()
 		local Act = self:GetOwner():GetActivity()
 		if Act == ACT_IDLE then
 			if math.random(1, 25) == 4 then
@@ -190,8 +188,6 @@ end
 function SWEP:Fiah()
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	local SelfPos = self:GetOwner():GetPos()
-	local PosAng = self:GetAttachment(self:LookupAttachment("muzzle")) --fuck this
-	local AimVec = self:GetOwner():GetAimVector()
 	local ShootPos = self:GetOwner():GetShootPos()
 	local Enem = self:GetOwner():GetEnemy()
 	local EnemPos = Enem:BodyTarget(ShootPos)

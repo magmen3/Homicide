@@ -167,11 +167,6 @@ end
 
 -- I do all this, bitch
 if CLIENT then
-	local DownAmt = 0
-	function SWEP:GetViewModelPosition(pos, ang)
-	end
-
-	--
 	function SWEP:DrawWorldModel()
 		if GAMEMODE:ShouldDrawWeaponWorldModel(self) then self:DrawModel() end
 	end

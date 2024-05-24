@@ -60,11 +60,9 @@ function SWEP:PrimaryAttack()
 	self:SetNextPrimaryFire(CurTime() + 1)
 	if not IsFirstTimePredicted() then return end
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
-	if CLIENT then
-		if self.LastMenuOpen + 1 < CurTime() then
-			self.LastMenuOpen = CurTime()
-			self:OpenTheMenu()
-		end
+	if CLIENT and self.LastMenuOpen + 1 < CurTime() then
+		self.LastMenuOpen = CurTime()
+		self:OpenTheMenu()
 	end
 end
 
@@ -177,10 +175,6 @@ if CLIENT then
 	end
 
 	function SWEP:ViewModelDrawn()
-	end
-
-	function SWEP:OpenMenu()
-		local ply, weps = self:GetOwner(), self:GetOwner():GetWeapons()
 	end
 elseif SERVER then
 	local function Poison(ply, cmd, args)

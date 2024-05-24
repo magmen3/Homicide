@@ -14,7 +14,7 @@ else
 	SWEP.BounceWeaponIcon = false
 	local HandTex, ClosedTex = surface.GetTextureID("vgui/hud/hmcd_hand"), surface.GetTextureID("vgui/hud/hmcd_closedhand")
 	function SWEP:DrawHUD()
-		if not (GetViewEntity() == LocalPlayer()) then return end
+		if GetViewEntity() ~= LocalPlayer() then return end
 		if not self:GetFists() then
 			local Tr = util.QuickTrace(self:GetOwner():GetShootPos(), self:GetOwner():GetAimVector() * self.ReachDistance, {self:GetOwner()})
 			if Tr.Hit then
@@ -163,7 +163,6 @@ function SWEP:ApplyForce()
 		if self.CarryEnt:GetClass() == "prop_ragdoll" then mul = mul * 2 end
 		vec:Normalize()
 		local avec, velo = vec * len, phys:GetVelocity() - self:GetOwner():GetVelocity()
-		local CounterDir, CounterAmt = velo:GetNormalized(), velo:Length()
 		if self.CarryPos then
 			phys:ApplyForceOffset((avec - velo / 2) * mul, self.CarryEnt:LocalToWorld(self.CarryPos))
 		else
@@ -191,7 +190,7 @@ function SWEP:SetCarrying(ent, bone, pos, dist)
 		self.CarryEnt = ent
 		self.CarryBone = bone
 		self.CarryDist = dist
-		if not (ent:GetClass() == "prop_ragdoll") then
+		if ent:GetClass() ~= "prop_ragdoll" then
 			self.CarryPos = ent:WorldToLocal(pos)
 		else
 			self.CarryPos = nil

@@ -140,7 +140,7 @@ end
 function SWEP:SecondaryAttack()
 	if self:GetOwner():IsSprinting() then return end
 	if SERVER then
-		if not (self:GetOwner():GetAmmoCount(self.Primary.Ammo) > 0) then
+		if self:GetOwner():GetAmmoCount(self.Primary.Ammo) <= 0 then
 			net.Start("HMCD_AmmoShow")
 			net.Send(self:GetOwner())
 			net.Broadcast()
@@ -173,7 +173,7 @@ function SWEP:SecondaryAttack()
 							self:GetOwner():PrintMessage(HUD_PRINTCENTER, translate.weaponHammerNailsNeeded)
 						end
 					else
-						local Strength = HMCD_BindObjects(Tr.Entity, Tr.HitPos, NewEnt, NewTr.HitPos, 1.5)
+						local Strength = HMCD_BindObjects(Tr.Entity, Tr.HitPos, NewEnt, NewTr.HitPos, 4)
 						self:TakePrimaryAmmo(1)
 						sound.Play("snd_jack_hmcd_hammerhit.wav", Tr.HitPos, 65, math.random(90, 110))
 						util.Decal("hmcd_jackanail", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal)
@@ -251,7 +251,6 @@ if CLIENT then
 	function SWEP:PreDrawViewModel(vm, ply, wep)
 	end
 
-	--
 	function SWEP:GetViewModelPosition(pos, ang)
 		if not self.DownAmt then self.DownAmt = 0 end
 		if self:GetOwner():IsSprinting() then

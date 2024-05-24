@@ -91,7 +91,6 @@ function SWEP:AttackFront()
 	if CLIENT then return end
 	self:GetOwner():LagCompensation(true)
 	local Ent, HitPos, HitNorm = HMCD_WhomILookinAt(self:GetOwner(), .2, 65)
-	local AimVec, Mul = self:GetOwner():GetAimVector(), 1
 	if IsValid(Ent) and (Ent.IsLoot or (Ent:GetClass() == "prop_physics") or (Ent:GetClass() == "prop_physics_mutiplayer")) then
 		sound.Play("snd_jack_hmcd_needleprick.wav", self:GetOwner():GetShootPos(), 45, math.random(90, 110))
 		sound.Play("snd_jack_hmcd_needleprick.wav", HitPos, 40, math.random(90, 110))

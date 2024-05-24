@@ -36,7 +36,7 @@ if SERVER then
 		local Part = ents.Create("ent_jack_hmcd_gasparticle")
 		Part:SetPos(SelfPos)
 		Part.HmcdSpawned = self.HmcdSpawned
-		Part:GetOwner(self:GetOwner())
+		Part:SetOwner(self:GetOwner())
 		Part:Spawn()
 		Part:Activate()
 		Part:GetPhysicsObject():SetVelocity(self:GetPhysicsObject():GetVelocity())

@@ -79,7 +79,6 @@ if SERVER then
 				edata:SetNormal(vector_up)
 				edata:SetEntity(ply)
 				util.Effect("BloodImpact", edata, true, true)
-				local pos = ply:GetPos() + Vector(00, 0, 40)
 				local ang = ply:GetAngles() * 1
 				addangle(ang, Angle(-60, 0, 0))
 			end

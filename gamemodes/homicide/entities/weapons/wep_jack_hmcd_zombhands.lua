@@ -234,9 +234,7 @@ end
 function SWEP:DrawWorldModel()
 end
 
--- no, do nothing
 function SWEP:DirectZombies(pos, zombs)
-	local SelfPos = self:GetOwner():GetShootPos()
 	for key, npc in pairs(zombs) do
 		local NPCPos = npc:GetPos()
 		local Vec = (pos - NPCPos):GetNormalized()

@@ -149,8 +149,7 @@ function SWEP:Think()
 	if self.NextThinkTime <= Time then
 		self.NextThinkTime = Time + .025
 		local State = self:GetCurrentState()
-		if not (State == "Nothing") then
-			local Sprintin = self:GetOwner():IsSprinting()
+		if State ~= "Nothing" then
 			local HiddenAmt = self:GetHidden()
 			local BackAmt = self:GetBack()
 			if State == "Idling" then
@@ -382,7 +381,7 @@ if CLIENT then
 
 	local TheMat = Material("cable/rope")
 	function SWEP:DrawWorldModel()
-		if not (self:GetCurrentState() == "Nothing") then
+		if self:GetCurrentState() ~= "Nothing" then
 			local Pos, Ang = self:GetOwner():GetBonePosition(self:GetOwner():LookupBone("ValveBiped.Bip01_R_Hand"))
 			if self.DatWorldModel then
 				if Pos and Ang and GAMEMODE:ShouldDrawWeaponWorldModel(self) then

@@ -20,10 +20,8 @@ function EFFECT:Init(data)
 	local Pos = self.Position
 	self.smokeparticles = {}
 	self.Emitter = ParticleEmitter(Pos)
-	local spawnpos = Pos
 	local Scayul = data:GetScale()
 	self.Scayul = Scayul
-	local AddVel = Vector(0, 0, 0)
 	for k = 0, 100 * Scayul do
 		local sprite
 		local chance = math.random(1, 3)

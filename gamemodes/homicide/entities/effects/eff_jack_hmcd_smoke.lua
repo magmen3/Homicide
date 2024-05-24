@@ -7,10 +7,8 @@ function EFFECT:Init(data)
 	self.WindFactor = data:GetStart()
 	local Pos = self.Position
 	self.Emitter = ParticleEmitter(Pos, false)
-	local spawnpos = Pos
 	local Scayul = data:GetScale()
 	self.Scayul = Scayul
-	local AddVel = Vector(0, 0, 0)
 	for k = 1, 13 * Scayul do
 		local sprite, chance = "", math.random(2, 3)
 		if chance == 1 then

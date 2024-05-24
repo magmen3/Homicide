@@ -141,6 +141,7 @@ function SWEP:BulletCallback(att, tr, dmg)
 end
 
 function SWEP:PrimaryAttack()
+	local owner = self:GetOwner()
 	self.ReloadInterrupted = true
 	if not self:GetReady() then return end
 	if self:GetSprinting() > 10 then return end
@@ -154,63 +155,64 @@ function SWEP:PrimaryAttack()
 	end
 
 	self.LastFire = CurTime()
-	if not (self:Clip1() > 0) then
+	if self:Clip1() <= 0 then
+		if self.Primary.Automatic then self:SetNextPrimaryFire(CurTime() + 0.8) end
 		self:EmitSound("snd_jack_hmcd_click.wav", 55, 100)
 		if SERVER then
 			net.Start("HMCD_AmmoShow")
-			net.Send(self:GetOwner())
+			net.Send(owner)
 			net.Broadcast()
 		end
 		return
 	end
 
 	local WaterMul = 1
-	if self:GetOwner():WaterLevel() >= 3 then WaterMul = .5 end
+	if owner:WaterLevel() >= 3 then WaterMul = .5 end
 	local dmgAmt, InAcc = self.Damage * math.Rand(.9, 1.1) * WaterMul, 1 - self.Accuracy
-	if not (self:GetAiming() > 99) then InAcc = InAcc + self.HipFireInaccuracy end
-	local BulletTraj = (self:GetOwner():GetAimVector() + VectorRand() * InAcc):GetNormalized()
+	if self:GetAiming() <= 95 then InAcc = InAcc + self.HipFireInaccuracy end
+	local BulletTraj = (owner:GetAimVector() + VectorRand() * InAcc):GetNormalized()
 	local bullet = {}
 	bullet.Num = self.NumProjectiles
-	bullet.Src = self:GetOwner():GetShootPos()
+	bullet.Src = owner:GetShootPos()
 	bullet.Dir = BulletTraj
 	bullet.Spread = Vector(self.Spread, self.Spread, 0)
 	bullet.Tracer = 0
 	bullet.Force = dmgAmt / 10
 	bullet.Damage = dmgAmt
 	bullet.Callback = function(ply, tr) ply:GetActiveWeapon():BulletCallbackFunc(dmgAmt, ply, tr, dmg, false, true, false) end
-	self:GetOwner():FireBullets(bullet)
+	owner:FireBullets(bullet)
 	if self.Supersonic then self:BallisticSnap(BulletTraj) end
 	if (self:Clip1() == 1) and self.LastFireAnim then
 		self:DoBFSAnimation(self.LastFireAnim)
 	elseif self:Clip1() > 0 then
 		self:DoBFSAnimation(self.FireAnim)
-		if self.FireAnimRate then self:GetOwner():GetViewModel():SetPlaybackRate(self.FireAnimRate) end
+		if self.FireAnimRate then owner:GetViewModel():SetPlaybackRate(self.FireAnimRate) end
 	end
 
-	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
+	owner:SetAnimation(PLAYER_ATTACK1)
 	local Pitch = self.ShotPitch * math.Rand(.9, 1.1)
 	if SERVER then
 		local Dist = 75
 		if self.Suppressed then Dist = 55 end
 		if self.Primary.Automatic == true then
 			self:EmitSound(self.CloseFireSound, Dist, Pitch, 1, CHAN_AUTO)
-			self:GetOwner():EmitSound(self.CloseFireSound, Dist, Pitch, 1, CHAN_AUTO)
+			owner:EmitSound(self.CloseFireSound, Dist, Pitch, 1, CHAN_AUTO)
 		else
-			sound.Play(self.CloseFireSound, self:GetOwner():GetShootPos() - vector_up, Dist, Pitch)
-			sound.Play(self.CloseFireSound, self:GetOwner():GetShootPos(), Dist, Pitch)
-			sound.Play(self.CloseFireSound, self:GetOwner():GetShootPos(), Dist + 1, Pitch)
+			sound.Play(self.CloseFireSound, owner:GetShootPos() - vector_up, Dist, Pitch)
+			sound.Play(self.CloseFireSound, owner:GetShootPos(), Dist, Pitch)
+			sound.Play(self.CloseFireSound, owner:GetShootPos(), Dist + 1, Pitch)
 		end
 
-		sound.Play(self.FarFireSound, self:GetOwner():GetShootPos() + vector_up, Dist * 2, Pitch)
+		sound.Play(self.FarFireSound, owner:GetShootPos() + vector_up, Dist * 2, Pitch)
 		if self.ExtraFireSound then
 			if self.Primary.Automatic == true then
 				self:EmitSound(self.ExtraFireSound, Dist - 5, Pitch, 1, CHAN_AUTO)
 			else
-				sound.Play(self.ExtraFireSound, self:GetOwner():GetShootPos() + VectorRand(), Dist - 5, Pitch)
+				sound.Play(self.ExtraFireSound, owner:GetShootPos() + VectorRand(), Dist - 5, Pitch)
 			end
 		end
 
-		if self.CycleType == "manual" then timer.Simple(.1, function() if IsValid(self) and IsValid(self:GetOwner()) then self:EmitSound(self.CycleSound, 55, 100) end end) end
+		if self.CycleType == "manual" then timer.Simple(.1, function() if IsValid(self) and IsValid(owner) then self:EmitSound(self.CycleSound, 55, 100) end end) end
 	end
 
 	local Rightness, Upness = 4, 2
@@ -219,48 +221,49 @@ function SWEP:PrimaryAttack()
 		Upness = 0
 	end
 
-	ParticleEffect(self.MuzzleEffect, self:GetOwner():GetShootPos() + self:GetOwner():GetAimVector() * 20 + self:GetOwner():EyeAngles():Right() * Rightness - self:GetOwner():EyeAngles():Up() * Upness, self:GetOwner():EyeAngles(), self)
+	ParticleEffect(self.MuzzleEffect, owner:GetShootPos() + owner:GetAimVector() * 20 + owner:EyeAngles():Right() * Rightness - owner:EyeAngles():Up() * Upness, owner:EyeAngles(), self)
 	self.BarrelMustSmoke = true
 	if SERVER and (self.CycleType == "auto") then
 		local effectdata = EffectData()
-		effectdata:SetOrigin(self:GetOwner():GetShootPos() + self:GetOwner():GetAimVector() * 15 + self:GetOwner():EyeAngles():Right() * Rightness - self:GetOwner():EyeAngles():Up() * Upness)
-		effectdata:SetAngles(self:GetOwner():GetRight():Angle())
-		effectdata:SetEntity(self:GetOwner())
+		effectdata:SetOrigin(owner:GetShootPos() + owner:GetAimVector() * 15 + owner:EyeAngles():Right() * Rightness - owner:EyeAngles():Up() * Upness)
+		effectdata:SetAngles(owner:GetRight():Angle())
+		effectdata:SetEntity(owner)
 		util.Effect(self.ShellType, effectdata, true, true)
 	elseif SERVER and (self.CycleType == "manual") then
 		timer.Simple(.4, function()
-			if IsValid(self) and IsValid(self:GetOwner()) then
+			if IsValid(self) and IsValid(owner) then
 				local effectdata = EffectData()
-				effectdata:SetOrigin(self:GetOwner():GetShootPos() + self:GetOwner():GetAimVector() * 15 + self:GetOwner():EyeAngles():Right() * Rightness - self:GetOwner():EyeAngles():Up() * Upness)
-				effectdata:SetAngles(self:GetOwner():GetRight():Angle())
-				effectdata:SetEntity(self:GetOwner())
+				effectdata:SetOrigin(owner:GetShootPos() + owner:GetAimVector() * 15 + owner:EyeAngles():Right() * Rightness - owner:EyeAngles():Up() * Upness)
+				effectdata:SetAngles(owner:GetRight():Angle())
+				effectdata:SetEntity(owner)
 				util.Effect(self.ShellType, effectdata, true, true)
 			end
 		end)
 	end
 
-	local Ang, Rec = self:GetOwner():EyeAngles(), self.Recoil
-	if self:GetOwner().Murderer then Rec = .5 end
+	local Ang, Rec = owner:EyeAngles(), self.Recoil
+	if owner.Murderer then Rec = .5 end
 	local RecoilY = math.Rand(.015, .03) * Rec
 	local RecoilX = math.Rand(-.03, .05) * Rec
-	if (SERVER and game.SinglePlayer()) or CLIENT then self:GetOwner():SetEyeAngles((Ang:Forward() + RecoilY * Ang:Up() + Ang:Right() * RecoilX):Angle()) end
-	if not self:GetOwner():OnGround() then self:GetOwner():SetVelocity(-self:GetOwner():GetAimVector() * 10) end
-	self:GetOwner():ViewPunchReset()
-	self:GetOwner():ViewPunch(Angle(RecoilY * -100 * self.Recoil, RecoilX * -100 * self.Recoil, 0))
+	if (SERVER and game.SinglePlayer()) or CLIENT then owner:SetEyeAngles((Ang:Forward() + RecoilY * Ang:Up() + Ang:Right() * RecoilX):Angle()) end
+	if not owner:OnGround() then owner:SetVelocity(-owner:GetAimVector() * 10) end
+	owner:ViewPunchReset()
+	owner:ViewPunch(Angle(RecoilY * -100 * self.Recoil, RecoilX * -100 * self.Recoil, 0))
 	self:TakePrimaryAmmo(1)
 	local Extra = 0
-	if self:GetOwner():WaterLevel() >= 3 then Extra = 1 end
+	if owner:WaterLevel() >= 3 then Extra = 1 end
 	self:SetNextPrimaryFire(CurTime() + self.TriggerDelay + self.CycleTime + Extra)
 end
 
 function SWEP:BarrelSmoke()
-	if self:GetOwner():WaterLevel() >= 3 then return end
+	local owner = self:GetOwner()
+	if owner:WaterLevel() >= 3 then return end
 	if CLIENT then
-		local ent = self:GetOwner():GetViewModel()
+		local ent = owner:GetViewModel()
 		if ent then ParticleEffectAttach("pcf_jack_mf_barrelsmoke", PATTACH_POINT_FOLLOW, ent, 2) end
 	else
 		for i = 0, math.random(1, 2) do
-			timer.Simple(i / 2, function() if IsValid(self) and self:GetOwner() and self:GetOwner().Alive and self:GetOwner():Alive() then ParticleEffectAttach("pcf_jack_mf_barrelsmoke", PATTACH_POINT_FOLLOW, self:GetOwner(), self:GetOwner():LookupAttachment("anim_attachment_RH")) end end)
+			timer.Simple(i / 2, function() if IsValid(self) and owner and owner.Alive and owner:Alive() then ParticleEffectAttach("pcf_jack_mf_barrelsmoke", PATTACH_POINT_FOLLOW, owner, owner:LookupAttachment("anim_attachment_RH")) end end)
 		end
 	end
 end
@@ -268,38 +271,36 @@ end
 function SWEP:SecondaryAttack()
 end
 
--- wat
 function SWEP:Think()
-	if self.BarrelMustSmoke then
-		if math.random(1, 300) == 4 then
-			self:BarrelSmoke()
-			self.BarrelMustSmoke = false
-		end
+	local owner = self:GetOwner()
+	if self.BarrelMustSmoke and math.random(1, 300) == 4 then
+		self:BarrelSmoke()
+		self.BarrelMustSmoke = false
 	end
 
 	if SERVER then
 		if (self.ReloadType == "individual") and self:GetReloading() then
 			if self.VReloadTime < CurTime() then
-				if (self:Clip1() < self.Primary.ClipSize) and (self:GetOwner():GetAmmoCount(self.AmmoType) > 0) and not self.ReloadInterrupted then
+				if (self:Clip1() < self.Primary.ClipSize) and (owner:GetAmmoCount(self.AmmoType) > 0) and not self.ReloadInterrupted then
 					self:SetClip1(self:Clip1() + 1)
-					self:GetOwner():RemoveAmmo(1, self.AmmoType)
+					owner:RemoveAmmo(1, self.AmmoType)
 					self:StallAnimation("after_reload", .1)
 					timer.Simple(.01, function() self:ReadyAfterAnim("insert") end)
-					sound.Play(self.ReloadSound, self:GetOwner():GetShootPos(), 55, 100)
+					sound.Play(self.ReloadSound, owner:GetShootPos(), 55, 100)
 				else
 					self:SetReloading(false)
 					self:ReadyAfterAnim("after_reload")
-					timer.Simple(.25, function() if IsValid(self) and IsValid(self:GetOwner()) then self:EmitSound(self.CycleSound, 55, 90) end end)
-					timer.Simple(.5, function() if IsValid(self) and IsValid(self:GetOwner()) then self:SetReady(true) end end)
+					timer.Simple(.25, function() if IsValid(self) and IsValid(owner) then self:EmitSound(self.CycleSound, 55, 90) end end)
+					timer.Simple(.5, function() if IsValid(self) and IsValid(owner) then self:SetReady(true) end end)
 				end
 			end
 		end
 
-		local Sprintin, Aimin, AimAmt, SprintAmt = self:GetOwner():IsSprinting(), self:GetOwner():KeyDown(IN_ATTACK2), self:GetAiming(), self:GetSprinting()
+		local Sprintin, Aimin, AimAmt, SprintAmt = owner:IsSprinting(), owner:KeyDown(IN_ATTACK2), self:GetAiming(), self:GetSprinting()
 		if (Sprintin or self:FrontBlocked()) and self:GetReady() then
 			self:SetSprinting(math.Clamp(SprintAmt + 40 * (1 / self.BearTime), 0, 100))
 			self:SetAiming(math.Clamp(AimAmt - 40 * (1 / self.AimTime), 0, 100))
-		elseif Aimin and self:GetOwner():OnGround() and not ((self.CycleType == "manual") and (self.LastFire + .75 > CurTime())) then
+		elseif Aimin and owner:OnGround() and not ((self.CycleType == "manual") and (self.LastFire + .75 > CurTime())) then
 			self:SetAiming(math.Clamp(AimAmt + 20 * (1 / self.AimTime), 0, 100))
 			self:SetSprinting(math.Clamp(SprintAmt - 20 * (1 / self.BearTime), 0, 100))
 		else
@@ -310,7 +311,7 @@ function SWEP:Think()
 		local HoldType = self.HipHoldType
 		if SprintAmt > 90 then
 			HoldType = self.DownHoldType
-		elseif Aimin and not self:GetOwner():Crouching() then
+		elseif Aimin and not owner:Crouching() then
 			HoldType = self.AimHoldType
 		else
 			HoldType = self.HipHoldType
@@ -321,21 +322,22 @@ function SWEP:Think()
 end
 
 function SWEP:Reload()
+	local owner = self:GetOwner()
 	self.ReloadInterrupted = false
 	if not IsFirstTimePredicted() then return end
-	if not (IsValid(self) and IsValid(self:GetOwner())) then return end
+	if not (IsValid(self) and IsValid(owner)) then return end
 	if not self:GetReady() then return end
 	if self:GetSprinting() > 0 then return end
 	if SERVER then
 		net.Start("HMCD_AmmoShow")
-		net.Send(self:GetOwner())
+		net.Send(owner)
 		net.Broadcast()
 	end
 
-	if (self:Clip1() < self.Primary.ClipSize) and (self:GetOwner():GetAmmoCount(self.AmmoType) > 0) then
+	if (self:Clip1() < self.Primary.ClipSize) and (owner:GetAmmoCount(self.AmmoType) > 0) then
 		local TacticalReload = self:Clip1() > 0
 		self:SetReady(false)
-		self:GetOwner():SetAnimation(PLAYER_RELOAD)
+		owner:SetAnimation(PLAYER_RELOAD)
 		if (self.ReloadType == "clip") or (self.ReloadType == "magazine") then
 			if TacticalReload and self.TacticalReloadAnim then
 				self:DoBFSAnimation(self.TacticalReloadAnim)
@@ -343,17 +345,17 @@ function SWEP:Reload()
 				self:DoBFSAnimation(self.ReloadAnim)
 			end
 
-			self:GetOwner():GetViewModel():SetPlaybackRate(self.ReloadRate)
+			owner:GetViewModel():SetPlaybackRate(self.ReloadRate)
 			self:EmitSound(self.ReloadSound, 65, 100)
 			if SERVER then
 				if self.CycleType == "revolving" then
 					timer.Simple(self.ReloadTime / 3, function()
-						if IsValid(self) and IsValid(self:GetOwner()) then
+						if IsValid(self) and IsValid(owner) then
 							for i = 1, self.Primary.ClipSize - self:Clip1() do
 								local effectdata = EffectData()
-								effectdata:SetOrigin(self:GetOwner():GetBonePosition(self:GetOwner():LookupBone("ValveBiped.Bip01_R_Forearm")))
+								effectdata:SetOrigin(owner:GetBonePosition(owner:LookupBone("ValveBiped.Bip01_R_Forearm")))
 								effectdata:SetAngles((-vector_up):Angle())
-								effectdata:SetEntity(self:GetOwner())
+								effectdata:SetEntity(owner)
 								util.Effect(self.ShellType, effectdata, true, true)
 							end
 						end
@@ -363,17 +365,17 @@ function SWEP:Reload()
 				local ReloadAdd = 0
 				if not TacticalReload then ReloadAdd = .2 end
 				timer.Simple(self.ReloadTime + ReloadAdd, function()
-					if IsValid(self) and IsValid(self:GetOwner()) then
+					if IsValid(self) and IsValid(owner) then
 						self:SetReady(true)
-						local Missing, Have = self.Primary.ClipSize - self:Clip1(), self:GetOwner():GetAmmoCount(self.AmmoType)
+						local Missing, Have = self.Primary.ClipSize - self:Clip1(), owner:GetAmmoCount(self.AmmoType)
 						if Missing <= Have then
-							self:GetOwner():RemoveAmmo(Missing, self.AmmoType)
+							owner:RemoveAmmo(Missing, self.AmmoType)
 							self:SetClip1(self.Primary.ClipSize)
 						elseif Missing > Have then
 							self:SetClip1(self:Clip1() + Have)
-							self:GetOwner():RemoveAmmo(Have, self.AmmoType)
+							owner:RemoveAmmo(Have, self.AmmoType)
 							net.Start("HMCD_AmmoShow")
-							net.Send(self:GetOwner())
+							net.Send(owner)
 							net.Broadcast()
 						end
 					end
@@ -413,13 +415,13 @@ end
 
 function SWEP:EnforceHolsterRules(newWep)
 	if CLIENT then return end
-	if not (newWep == self) then -- only enforce rules for us
+	if newWep ~= self then -- only enforce rules for us
 		return
 	end
 
 	for key, wep in ipairs(self:GetOwner():GetWeapons()) do
 		-- conflict
-		if wep.HolsterSlot and self.HolsterSlot and (wep.HolsterSlot == self.HolsterSlot) and not (wep == self) then self:GetOwner():DropWeapon(wep) end
+		if wep.HolsterSlot and self.HolsterSlot and (wep.HolsterSlot == self.HolsterSlot) and (wep ~= self) then self:GetOwner():DropWeapon(wep) end
 	end
 end
 
@@ -641,7 +643,7 @@ if CLIENT then
 		end
 
 		pos = pos + Vec.x * Right + Vec.y * Forward + Vec.z * Up
-		if self:GetOwner():KeyDown(IN_DUCK) then
+		if self:GetOwner():Crouching() then
 			Crouched = math.Clamp(Crouched + .01, 0, 1)
 		else
 			Crouched = math.Clamp(Crouched - .01, 0, 1)

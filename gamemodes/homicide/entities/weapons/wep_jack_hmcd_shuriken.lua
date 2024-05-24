@@ -113,7 +113,6 @@ end
 
 --
 if CLIENT then
-	local DownAmt = 0
 	function SWEP:GetViewModelPosition(pos, ang)
 		if not self.DownAmt then self.DownAmt = 8 end
 		if self:GetOwner():IsSprinting() then

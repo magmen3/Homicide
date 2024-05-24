@@ -56,8 +56,8 @@ GM.EnoughAINodes = GM.EnoughAINodes or false
 GM.SHTF_Specified = false
 GM.ZombiesLeft = 0
 GM.SHITLIST = {}
-GM.GimpPunishmentThreshold = 70
-GM.GodPunishmentThreshold = 85
+GM.GimpPunishmentThreshold = 75
+GM.GodPunishmentThreshold = 88
 GM.KickbanPunishmentThreshold = 300
 GM.InstantPunishmentThreshold = 450
 GM.ForgivenessRate = 1 -- every ten seconds
@@ -100,7 +100,7 @@ local function SpecSHTF(ply, cmd, args)
 		GAMEMODE.DEATHMATCH_MODE_ENGAGED = false
 		GAMEMODE.ZOMBIE_MODE_ENGAGED = false
 	elseif args[1] == "2" then
-		GAMEMODE.SHTF_MODE_ENGAGED = false
+		GAMEMODE.SHTF_MODE_ENGAGED = true
 		GAMEMODE.DEATHMATCH_MODE_ENGAGED = true
 		GAMEMODE.ZOMBIE_MODE_ENGAGED = false
 	elseif args[1] == "3" then
@@ -111,6 +111,8 @@ local function SpecSHTF(ply, cmd, args)
 
 	GAMEMODE.SHTF_Specified = true
 	print("SHTF mode specified as " .. tostring(GAMEMODE.SHTF_MODE_ENGAGED))
+	print("Zombie mode specified as " .. tostring(GAMEMODE.ZOMBIE_MODE_ENGAGED))
+	print("DM mode specified as " .. tostring(GAMEMODE.DEATHMATCH_MODE_ENGAGED))
 end
 
 concommand.Add("homicide_setmode", SpecSHTF)
@@ -897,7 +899,7 @@ function GM:Think()
 			ply:SetPos(ply:GetCSpectatee():GetPos())
 		end
 
-		if not ply.HasMoved then if ply:IsBot() or ply:KeyDown(IN_FORWARD) or ply:KeyDown(IN_JUMP) or ply:KeyDown(IN_ATTACK) or ply:KeyDown(IN_ATTACK2) or ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) or ply:KeyDown(IN_BACK) or ply:KeyDown(IN_DUCK) then ply.HasMoved = true end end
+		if not ply.HasMoved then if ply:IsBot() or ply:KeyDown(IN_FORWARD) or ply:KeyDown(IN_JUMP) or ply:KeyDown(IN_ATTACK) or ply:KeyDown(IN_ATTACK2) or ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) or ply:KeyDown(IN_BACK) or ply:Crouching() then ply.HasMoved = true end end
 	end
 end
 
@@ -1293,7 +1295,7 @@ function HMCD_Poison(vic, murd, fast)
 								local Dmg = DamageInfo()
 								Dmg:SetDamage(105)
 								Dmg:SetDamageType(DMG_POISON)
-								Dmg:SetAttacker(Murderer)
+								Dmg:SetAttacker(Murderer or murd)
 								Dmg:SetInflictor(Victim)
 								Dmg:SetDamagePosition(Victim:GetPos())
 								Dmg:SetDamageForce(Vector(0, 0, 0))

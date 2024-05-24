@@ -16,13 +16,6 @@ elseif CLIENT then
 		self:DrawModel()
 	end
 
-	local function drawTextShadow(t, f, x, y, c, px, py)
-		color_black.a = c.a
-		draw.SimpleText(t, f, x + 1, y + 1, color_black, px, py)
-		draw.SimpleText(t, f, x, y, c, px, py)
-		color_black.a = 255
-	end
-
 	net.Receive("hmcd_splodetype", function()
 		local Ent = net.ReadEntity()
 		Ent.SplodeType = net.ReadInt(32)

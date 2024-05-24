@@ -26,7 +26,7 @@ if SERVER then
 			util.Effect("eff_jack_hmcd_fire", Foof, true, true)
 		end
 
-		for key, obj in pairs(ents.FindInSphere(SelfPos, self.Radius)) do
+		for key, obj in ipairs(ents.FindInSphere(SelfPos, self.Radius)) do
 			if (obj ~= self) and obj.GetPhysicsObject and IsValid(obj:GetPhysicsObject()) then
 				local Dist = (obj:GetPos() - self:GetPos()):Length()
 				local Frac = 1 - (Dist / self.Radius)
@@ -56,7 +56,7 @@ if SERVER then
 			self.Radius = self.Radius + 6
 		end
 
-		self:NextThink(CurTime() + .2)
+		self:NextThink(CurTime() + .8)
 		return true
 	end
 end

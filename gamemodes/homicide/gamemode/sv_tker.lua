@@ -1,5 +1,4 @@
 local PlayerMeta = FindMetaTable("Player")
-local EntityMeta = FindMetaTable("Entity")
 util.AddNetworkString("hmcd_tker")
 function PlayerMeta:AddToShitList(amt)
 	local ID, Existing = self:SteamID(), 0
@@ -26,7 +25,6 @@ net.Receive("hmcd_forgive", function(length, ply)
 end)
 
 function PlayerMeta:KickForTeamKilling()
-	local Pos = self:GetShootPos()
 	local SteamID, Name = self:SteamID(), self:Nick()
 	if not self:IsListenServerHost() then
 		for key, wep in ipairs(self:GetWeapons()) do

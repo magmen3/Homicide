@@ -145,7 +145,7 @@ function SWEP:AttackFront()
 			self:GetOwner():SetVelocity(-AimVec * SelfForce / 10)
 		end
 
-		if Ent:GetClass() == "func_breakable_surf" then if math.random(1, 2) == 2 then Ent:Fire("break", "", 0) end end
+		if Ent:GetClass() == "func_breakable_surf" and math.random(1, 2) == 2 then Ent:Fire("break", "", 0) end
 	end
 
 	self:GetOwner():LagCompensation(false)

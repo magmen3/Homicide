@@ -107,7 +107,6 @@ local function drawTextShadow(t, f, x, y, c, px, py)
 	draw.SimpleText(t, f, x, y, c, px, py)
 end
 
-local healthCol = Color(120, 255, 20)
 function GM:HUDPaint()
 	local round = self:GetRound()
 	local client = LocalPlayer()
@@ -125,7 +124,6 @@ function GM:HUDPaint()
 			elseif round == 2 then
 				-- display who won
 				self:DrawGameHUD(LocalPlayer())
-			else -- round=0
 			end
 		end
 	end
@@ -234,8 +232,6 @@ function GM:DrawStartRoundInformation()
 	end
 end
 
-local tex = surface.GetTextureID("SGM/playercircle")
-local gradR = surface.GetTextureID("gui/gradient")
 local function StatusEffect(data)
 	LocalPlayer().StatusEffect = data:ReadString()
 	LocalPlayer().StatusEffectShow = CurTime() + 1.5
@@ -265,9 +261,8 @@ end
 local Health, Stamina, PersonTex, StamTex, HelTex, BGTex = 0, 0, surface.GetTextureID("vgui/hud/hmcd_person"), surface.GetTextureID("vgui/hud/hmcd_stamina"), surface.GetTextureID("vgui/hud/hmcd_health"), surface.GetTextureID("vgui/hud/hmcd_background")
 function GM:DrawGameHUD(ply)
 	if not IsValid(ply) then return end
-	local health = ply:Health()
 	if not IsValid(ply) then return end
-	if not (LocalPlayer() == ply) then return end
+	if LocalPlayer() ~= ply then return end
 	if self:GetVictor() then return end
 	local W, H, Bleedout, Vary = ScrW(), ScrH(), ply.Bleedout, math.sin(CurTime() * 10) / 2 + .5
 	Health = Lerp(.1, Health, ply:Health())
@@ -413,7 +408,6 @@ function GM:DrawGameHUD(ply)
 	local shouldDraw = hook.Run("HUDShouldDraw", "MurderFlashlightCharge")
 	if shouldDraw ~= false then
 		if LocalPlayer() == ply and ply:FlashlightIsOn() then
-			local col = color_white
 			surface.SetDrawColor(255, 255, 255, 255)
 			surface.SetTexture(FlashTex)
 			surface.DrawTexturedRect(W * .3 - 150, H * .85, 128, 128)
@@ -503,7 +497,7 @@ local RedVision = {
 	["$pp_colour_mulb"] = 0
 }
 
-local AbbMat, ScpMat, Helm, Narrow = surface.GetTextureID("sprites/mat_jack_hmcd_scope_aberration"), surface.GetTextureID("sprites/mat_jack_hmcd_scope_diffuse"), "sprites/mat_jack_hmcd_helmover", "sprites/mat_jack_hmcd_narrow"
+local ScpMat, Helm, Narrow = surface.GetTextureID("sprites/mat_jack_hmcd_scope_diffuse"), "sprites/mat_jack_hmcd_helmover", "sprites/mat_jack_hmcd_narrow"
 function GM:RenderScreenspaceEffects()
 	local client, ViewEnt, SelfPos, Victor, FT = LocalPlayer(), GetViewEntity(), LocalPlayer():GetPos(), self:GetVictor(), FrameTime()
 	if self:GetVictor() then return end

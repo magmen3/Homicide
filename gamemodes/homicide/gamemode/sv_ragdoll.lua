@@ -175,7 +175,7 @@ function EntityMeta:ExplodeIED()
 	Flash:SetScale(2)
 	util.Effect("eff_jack_hmcd_dlight", Flash, true, true)
 	timer.Simple(.01, function()
-		if not (SplodeType == 3) then
+		if SplodeType ~= 3 then
 			sound.Play("snd_jack_hmcd_explosion_debris.mp3", Pos, 85, math.random(90, 110))
 			sound.Play("snd_jack_hmcd_explosion_far.wav", Pos - vector_up, 140, 100)
 			sound.Play("snd_jack_hmcd_debris.mp3", Pos + vector_up, 85, math.random(90, 110))
@@ -199,8 +199,8 @@ function EntityMeta:ExplodeIED()
 	end)
 
 	timer.Simple(.03, function()
-		if not (SplodeType == 3) then
-			if not (SplodeType == 2) then
+		if SplodeType ~= 3 then
+			if SplodeType ~= 2 then
 				for key, ent in pairs(ents.FindInSphere(Pos, 75)) do
 					if (ent ~= self) and (ent:GetClass() == "func_breakable") and ent:CanSee(Pos) then
 						ent:Fire("break", "", 0)
@@ -329,7 +329,6 @@ function EntityMeta:SetBodyProportions(upper, core, lower)
 	self.UpperBody = upper
 	self.CoreBody = core
 	self.LowerBody = lower
-	local Chest, Arms = 1, 1
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_R_UpperArm"), Vector(1, upper ^ 1.2, upper ^ 1.2))
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_L_UpperArm"), Vector(1, upper ^ 1.2, upper ^ 1.2))
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_Spine4"), Vector(upper, upper ^ 1.05, upper ^ 1.05))
@@ -421,9 +420,9 @@ function GM:CreateFirstVictim()
 	ply:GenerateAccessories()
 	ply:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 	ply:SetNWString("KilledWith", math.random(1, 4) == 2 and translate.weaponKnife or translate.weaponAxe)
-	ply:SetNWInt("KillDistance", rag:GetPos():Distance(VectorRand(-2, 2)) * 0.0254)
+	ply:SetNWInt("KillDistance", ply:GetPos():Distance(VectorRand(-2, 2)) * 0.0254)
 	ply:SetNWString("LastWeapon", translate.bodysearchNothing)
-	rag:SetNWInt("LastHitGroup", math.random(0, 7))
+	ply:SetNWInt("LastHitGroup", math.random(0, 7))
 	for i = 0, 50 do
 		local Ph = ply:GetPhysicsObjectNum(i)
 		if Ph then
@@ -434,7 +433,6 @@ function GM:CreateFirstVictim()
 
 	timer.Simple(10, function()
 		if IsValid(ply) then
-			local Pit = math.random(70, 140)
 			sound.Play("ambient/creatures/town_child_scream1.wav", ply:GetPos(), 90, pit)
 			sound.Play("ambient/creatures/town_child_scream1.wav", ply:GetPos() + vector_up, 60, pit)
 			sound.Play("ambient/creatures/town_child_scream1.wav", ply:GetPos() + vector_up * 2, 50, pit)

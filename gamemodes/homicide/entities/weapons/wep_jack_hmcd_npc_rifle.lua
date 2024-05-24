@@ -125,7 +125,6 @@ function SWEP:Think()
 		end
 
 		local BG = self:BadGuy()
-		local SelfPos = self:GetOwner():GetPos()
 		local Act = self:GetOwner():GetActivity()
 		if BG and IsValid(BG) and (Act == ACT_IDLE) and self:GetOwner():Visible(BG) then
 			local Dist = (BG:GetPos() - self:GetOwner():GetPos()):Length()
@@ -194,8 +193,6 @@ end
 function SWEP:Fiah()
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	local SelfPos = self:GetOwner():GetPos()
-	local PosAng = self:GetAttachment(self:LookupAttachment("muzzle")) --fuck this
-	local AimVec = self:GetOwner():GetAimVector()
 	local ShootPos = self:GetOwner():GetShootPos()
 	local Enem = self:GetOwner():GetEnemy()
 	local EnemPos = Enem:BodyTarget(ShootPos)

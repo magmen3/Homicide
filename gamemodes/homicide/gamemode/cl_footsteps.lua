@@ -10,7 +10,6 @@ local maxDistance = 500 ^ 2
 local function renderfoot(self)
 	cam.Start3D(EyePos(), EyeAngles())
 	render.SetMaterial(footMat)
-	local pos = EyePos()
 	local lifeTime = 20
 	for k, footstep in pairs(FootSteps) do
 		if footstep.curtime + lifeTime > CurTime() then

@@ -1,4 +1,3 @@
-local PlayerMeta = FindMetaTable("Player")
 local EntityMeta = FindMetaTable("Entity")
 net.Receive("hmcd_playersilent", function()
 	local Ply = net.ReadEntity()
@@ -250,6 +249,7 @@ function GM:CreateMove(cmd)
 	local ply, Amt, Sporadicness = LocalPlayer(), 20, 15
 	local Wep = ply:GetActiveWeapon()
 	if ply:Crouching() then Amt = Amt / 2 end
+	if (prone and prone.Initialized) and ply:IsProne() then Amt = Amt / 4 end
 	if LocalPlayer().Murderer then Amt = Amt / 2 end
 	if ply.Seizuring then
 		Amt = 1500

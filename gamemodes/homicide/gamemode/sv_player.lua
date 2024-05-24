@@ -1119,7 +1119,7 @@ function GM:PlayerSay(ply, text, teem)
 			local can = hook.Call("PlayerCanSeePlayersChat", GAMEMODE, text, teem, ply2, ply)
 			if can then
 				local ct = ChatText()
-				if WalkieTalkie and not (ply2 == ply) then
+				if WalkieTalkie and (ply2 ~= ply) then
 					ct:Add(translate.weaponWalkieTalkie, color_white)
 				else
 					ct:Add(ply:GetBystanderName(), Color(col.x * 255, col.y * 255, col.z * 255))
@@ -1263,7 +1263,7 @@ end
 
 function PlayerMeta:AntiCheat()
 	if not self:Alive() then return end
-	if not (self:Team() == 2) then return end
+	if self:Team() ~= 2 then return end
 	local Weps = self:GetWeapons()
 	if Weps then
 		for key, wep in pairs(Weps) do
@@ -1341,9 +1341,6 @@ function PlayerMeta:MurdererDisguise(copyent)
 end
 
 function PlayerMeta:UnMurdererDisguise()
-	if self.Disguised then -- fuck you sonny boy
-	end
-
 	self.Disguised = false
 end
 

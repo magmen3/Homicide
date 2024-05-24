@@ -19,7 +19,6 @@ local function getSelected()
 	local sw, sh = ScrW(), ScrH()
 	local total = #ments
 	local w = math.min(sw * 0.45, sh * 0.45)
-	local h = w
 	local sx, sy = sw / 2, sh / 2
 	local x2, y2 = mx - sx, my - sy
 	local ang = 0
