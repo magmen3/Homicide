@@ -27,9 +27,14 @@ if SERVER then
 	end
 
 	function ENT:Use(ply)
+		if GAMEMODE.ZOMBIE and ply.Murderer then return end
+		if not (ply:HasWeapon("wep_jack_hmcd_oldgrenade") or self.Rigged or self.Armed) then
+			ply:Give("wep_jack_hmcd_oldgrenade")
+			ply:SelectWeapon("wep_jack_hmcd_oldgrenade")
+			self:Remove()
+		end
 	end
 
-	--
 	function ENT:Think()
 		if self.Armed and (self.DetTime < CurTime()) then
 			self:Detonate()
@@ -188,12 +193,10 @@ if SERVER then
 
 	function ENT:StartTouch(ply)
 	end
-	--
 elseif CLIENT then
 	function ENT:Initialize()
 	end
 
-	--
 	function ENT:Draw()
 		self:DrawModel()
 	end
@@ -201,8 +204,6 @@ elseif CLIENT then
 	function ENT:Think()
 	end
 
-	--
 	function ENT:OnRemove()
 	end
 end
---

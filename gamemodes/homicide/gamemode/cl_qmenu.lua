@@ -223,26 +223,28 @@ function GM:DrawRadialMenu()
 			surface.SetFont("MersRadialS")
 			local Size = surface.GetTextSize(Name)
 			drawTextShadow(Name, "MersRadialS", W / 2.9 - 470 - Size, BarLow + 10, col, 0, TEXT_ALIGN_RIGHT)
-			if ply.ChestArmor and (ply.ChestArmor ~= "") then
-				local tca
-				if ply.ChestArmor == "Level III" then
-					tca = translate.armorLevelIII
-				else
-					tca = translate.armorLevelIIIA
+			if not self.Realism:GetBool() then
+				if ply.ChestArmor and (ply.ChestArmor ~= "") then
+					local tca
+					if ply.ChestArmor == "Level III" then
+						tca = translate.armorLevelIII
+					else
+						tca = translate.armorLevelIIIA
+					end
+
+					local str = translate.chest .. tca
+					surface.SetDrawColor(255, 255, 255, 255)
+					surface.SetFont("MersRadialS")
+					drawTextShadow(str, "MersRadialSuperS", W / 2 - 430, BarLow + 30, color_white, 0, TEXT_ALIGN_TOP)
 				end
 
-				local str = translate.chest .. tca
-				surface.SetDrawColor(255, 255, 255, 255)
-				surface.SetFont("MersRadialS")
-				drawTextShadow(str, "MersRadialSuperS", W / 2 - 430, BarLow + 30, color_white, 0, TEXT_ALIGN_TOP)
-			end
-
-			if ply.HeadArmor and (ply.HeadArmor ~= "") then
-				local str = translate.head .. ply.HeadArmor
-				surface.SetDrawColor(255, 255, 255, 255)
-				surface.SetFont("MersRadialS")
-				local Size = surface.GetTextSize(str)
-				drawTextShadow(str, "MersRadialSuperS", W / 2 + 470 - Size, BarLow + 30, color_white, 0, TEXT_ALIGN_TOP)
+				if ply.HeadArmor and (ply.HeadArmor ~= "") then
+					local str = translate.head .. ply.HeadArmor
+					surface.SetDrawColor(255, 255, 255, 255)
+					surface.SetFont("MersRadialS")
+					local Size = surface.GetTextSize(str)
+					drawTextShadow(str, "MersRadialSuperS", W / 2 + 470 - Size, BarLow + 30, color_white, 0, TEXT_ALIGN_TOP)
+				end
 			end
 
 			local shouldDraw = hook.Run("HUDShouldDraw", "MurderPlayerType")

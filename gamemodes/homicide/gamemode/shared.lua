@@ -21,6 +21,10 @@ GM.Author = "Jackarunda"
 GM.Email = "N/A"
 GM.Website = "https://github.com/magmen3/Homicide"
 GM.Version = "1"
+CreateConVar("hmcd_realism", 0, bit.bor(FCVAR_REPLICATED, FCVAR_NOTIFY), "Enable realistic mode?", 0, 1)
+CreateConVar("hmcd_guiltdisable", 0, bit.bor(FCVAR_REPLICATED, FCVAR_NOTIFY), "Disable guilt?", 0, 1)
+GM.Realism = GetConVar("hmcd_realism")
+GM.GuiltEnabled = GetConVar("hmcd_guiltdisable")
 game.AddParticles("particles/pcfs_jack_muzzleflashes.pcf")
 game.AddParticles("particles/pcfs_jack_explosions_small3.pcf")
 game.AddParticles("particles/pcfs_jack_explosions_incendiary2.pcf")
@@ -29,28 +33,120 @@ game.AddDecal("hmcd_jackatape", "decals/mat_jack_hmcd_ducttape")
 player_manager.AddValidModel("Homicide Murderer", "models/player/mkx_jajon.mdl")
 player_manager.AddValidHands("Homicide Murderer", "models/player/mkx_jajon_hands.mdl", 0, "10000000")
 player_manager.AddValidModel("Homicide Alpha-Zombie", "models/player/zombie_classic.mdl")
----- TODO: ----
--- remove the medal shit from the tips
--- the prop of the arrow kills, why
+----!! TODO: ----
 -- hiding in object when the round ends
 -- speed up wep aiming, reduce wep wobble, fix bug with containers getting you stuck, add sounds to container enter/exit, make knife quieter, make the pedestrian indicator shorter ranged in DM
 -- the living respawn as cops at coptime
--- export the css glock18 pistol model
--- make a different wepselect system
--- change loot to containers you gotta open
--- the dead have a deathmatch with 1 ethereal firearm
--- the dead have a range of ethereal weapons of powers corresponding to how long they lived
 -- multiple killers when there are enough players
--- blowdart
 -- stungun
 -- peperspray
+-- ДОБАВИТЬ ИГРОКОВ ПОЛИЦЕЙСКИХ
 ----
 HMCD_SkillAwards = {{"pt", 4.6, 999999}, {"au", 3.7, 4.6}, {"pd", 2.9, 3.7}, {"ir", 2.2, 2.9}, {"os", 1.6, 2.2}, {"ru", 1.1, 1.6}, {"ag", .7, 1.1}, {"sn", .4, .7}, {"ni", .2, .4}, {"cu", 0, .2}}
 HMCD_ExperienceAwards = {{"10", 15360, 999999}, {"9", 7680, 15360}, {"8", 3840, 7680}, {"7", 1920, 3840}, {"6", 960, 1920}, {"5", 480, 960}, {"4", 240, 480}, {"3", 120, 240}, {"2", 60, 120}, {"1", 0, 60}}
 HMCD_Tips = translate.table.tips
-HMCD_ValidModels = {"male01", "male02", "male03", "male04", "male05", "male06", "male07", "male08", "male09", "female01", "female02", "female03", "female04", "female05", "female06"}
-HMCD_ValidClothes = {"normal", "casual", "formal", "young", "cold", "striped", "plaid"}
-HMCD_AllowedEntities = {"logic_", "phys_", "gmod_", "manipulate_", "predicted_", "physics_", "player_", "reserved_", "ai_", "info_", "hint", "npc_zombie_torso", "npc_fastzombie_torso", "prop_physics", "prop_physics_multiplayer", "prop_dynamic", "prop_ragdoll", "worldspawn", "soundent", "prop_static", "func_", "beam", "spotlight_", "ambient_", "scene_", "npc_heli_", "env_", "trigger_", "sky_", "bodyque", "move_", "keyframe_", "shadow_", "water_", "network", "light", "point_", "_firesmoke", "raggib", "prop_door", "prop_door_rotating", "ally_", "script_", "math_", "prop_scalable", "aiscripted_", "path_", "filter_", "cycler", "relationship", "color_", "scripted_", "goal_", "npc_event", "npc_template", "gib", "material_", "vort_", "entityflame", "npc_furniture", "sound", "npc_enemyfinder", "lua_run", "fish", "momentary_", "game_", "infodecal", "entity_"}
+-- format: multiline
+HMCD_ValidModels = {
+	"male01",
+	"male02",
+	"male03",
+	"male04",
+	"male05",
+	"male06",
+	"male07",
+	"male08",
+	"male09",
+	"female01",
+	"female02",
+	"female03",
+	"female04",
+	"female05",
+	"female06"
+}
+
+-- format: multiline
+HMCD_ValidClothes = {
+	"normal",
+	"casual",
+	"formal",
+	"young",
+	"cold",
+	"striped",
+	"plaid"
+}
+
+-- format: multiline
+HMCD_AllowedEntities = {
+	"logic_",
+	"phys_",
+	"gmod_",
+	"manipulate_",
+	"predicted_",
+	"physics_",
+	"player_",
+	"reserved_",
+	"ai_",
+	"info_",
+	"hint",
+	"npc_zombie_torso",
+	"npc_fastzombie_torso",
+	"prop_physics",
+	"prop_physics_multiplayer",
+	"prop_dynamic",
+	"prop_ragdoll",
+	"worldspawn",
+	"soundent",
+	"prop_static",
+	"func_",
+	"beam",
+	"spotlight_",
+	"ambient_",
+	"scene_",
+	"npc_heli_",
+	"env_",
+	"trigger_",
+	"sky_",
+	"bodyque",
+	"move_",
+	"keyframe_",
+	"shadow_",
+	"water_",
+	"network",
+	"light",
+	"point_",
+	"_firesmoke",
+	"raggib",
+	"prop_door",
+	"prop_door_rotating",
+	"ally_",
+	"script_",
+	"math_",
+	"prop_scalable",
+	"aiscripted_",
+	"path_",
+	"filter_",
+	"cycler",
+	"relationship",
+	"color_",
+	"scripted_",
+	"goal_",
+	"npc_event",
+	"npc_template",
+	"gib",
+	"material_",
+	"vort_",
+	"entityflame",
+	"npc_furniture",
+	"sound",
+	"npc_enemyfinder",
+	"lua_run",
+	"fish",
+	"momentary_",
+	"game_",
+	"infodecal",
+	"entity_"
+}
+
 HMCD_SurfaceHardness = {
 	[MAT_METAL] = .95,
 	[MAT_COMPUTER] = .95,
@@ -86,8 +182,40 @@ HMCD_DamageTypes = {
 	[DMG_DROWN] = translate.attDrown
 }
 
-HMCD_FlammableModels = {"models/props_c17/canister01a.mdl", "models/props_c17/canister02a.mdl", "models/props_c17/oildrum001_explosive.mdl", "models/props_junk/gascan001a.mdl", "models/props_junk/metalgascan.mdl", "models/props_junk/propane_tank001a.mdl", "models/props_junk/propanecanister001a.mdl"}
-HMCD_ContainerModels = {"models/props_junk/cardboard_box001a.mdl", "models/props_junk/cardboard_box001b.mdl", "models/props_junk/cardboard_box002a.mdl", "models/props_junk/cardboard_box002b.mdl", "models/props_junk/cardboard_box003a.mdl", "models/props_junk/cardboard_box003b.mdl", "models/props_junk/wood_crate001a.mdl", "models/props_junk/wood_crate001a_damaged.mdl", "models/props_junk/wood_crate001a_damagedmax.mdl", "models/props_junk/wood_crate002a.mdl", "models/props_c17/furnituredrawer001a.mdl", "models/props_c17/furnituredrawer003a.mdl", "models/props_c17/furnituredresser001a.mdl", "models/props_c17/woodbarrel001.mdl", "models/props_lab/dogobject_wood_crate001a_damagedmax.mdl", "models/items/item_item_crate.mdl", "models/props/de_inferno/claypot02.mdl", "models/props/de_inferno/claypot01.mdl"}
+-- format: multiline
+HMCD_FlammableModels = {
+	"models/props_c17/canister01a.mdl",
+	"models/props_c17/canister02a.mdl",
+	"models/props_c17/oildrum001_explosive.mdl",
+	"models/props_junk/gascan001a.mdl",
+	"models/props_junk/metalgascan.mdl",
+	"models/props_junk/propane_tank001a.mdl",
+	"models/props_junk/propanecanister001a.mdl"
+}
+
+-- format: multiline
+HMCD_ContainerModels = {
+	"models/props_junk/cardboard_box001a.mdl",
+	"models/props_junk/cardboard_box001b.mdl",
+	"models/props_junk/cardboard_box002a.mdl",
+	"models/props_junk/cardboard_box002b.mdl",
+	"models/props_junk/cardboard_box003a.mdl",
+	"models/props_junk/cardboard_box003b.mdl",
+	"models/props_junk/wood_crate001a.mdl",
+	"models/props_junk/wood_crate001a_damaged.mdl",
+	"models/props_junk/wood_crate001a_damagedmax.mdl",
+	"models/props_junk/wood_crate002a.mdl",
+	"models/props_c17/furnituredrawer001a.mdl",
+	"models/props_c17/furnituredrawer003a.mdl",
+	"models/props_c17/furnituredresser001a.mdl",
+	"models/props_c17/woodbarrel001.mdl",
+	"models/props_lab/dogobject_wood_crate001a_damagedmax.mdl",
+	"models/items/item_item_crate.mdl",
+	"models/props/de_inferno/claypot02.mdl",
+	"models/props/de_inferno/claypot01.mdl"
+}
+
+-- format: multiline
 HMCD_JunkLootModels = {
 	"models/props_junk/cardboard_box001a.mdl", -- breakable containers -- flammable -- frag-able -- good for bombs -- good for construction
 	"models/props_junk/cardboard_box001b.mdl",
@@ -131,7 +259,47 @@ HMCD_JunkLootModels = {
 	"models/props_phx/construct/wood/wood_boardx2.mdl"
 }
 
-HMCD_PersonContainers = {"models/props_junk/wood_crate001a.mdl", "models/props_junk/wood_crate001a_damaged.mdl", "models/props_junk/wood_crate001a_damagedmax.mdl", "models/props_junk/wood_crate002a.mdl", "models/props_borealis/bluebarrel001.mdl", "models/props_c17/oildrum001.mdl", "models/props_junk/trashbin01a.mdl", "models/props_c17/furnituredresser001a.mdl", "models/props_c17/woodbarrel001.mdl", "models/props_lab/dogobject_wood_crate001a_damagedmax.mdl", "models/props_wasteland/controlroom_storagecloset001a.mdl", "models/props_wasteland/controlroom_storagecloset001b.mdl", "models/props/cs_assault/dryer_box.mdl", "models/props/cs_assault/dryer_box2.mdl", "models/props/cs_assault/washer_box.mdl", "models/props/cs_assault/washer_box2.mdl", "models/props/cs_militia/crate_extrasmallmill.mdl", "models/props/de_dust/du_crate_64x64.mdl", "models/props/de_dust/du_crate_64x80.mdl", "models/props/de_inferno/wine_barrel.mdl", "models/props/de_nuke/crate_extrasmall.mdl", "models/props/de_nuke/crate_small.mdl", "models/props/de_prodigy/prodcratesb.mdl", "models/props_2fort/miningcrate002.mdl", "models/props_2fort/miningcrate001.mdl", "models/props_2fort/oildrum.mdl", "models/props_2fort/locker001.mdl", "models/props_junk/cardboard_box001a.mdl", "models/props_junk/cardboard_box001b.mdl", "models/props_junk/cardboard_box002a.mdl", "models/props_junk/cardboard_box002b.mdl", "models/props_trainstation/trashcan_indoor001a.mdl", "models/props_wasteland/kitchen_fridge001a.mdl", "models/props_wasteland/cargo_container01.mdl", "models/props_wasteland/laundry_washer001a.mdl", "models/props_c17/furniturefridge001a.mdl"}
+-- format: multiline
+HMCD_PersonContainers = {
+	"models/props_junk/wood_crate001a.mdl",
+	"models/props_junk/wood_crate001a_damaged.mdl",
+	"models/props_junk/wood_crate001a_damagedmax.mdl",
+	"models/props_junk/wood_crate002a.mdl",
+	"models/props_borealis/bluebarrel001.mdl",
+	"models/props_c17/oildrum001.mdl",
+	"models/props_junk/trashbin01a.mdl",
+	"models/props_c17/furnituredresser001a.mdl",
+	"models/props_c17/woodbarrel001.mdl",
+	"models/props_lab/dogobject_wood_crate001a_damagedmax.mdl",
+	"models/props_wasteland/controlroom_storagecloset001a.mdl",
+	"models/props_wasteland/controlroom_storagecloset001b.mdl",
+	"models/props/cs_assault/dryer_box.mdl",
+	"models/props/cs_assault/dryer_box2.mdl",
+	"models/props/cs_assault/washer_box.mdl",
+	"models/props/cs_assault/washer_box2.mdl",
+	"models/props/cs_militia/crate_extrasmallmill.mdl",
+	"models/props/de_dust/du_crate_64x64.mdl",
+	"models/props/de_dust/du_crate_64x80.mdl",
+	"models/props/de_inferno/wine_barrel.mdl",
+	"models/props/de_nuke/crate_extrasmall.mdl",
+	"models/props/de_nuke/crate_small.mdl",
+	"models/props/de_prodigy/prodcratesb.mdl",
+	--[[]"models/props_2fort/miningcrate002.mdl",
+	"models/props_2fort/miningcrate001.mdl",
+	"models/props_2fort/oildrum.mdl",
+	"models/props_2fort/locker001.mdl",]]
+	-- нету тф2
+	"models/props_junk/cardboard_box001a.mdl",
+	"models/props_junk/cardboard_box001b.mdl",
+	"models/props_junk/cardboard_box002a.mdl",
+	"models/props_junk/cardboard_box002b.mdl",
+	"models/props_trainstation/trashcan_indoor001a.mdl",
+	"models/props_wasteland/kitchen_fridge001a.mdl",
+	"models/props_wasteland/cargo_container01.mdl",
+	"models/props_wasteland/laundry_washer001a.mdl",
+	"models/props_c17/furniturefridge001a.mdl"
+}
+
 --[[,
 	"models/props_junk/trashdumpster01a.mdl",
 	"models/props_trainstation/train003.mdl",
@@ -152,8 +320,105 @@ HMCD_PersonContainers = {"models/props_junk/wood_crate001a.mdl", "models/props_j
 -- the whole round system stabilizes a game and gives players tangible objectives
 -- so there's a lot of borrowed code in here from Apocalypse. I came up with a lot of cool shit in apoc that i imported to here
 -- My time was not wasted :D
-HMCD_ProjectileJunkModels = {"models/props_junk/gascan001a.mdl", "models/props_junk/metalgascan.mdl", "models/props_junk/propanecanister001a.mdl", "models/props_interiors/pot01a.mdl", "models/props_interiors/pot02a.mdl", "models/props_interiors/refrigeratorDoor02a.mdl", "models/props_interiors/SinkKitchen01a.mdl", "models/props_junk/MetalBucket01a.mdl", "models/props_junk/MetalBucket02a.mdl", "models/props_junk/sawblade001a.mdl", "models/props_junk/TrafficCone001a.mdl", "models/props_lab/lockerdoorleft.mdl", "models/props_trainstation/TrackSign02.mdl", "models/props_vehicles/tire001c_car.mdl", "models/props_wasteland/barricade001a.mdl", "models/props_wasteland/controlroom_filecabinet001a.mdl", "models/props_wasteland/controlroom_chair001a.mdl", "models/props_c17/streetsign004f.mdl", "models/props_c17/tv_monitor01.mdl", "models/props_junk/PlasticCrate01a.mdl", "models/props_interiors/Furniture_chair01a.mdl", "models/props_interiors/Furniture_chair03a.mdl", "models/props_combine/breenglobe.mdl", "models/props_junk/watermelon01.mdl", "models/props_lab/desklamp01.mdl", "models/props_lab/monitor01a.mdl", "models/props_lab/monitor02.mdl", "models/props_lab/binderbluelabel.mdl", "models/props_lab/cactus.mdl", "models/props_junk/terracotta01.mdl", "models/props_lab/reciever01b.mdl", "models/props_lab/citizenradio.mdl", "models/props_vehicles/carparts_wheel01a.mdl", "models/props_vehicles/carparts_door01a.mdl", "models/props_lab/harddrive02.mdl", "models/props_lab/harddrive01.mdl", "models/props_lab/reciever01d.mdl", "models/props_junk/CinderBlock01a.mdl", "models/props_junk/metal_paintcan001a.mdl", "models/props_junk/metal_paintcan001b.mdl", "models/props_c17/suitcase001a.mdl", "models/props_c17/suitcase_passenger_physics.mdl", "models/props_c17/briefcase001a.mdl", "models/props_phx/construct/wood/wood_boardx1.mdl", "models/props_phx/construct/wood/wood_panel1x1.mdl", "models/props_c17/cashregister01a.mdl", "models/props_c17/consolebox03a.mdl",}
-HMCD_BigProjectileJunkModels = {"models/props_borealis/bluebarrel001.mdl", "models/props_c17/canister01a.mdl", "models/props_c17/canister_propane01a.mdl", "models/props_c17/bench01a.mdl", "models/props_c17/door01_left.mdl", "models/props_c17/FurnitureBathtub001a.mdl", "models/props_c17/FurnitureCouch001a.mdl", "models/props_c17/FurnitureCouch002a.mdl", "models/props_c17/FurnitureDrawer001a.mdl", "models/props_c17/FurnitureDresser001a.mdl", "models/props_c17/FurnitureFireplace001a.mdl", "models/props_c17/FurnitureFridge001a.mdl", "models/props_c17/FurnitureRadiator001a.mdl", "models/props_c17/furnitureStove001a.mdl", "models/props_c17/FurnitureWashingmachine001a.mdl", "models/props_c17/oildrum001.mdl", "models/props_c17/Lockers001a.mdl", "models/props_c17/shelfunit01a.mdl", "models/props_combine/breenchair.mdl", "models/props_combine/breendesk.mdl", "models/props_interiors/BathTub01a.mdl", "models/props_interiors/Furniture_Couch01a.mdl", "models/props_interiors/Furniture_Couch02a.mdl", "models/props_interiors/Furniture_Lamp01a.mdl", "models/props_interiors/VendingMachineSoda01a.mdl", "models/props_junk/TrashDumpster01a.mdl", "models/props_junk/TrashBin01a.mdl", "models/props_junk/wood_crate002a.mdl", "models/props_junk/wood_crate001a_damaged.mdl", "models/props_junk/PushCart01a.mdl", "models/props_trainstation/trashcan_indoor001a.mdl", "models/props_trainstation/trashcan_indoor001b.mdl", "models/props_vehicles/apc_tire001.mdl", "models/props_wasteland/barricade002a.mdl", "models/props_wasteland/controlroom_filecabinet002a.mdl", "models/props_wasteland/controlroom_storagecloset001a.mdl", "models/props_wasteland/laundry_cart001.mdl", "models/props_wasteland/laundry_cart002.mdl", "models/props_wasteland/kitchen_fridge001a.mdl", "models/props_wasteland/kitchen_counter001b.mdl", "models/props_wasteland/kitchen_shelf001a.mdl", "models/props_wasteland/kitchen_stove001a.mdl", "models/props_c17/FurnitureWashingmachine001a.mdl", "models/props_lab/reciever_cart.mdl"}
+-- format: multiline
+HMCD_ProjectileJunkModels = {
+	"models/props_junk/gascan001a.mdl",
+	"models/props_junk/metalgascan.mdl",
+	"models/props_junk/propanecanister001a.mdl",
+	"models/props_interiors/pot01a.mdl",
+	"models/props_interiors/pot02a.mdl",
+	"models/props_interiors/refrigeratorDoor02a.mdl",
+	"models/props_interiors/SinkKitchen01a.mdl",
+	"models/props_junk/MetalBucket01a.mdl",
+	"models/props_junk/MetalBucket02a.mdl",
+	"models/props_junk/sawblade001a.mdl",
+	"models/props_junk/TrafficCone001a.mdl",
+	"models/props_lab/lockerdoorleft.mdl",
+	"models/props_trainstation/TrackSign02.mdl",
+	"models/props_vehicles/tire001c_car.mdl",
+	"models/props_wasteland/barricade001a.mdl",
+	"models/props_wasteland/controlroom_filecabinet001a.mdl",
+	"models/props_wasteland/controlroom_chair001a.mdl",
+	"models/props_c17/streetsign004f.mdl",
+	"models/props_c17/tv_monitor01.mdl",
+	"models/props_junk/PlasticCrate01a.mdl",
+	"models/props_interiors/Furniture_chair01a.mdl",
+	"models/props_interiors/Furniture_chair03a.mdl",
+	"models/props_combine/breenglobe.mdl",
+	"models/props_junk/watermelon01.mdl",
+	"models/props_lab/desklamp01.mdl",
+	"models/props_lab/monitor01a.mdl",
+	"models/props_lab/monitor02.mdl",
+	"models/props_lab/binderbluelabel.mdl",
+	"models/props_lab/cactus.mdl",
+	"models/props_junk/terracotta01.mdl",
+	"models/props_lab/reciever01b.mdl",
+	"models/props_lab/citizenradio.mdl",
+	"models/props_vehicles/carparts_wheel01a.mdl",
+	"models/props_vehicles/carparts_door01a.mdl",
+	"models/props_lab/harddrive02.mdl",
+	"models/props_lab/harddrive01.mdl",
+	"models/props_lab/reciever01d.mdl",
+	"models/props_junk/CinderBlock01a.mdl",
+	"models/props_junk/metal_paintcan001a.mdl",
+	"models/props_junk/metal_paintcan001b.mdl",
+	"models/props_c17/suitcase001a.mdl",
+	"models/props_c17/suitcase_passenger_physics.mdl",
+	"models/props_c17/briefcase001a.mdl",
+	"models/props_phx/construct/wood/wood_boardx1.mdl",
+	"models/props_phx/construct/wood/wood_panel1x1.mdl",
+	"models/props_c17/cashregister01a.mdl",
+	"models/props_c17/consolebox03a.mdl",
+}
+
+-- format: multiline
+HMCD_BigProjectileJunkModels = {
+	"models/props_borealis/bluebarrel001.mdl",
+	"models/props_c17/canister01a.mdl",
+	"models/props_c17/canister_propane01a.mdl",
+	"models/props_c17/bench01a.mdl",
+	"models/props_c17/door01_left.mdl",
+	"models/props_c17/FurnitureBathtub001a.mdl",
+	"models/props_c17/FurnitureCouch001a.mdl",
+	"models/props_c17/FurnitureCouch002a.mdl",
+	"models/props_c17/FurnitureDrawer001a.mdl",
+	"models/props_c17/FurnitureDresser001a.mdl",
+	"models/props_c17/FurnitureFireplace001a.mdl",
+	"models/props_c17/FurnitureFridge001a.mdl",
+	"models/props_c17/FurnitureRadiator001a.mdl",
+	"models/props_c17/furnitureStove001a.mdl",
+	"models/props_c17/FurnitureWashingmachine001a.mdl",
+	"models/props_c17/oildrum001.mdl",
+	"models/props_c17/Lockers001a.mdl",
+	"models/props_c17/shelfunit01a.mdl",
+	"models/props_combine/breenchair.mdl",
+	"models/props_combine/breendesk.mdl",
+	"models/props_interiors/BathTub01a.mdl",
+	"models/props_interiors/Furniture_Couch01a.mdl",
+	"models/props_interiors/Furniture_Couch02a.mdl",
+	"models/props_interiors/Furniture_Lamp01a.mdl",
+	"models/props_interiors/VendingMachineSoda01a.mdl",
+	"models/props_junk/TrashDumpster01a.mdl",
+	"models/props_junk/TrashBin01a.mdl",
+	"models/props_junk/wood_crate002a.mdl",
+	"models/props_junk/wood_crate001a_damaged.mdl",
+	"models/props_junk/PushCart01a.mdl",
+	"models/props_trainstation/trashcan_indoor001a.mdl",
+	"models/props_trainstation/trashcan_indoor001b.mdl",
+	"models/props_vehicles/apc_tire001.mdl",
+	"models/props_wasteland/barricade002a.mdl",
+	"models/props_wasteland/controlroom_filecabinet002a.mdl",
+	"models/props_wasteland/controlroom_storagecloset001a.mdl",
+	"models/props_wasteland/laundry_cart001.mdl",
+	"models/props_wasteland/laundry_cart002.mdl",
+	"models/props_wasteland/kitchen_fridge001a.mdl",
+	"models/props_wasteland/kitchen_counter001b.mdl",
+	"models/props_wasteland/kitchen_shelf001a.mdl",
+	"models/props_wasteland/kitchen_stove001a.mdl",
+	"models/props_c17/FurnitureWashingmachine001a.mdl",
+	"models/props_lab/reciever_cart.mdl"
+}
+
 HMCD_LootReplacements = {
 	["prop_vehicle_jeep"] = {"REPLACEVEHICLE", 1},
 	["prop_vehcle_jeep_old"] = {"REPLACEVEHICLE", 1},
@@ -164,11 +429,14 @@ HMCD_LootReplacements = {
 	["weapon_357"] = {"ent_jack_hmcd_revolver", .5, true},
 	["weapon_shotgun"] = {"ent_jack_hmcd_shotgun", .5, true},
 	["weapon_crossbow"] = {"ent_jack_hmcd_rifle", .5, true},
+	["weapon_ttt_bigben"] = {"ent_jack_hmcd_revolver", .5, true},
+	["weapon_ttt_exc_ak47"] = {"ent_jack_hmcd_assaultrifle", .3, true},
 	["weapon_ar2"] = {"ent_jack_hmcd_assaultrifle", .3, true},
 	["weapon_smg1"] = {"ent_jack_hmcd_assaultrifle", .3, true},
 	["weapon_frag"] = {"ent_jack_hmcd_pipebomb", .5, true},
 	["weapon_slam"] = {"ent_jack_hmcd_molotov", .5, true},
 	["weapon_rpg"] = {"ent_jack_hmcd_ammo", .5, true, "AlyxGun"},
+	["weapon_alyxgun"] = {"ent_jack_hmcd_bandage", .5},
 	["item_ammo_ar2_altfire"] = {"ent_jack_hmcd_molotov", .5, true},
 	["item_ammo_357"] = {"ent_jack_hmcd_ammo", .6, true, "357"},
 	["item_ammo_357_large"] = {"ent_jack_hmcd_ammo", .6, true, "357"},
@@ -471,9 +739,7 @@ function GM:DoAnimationEvent(pl, event, data)
 end
 
 function GM:CanPlayerEnterVehicle(ply, veh, role)
-	if self.ZOMBIE and ply.Murderer then
-		return false
-	else
-		return --!! true или nil
+	if ply and IsValid(ply) and not (self.ZOMBIE and ply.Murderer) then -- uhh actually :nerd:
+		return true
 	end
 end

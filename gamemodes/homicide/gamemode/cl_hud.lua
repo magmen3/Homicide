@@ -261,7 +261,6 @@ end
 local Health, Stamina, PersonTex, StamTex, HelTex, BGTex = 0, 0, surface.GetTextureID("vgui/hud/hmcd_person"), surface.GetTextureID("vgui/hud/hmcd_stamina"), surface.GetTextureID("vgui/hud/hmcd_health"), surface.GetTextureID("vgui/hud/hmcd_background")
 function GM:DrawGameHUD(ply)
 	if not IsValid(ply) then return end
-	if not IsValid(ply) then return end
 	if LocalPlayer() ~= ply then return end
 	if self:GetVictor() then return end
 	local W, H, Bleedout, Vary = ScrW(), ScrH(), ply.Bleedout, math.sin(CurTime() * 10) / 2 + .5
@@ -310,7 +309,7 @@ function GM:DrawGameHUD(ply)
 	end
 
 	local shouldDraw = hook.Run("HUDShouldDraw", "MurderHealthBall")
-	if shouldDraw ~= false then
+	if shouldDraw ~= false and not self.Realism:GetBool() then
 		local BarSize, BarLow, HFrac, SFrac = W * .75, H * .01 - 10, math.Clamp(Health / 100, .01, 1), math.Clamp(Stamina / 100, .01, 1)
 		if SFrac < .99 then
 			surface.SetTexture(StamTex)
@@ -628,16 +627,20 @@ function GM:PostDrawHUD()
 	end
 end
 
+local hidechud = {
+	["CHudHealth"] = true,
+	["CHudBattery"] = true,
+	["CHudAmmo"] = true,
+	["CHudSecondaryAmmo"] = true,
+	["CHudCrosshair"] = true,
+	["CHudGeiger"] = true,
+	["CHudPoisonDamageIndicator"] = true,
+	["CHudSquadStatus"] = true,
+	["CHudZoom"] = true
+}
+
 function GM:HUDShouldDraw(name)
-	-- hide health and armor AND AMMO YOU FAGGOT
-	--print(name)
-	if name == "CHudHealth" or name == "CHudBattery" or name == "CHudAmmo" then return false end
-	-- allow weapon hiding
-	local ply = LocalPlayer()
-	if IsValid(ply) then
-		local wep = ply:GetActiveWeapon()
-		if IsValid(wep) and wep.HUDShouldDraw then return wep.HUDShouldDraw(wep, name) end
-	end
+	if hidechud[name] then return false end
 	return true
 end
 
@@ -648,7 +651,6 @@ end
 --[[--------------------------------------------------------------
 	I hate desiging derma UIs so damn much
 ---------------------------------------------------------------]]
---
 net.Receive("hmcd_openammomenu", function() GAMEMODE:OpenAmmoDropMenu() end)
 function GM:OpenAmmoDropMenu()
 	local Ply, AmmoType, AmmoAmt, Ammos = LocalPlayer(), "Pistol", 1, {}

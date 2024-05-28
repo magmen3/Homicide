@@ -1,7 +1,7 @@
 if SERVER then
 	AddCSLuaFile()
 else
-	killicon.AddFont("wep_jack_hmcd_assaultrifle", "HL2MPTypeDeath", "1", Color(255, 0, 0))
+	killicon.AddFont("wep_jack_hmcd_assaultrifle", "HL2MPTypeDeath", "1", color_white)
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_assaultrifle")
 end
 
@@ -51,3 +51,5 @@ SWEP.HolsterSlot = 1
 SWEP.HolsterPos = Vector(3, -12, -4)
 SWEP.HolsterAng = Angle(160, 5, 180)
 SWEP.CarryWeight = 4500
+SWEP.SuicidePos = Vector(3, 6.75, -22)
+SWEP.SuicideAng = Angle(110, 2, 90)

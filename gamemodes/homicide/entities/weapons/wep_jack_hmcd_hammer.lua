@@ -173,7 +173,7 @@ function SWEP:SecondaryAttack()
 							self:GetOwner():PrintMessage(HUD_PRINTCENTER, translate.weaponHammerNailsNeeded)
 						end
 					else
-						local Strength = HMCD_BindObjects(Tr.Entity, Tr.HitPos, NewEnt, NewTr.HitPos, 4)
+						local Strength = HMCD_BindObjects(Tr.Entity, Tr.HitPos, NewEnt, NewTr.HitPos, 16)
 						self:TakePrimaryAmmo(1)
 						sound.Play("snd_jack_hmcd_hammerhit.wav", Tr.HitPos, 65, math.random(90, 110))
 						util.Decal("hmcd_jackanail", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal)

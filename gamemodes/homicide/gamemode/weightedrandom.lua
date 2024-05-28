@@ -30,8 +30,8 @@ function WRandom:Roll()
 	self:FindSetDefaultAverages()
 	for key, playa in pairs(Playas) do
 		local Record = GAMEMODE.SHITLIST[playa:SteamID()] or 0
-		if GetConVar("sv_cheats"):GetInt() == "1" then Record = 0 end
-		if (Record < GAMEMODE.GimpPunishmentThreshold) or (GetConVar("sv_cheats"):GetInt() == "1") then
+		if GAMEMODE.GuiltEnabled:GetInt() == "1" then Record = 0 end
+		if (Record < GAMEMODE.GimpPunishmentThreshold) or (GAMEMODE.GuiltEnabled:GetInt() == "1") then
 			for i = 1, playa.KillaChance do
 				table.insert(PotentialKillas, playa)
 			end
@@ -41,7 +41,7 @@ function WRandom:Roll()
 	Killa = table.Random(PotentialKillas)
 	for key, playa in pairs(Playas) do
 		local Record = GAMEMODE.SHITLIST[playa:SteamID()] or 0
-		if not (((Record >= GAMEMODE.GimpPunishmentThreshold) and (GetConVar("sv_cheats"):GetInt() == "0")) or (playa == Killa)) then
+		if not (((Record >= GAMEMODE.GimpPunishmentThreshold) and (GAMEMODE.GuiltEnabled:GetInt() == "0")) or (playa == Killa)) then
 			for i = 1, playa.GunnaChance do
 				table.insert(PotentialGunnas, playa)
 			end
@@ -75,7 +75,7 @@ function WRandom:Roll()
 		end
 
 		local Record = GAMEMODE.SHITLIST[playa:SteamID()] or 0
-		if (Record >= GAMEMODE.GimpPunishmentThreshold) and (GetConVar("sv_cheats"):GetInt() == 0) then
+		if (Record >= GAMEMODE.GimpPunishmentThreshold) and (GAMEMODE.GuiltEnabled:GetInt() == 0) then
 			playa:ChatPrint("Your guilt is at " .. math.Round((Record / GAMEMODE.KickbanPunishmentThreshold) * 100) .. "%. Keep RDMing and you'll be banned.")
 			playa.KillaChance = 1
 			playa.GunnaChance = 1

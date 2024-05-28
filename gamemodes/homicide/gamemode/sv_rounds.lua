@@ -159,8 +159,8 @@ function GM:RoundCheckForWin()
 	end
 
 	local survivors = {}
-	for k, v in pairs(players) do
-		if v:Alive() and not v.Murderer then table.insert(survivors, v) end
+	for k, v in ipairs(players) do
+		if v:Alive() and not v.Cop and not v.Murderer then table.insert(survivors, v) end
 		if v.Murderer then murderer = v end
 	end
 
@@ -497,7 +497,9 @@ function GM:EndTheRound(reason, murderer)
 	end
 end
 
+GM.RNDMode = math.random(1, 3)
 function GM:StartNewRound()
+	self.RNDMode = math.random(1, 3)
 	self.PUSSY_MODE_ENGAGED = false
 	self.EPIC_MODE_ENGAGED = false
 	self.ISLAM_MODE_ENGAGED = false
@@ -566,7 +568,7 @@ function GM:StartNewRound()
 	end
 
 	local ct, DaText = ChatText(), translate.roundStarted
-	if GetConVar("sv_cheats"):GetInt() == 1 then DaText = DaText .. translate.miscTKPenaltiesDisabled end
+	if self.GuiltEnabled:GetBool() == true then DaText = DaText .. translate.miscTKPenaltiesDisabled end
 	ct:Add(DaText)
 	ct:SendAll()
 	self.HeroPlayer = nil
@@ -581,17 +583,7 @@ function GM:StartNewRound()
 	self:InitPostEntityAndMapCleanup()
 	self:ClearAllFootsteps()
 	for k, ply in ipairs(players) do
-		if self.ForceNextMurderer and IsValid(self.ForceNextMurderer) and self.ForceNextMurderer:Team() == 2 then
-			self.ForceNextMurderer:SetMurderer(true)
-			self.ForceNextMurderer = nil
-		end
-
 		ply:SetMurderer(false)
-		if self.ForceNextMurderer and IsValid(self.ForceNextMurderer) and self.ForceNextMurderer:Team() == 2 then
-			self.ForceNextMurderer:SetMurderer(true)
-			self.ForceNextMurderer = nil
-		end
-
 		ply:SetGunman(false)
 		ply.HMCD_MarkedForDeath = false
 		ply:KillSilent()
@@ -610,7 +602,13 @@ function GM:StartNewRound()
 	-- pick the roles
 	local rand = WeightedRandom()
 	local murderer, gunman = rand:Roll()
-	if murderer then murderer:SetMurderer(true) end
+	if self.ForceNextMurderer and IsValid(self.ForceNextMurderer) and self.ForceNextMurderer:Team() == 2 then
+		self.ForceNextMurderer:SetMurderer(true)
+		self.ForceNextMurderer = nil
+	else
+		if murderer then murderer:SetMurderer(true) end
+	end
+
 	if gunman then gunman:SetGunman(true) end
 	self.MurdererLastKill = CurTime()
 	for key, playah in player.Iterator() do
@@ -626,7 +624,7 @@ function GM:StartNewRound()
 		Minutes = Minutes * 2
 	end
 
-	self.PoliceTime = CurTime() + (Minutes * 80)
+	self.PoliceTime = CurTime() + (Minutes * 50)
 	self.DeathmatchEndTime = CurTime() + (Minutes * 60 * 2)
 	self.PoliceNotified = false
 	self.ForceRoundEndTime = CurTime() + (Minutes * 90)

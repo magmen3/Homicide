@@ -70,8 +70,8 @@ if SERVER then
 			Arrows[i] = Arrow
 		end
 
-		for key, arrow in pairs(Arrows) do
-			for k, other in pairs(Arrows) do
+		for key, arrow in ipairs(Arrows) do
+			for k, other in ipairs(Arrows) do
 				if other ~= arrow then constraint.Weld(arrow, other, 0, 0, 5000, true, false) end
 			end
 		end
@@ -89,7 +89,24 @@ if SERVER then
 			end
 		end
 
-		if Wep then
+		if not GAMEMODE.Realism:GetBool() then
+			if Wep then
+				ply:GiveAmmo(self.Rounds, self.AmmoType, true)
+				local Pitch = 100
+				if self.AmmoType == "AR2" then
+					Pitch = 80
+				elseif self.AmmoType == "Buckshoit" then
+					Pitch = 70
+				end
+
+				self:EmitSound("snd_jack_hmcd_ammobox.wav", 65, Pitch)
+				self:Remove()
+				ply:SelectWeapon(Wep)
+			else
+				-- murderer can plausibly deny that he's able to pick up .22
+				if self.AmmoType ~= "AlyxGun" then ply:PickupObject(self) end
+			end
+		else
 			ply:GiveAmmo(self.Rounds, self.AmmoType, true)
 			local Pitch = 100
 			if self.AmmoType == "AR2" then
@@ -100,10 +117,6 @@ if SERVER then
 
 			self:EmitSound("snd_jack_hmcd_ammobox.wav", 65, Pitch)
 			self:Remove()
-			ply:SelectWeapon(Wep)
-		else
-			-- murderer can plausibly deny that he's able to pick up .22
-			if self.AmmoType ~= "AlyxGun" then ply:PickupObject(self) end
 		end
 	end
 

@@ -252,7 +252,7 @@ function GM:ScoreboardShow()
 			self:SetSize(w, h)
 		end
 
-		local lab = Label("Fixed by Mannytko, originally by Jackarunda. Version " .. tostring(GAMEMODE.Version or "error"), menu.Credits)
+		local lab = Label("Homicide by Jackarunda, fixed by Mannytko. Version " .. tostring(GAMEMODE.Version or "error"), menu.Credits)
 		lab:Dock(RIGHT)
 		lab:SetFont("MersText1")
 		lab.PerformLayout = name.PerformLayout

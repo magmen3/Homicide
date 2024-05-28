@@ -51,7 +51,6 @@ end
 function SWEP:SetupDataTables()
 end
 
---
 function SWEP:PrimaryAttack()
 	if not IsFirstTimePredicted() then return end
 	if self:GetOwner():IsSprinting() then return end
@@ -63,7 +62,7 @@ function SWEP:PrimaryAttack()
 	sound.Play("snd_jack_hmcd_needleprick.wav", self:GetOwner():GetShootPos() + VectorRand(), 40, math.random(90, 110))
 	local Ply, LifeID = self:GetOwner(), self:GetOwner().LifeID
 	self:Remove()
-	timer.Simple(2, function() if IsValid(Ply) and Ply:Alive() then Ply:SetHighOnDrugs(true) end end)
+	timer.Simple(GAMEMODE.Realism:GetBool() and 5 or 2, function() if IsValid(Ply) and Ply:Alive() then Ply:SetHighOnDrugs(true) end end)
 	timer.Simple(22, function() if IsValid(Ply) and Ply:Alive() and (Ply.LifeID == LifeID) then Ply:SetHighOnDrugs(false) end end)
 end
 

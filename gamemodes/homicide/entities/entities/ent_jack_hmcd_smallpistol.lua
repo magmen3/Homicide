@@ -25,7 +25,7 @@ if SERVER then
 	function ENT:PickUp(ply)
 		local SWEP = self.SWEP
 		if not self.RoundsInMag then self.RoundsInMag = 10 end
-		if not ply.Murderer then
+		if not ply.Murderer or GAMEMODE.Realism:GetBool() then
 			if ply:HasWeapon(self.SWEP) then
 				if self.RoundsInMag > 0 then
 					ply:GiveAmmo(self.RoundsInMag, "Pistol", true)

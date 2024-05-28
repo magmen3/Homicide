@@ -75,7 +75,7 @@ if SERVER then
 	function ENT:PickUp(ply)
 		local SWEP = self.SWEP
 		if not ply:HasWeapon(SWEP) then
-			if ply.Murderer or (GAMEMODE.ZOMBIE and not ply.Murderer) or GAMEMODE.DEATHMATCH then
+			if ply.Murderer or (GAMEMODE.ZOMBIE and not ply.Murderer) or GAMEMODE.DEATHMATCH or GAMEMODE.Realism:GetBool() then
 				ply:Give(SWEP)
 				ply:GetWeapon(self.SWEP).HmcdSpawned = self.HmcdSpawned
 				ply:GetWeapon(SWEP).Poisoned = self.Poisoned

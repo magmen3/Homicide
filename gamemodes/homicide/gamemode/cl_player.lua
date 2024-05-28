@@ -248,9 +248,8 @@ local WDir, Overriding, MovDir = VectorRand():GetNormalized(), false, 1000
 function GM:CreateMove(cmd)
 	local ply, Amt, Sporadicness = LocalPlayer(), 20, 15
 	local Wep = ply:GetActiveWeapon()
-	if ply:Crouching() then Amt = Amt / 2 end
-	if (prone and prone.Initialized) and ply:IsProne() then Amt = Amt / 4 end
-	if LocalPlayer().Murderer then Amt = Amt / 2 end
+	if ply:Crouching() or LocalPlayer().Murderer or ply.Cop then Amt = Amt / 2 end
+	if prone and ply:IsProne() then Amt = Amt / 4 end
 	if ply.Seizuring then
 		Amt = 1500
 		Sporadicness = 20

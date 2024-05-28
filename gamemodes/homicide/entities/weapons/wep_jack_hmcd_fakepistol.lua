@@ -1,7 +1,7 @@
 if SERVER then
 	AddCSLuaFile()
 else
-	killicon.AddFont("wep_jack_hmcd_fakepistol", "HL2MPTypeDeath", "1", Color(255, 0, 0))
+	killicon.AddFont("wep_jack_hmcd_fakepistol", "HL2MPTypeDeath", "1", color_white)
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_fakepistol")
 	SWEP.BounceWeaponIcon = false
 end

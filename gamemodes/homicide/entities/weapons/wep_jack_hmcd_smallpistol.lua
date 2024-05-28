@@ -7,3 +7,5 @@ SWEP.CloseFireSound = "snd_jack_hmcd_smp_close.wav"
 SWEP.ExtraFireSound = "snd_jack_hmcd_shotimpulse.wav"
 SWEP.FarFireSound = "snd_jack_hmcd_smp_far.wav"
 SWEP.CarryWeight = 1100
+SWEP.SuicidePos = Vector(-7, 4, -18)
+SWEP.SuicideAng = Angle(100, -10, -90)

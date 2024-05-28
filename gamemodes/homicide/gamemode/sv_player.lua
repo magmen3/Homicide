@@ -63,7 +63,7 @@ function GM:PlayerSpawn(ply)
 
 	-- Stop observer mode
 	ply:UnCSpectate()
-	ply.Stamina = 100
+	ply.Stamina = 200
 	ply.DynamicSprintSpeed = 1
 	ply.AttackerRecord = {}
 	ply.ForgiveTime = 0
@@ -75,7 +75,7 @@ function GM:PlayerSpawn(ply)
 	ply.LastDamageType = nil
 	ply.LastBled = nil
 	ply.LastHitLocation = nil
-	ply.LifeID = math.random(1, 100000) -- essentially a guid
+	ply.LifeID = math.random(1, 100000) -- essentially a guid -- Короче джакарунда добавил эту херню чтобы тейбл симплы не работали после респавна
 	ply.FoodBoost = 0
 	ply.PainBoost = 0
 	ply.ContainingContainer = nil
@@ -89,9 +89,12 @@ function GM:PlayerSpawn(ply)
 	ply.MurdererIdentityHidden = false
 	ply.TrueIdentity = nil
 	ply.Poisoned = false
+	ply.Cop = false
 	ply:CrosshairDisable()
 	ply:SetCanZoom(false)
 	ply:SetDSP(0, true)
+	ply:SetNWInt("Specmode", 1)
+	ply:SetNWBool("Suiciding", false)
 	umsg.Start("HMCD_FoodBoost", ply)
 	umsg.Short(0)
 	umsg.End()
@@ -209,21 +212,65 @@ function GM:PlayerLoadout(ply)
 	ply:SetHeadArmor(nil)
 	ply:SetChestArmor(nil)
 	ply.InfiniShuriken = false
+	self:GiveLoadout(ply)
+	for key, wep in ipairs(ply:GetWeapons()) do
+		if wep.HomicideSWEP then wep.HmcdSpawned = true end
+	end
+
+	net.Start("hmcd_flashlightpickup")
+	net.WriteEntity(ply)
+	net.WriteBit(ply.HasFlashlight)
+	net.Broadcast()
+end
+
+function GM:GiveLoadout(ply)
+	if ply.Cop then
+		ply:Give("wep_jack_hmcd_smallpistol")
+		ply:GetWeapon("wep_jack_hmcd_smallpistol"):SetClip1(10)
+		ply:GiveAmmo(20, "Pistol", true)
+		ply:Give("wep_jack_hmcd_bandage")
+		ply:Give("wep_jack_hmcd_medkit")
+		ply:Give("wep_jack_hmcd_walkietalkie")
+		ply.HasFlashlight = true
+		ply:SetClothing("none")
+		ply.Core = 1
+		ply.UpperBody = 1
+		ply.LowerBody = 1
+		ply.ModelSex = "male"
+		ply.ClothingMatIndex = 0
+		timer.Simple(math.random(1, 5), function()
+			if IsValid(ply) then
+				ply:SetAccessory("none")
+				ply:SetChestArmor("Level IIIA")
+			end
+		end)
+	end
+
 	if self.ZOMBIE and ply.Murderer then
 		ply:Give("wep_jack_hmcd_zombhands")
 	else
 		ply:Give("wep_jack_hmcd_hands")
 		if self.SHTF then
 			if self.DEATHMATCH then
-				ply:Give("wep_jack_hmcd_pocketknife")
-				ply:Give("wep_jack_hmcd_pistol")
-				ply:GetWeapon("wep_jack_hmcd_pistol"):SetClip1(13)
-				ply:GiveAmmo(26, "Pistol", true)
-				ply:Give("wep_jack_hmcd_oldgrenade_dm")
+				if self.RNDMode == 1 then
+					ply:Give("wep_jack_hmcd_pistol")
+					ply:GetWeapon("wep_jack_hmcd_pistol"):SetClip1(13)
+					ply:GiveAmmo(26, "Pistol", true)
+					ply:Give("wep_jack_hmcd_pocketknife")
+				elseif self.RNDMode == 2 then
+					ply:Give("wep_jack_hmcd_assaultrifle")
+					ply:GetWeapon("wep_jack_hmcd_assaultrifle"):SetClip1(13)
+					ply:GiveAmmo(60, "SMG1", true)
+					ply:Give("wep_jack_hmcd_pocketknife")
+				elseif self.RNDMode == 3 then
+					ply:Give("wep_jack_hmcd_knife")
+				end
+
+				ply:Give("wep_jack_hmcd_oldgrenade")
 				ply:Give("wep_jack_hmcd_bandage")
 				ply:Give("wep_jack_hmcd_walkietalkie")
 				ply.HasFlashlight = true
-				timer.Simple(math.Rand(1, 5), function()
+				timer.Simple(math.random(1, 5), function()
 					if IsValid(ply) then
 						ply:SetHeadArmor("ACH")
 						ply:SetChestArmor("Level IIIA")
@@ -238,7 +285,7 @@ function GM:PlayerLoadout(ply)
 					ply:Give("wep_jack_hmcd_adrenaline")
 					ply:Give("wep_jack_hmcd_suppressed")
 					ply:Give("wep_jack_hmcd_walkietalkie")
-					ply:Give("wep_jack_hmcd_oldgrenade_dm") --!! wep_jack_hmcd_oldgrenade
+					ply:Give("wep_jack_hmcd_oldgrenade")
 					ply:Give("wep_jack_hmcd_poisoncanister")
 					ply:Give("wep_jack_hmcd_poisonliquid")
 					ply:Give("wep_jack_hmcd_mask")
@@ -297,15 +344,6 @@ function GM:PlayerLoadout(ply)
 			end
 		end
 	end
-
-	for key, wep in ipairs(ply:GetWeapons()) do
-		if wep.HomicideSWEP then wep.HmcdSpawned = true end
-	end
-
-	net.Start("hmcd_flashlightpickup")
-	net.WriteEntity(ply)
-	net.WriteBit(ply.HasFlashlight)
-	net.Broadcast()
 end
 
 function GM:PlayerSetModel(ply)
@@ -470,13 +508,12 @@ function plyMeta:CalculateSpeed()
 
 	if self.Murderer then run = run * 1.1 end
 	if GAMEMODE.SHTF then run = run * 1.1 end
-	if IsValid(wep) then
-		if wep.GetCarrying and IsValid(wep:GetCarrying()) and IsValid(wep:GetCarrying():GetPhysicsObject()) then
-			if wep:GetCarrying():GetPhysicsObject():GetMass() > 30 then
-				walk = walk * .5
-				run = run * .5
-				jumppower = jumppower * .5
-			end
+	if GAMEMODE.PUSSY and not self.Murderer then run = run * 0.9 end
+	if IsValid(wep) and wep.GetCarrying and IsValid(wep:GetCarrying()) and IsValid(wep:GetCarrying():GetPhysicsObject()) then
+		if wep:GetCarrying():GetPhysicsObject():GetMass() > 30 then
+			walk = walk * .5
+			run = run * .5
+			jumppower = jumppower * .5
 		end
 	end
 
@@ -512,8 +549,12 @@ function plyMeta:CalculateSpeed()
 		end
 
 		if self.HasFlashlight then Weight = Weight + 800 end
-		if self.ChestArmor and (self.ChestArmor == "Level III") then Weight = Weight + 10000 end
-		if self.ChestArmor and (self.ChestArmor == "Level IIIA") then Weight = Weight + 2000 end
+		if self.ChestArmor and (self.ChestArmor == "Level III") then
+			Weight = Weight + 10000
+		elseif self.ChestArmor and (self.ChestArmor == "Level IIIA") then
+			Weight = Weight + 2000
+		end
+
 		if self.HeadArmor and (self.HeadArmor == "ACH") then Weight = Weight + 2000 end
 		self.CarryWeightSpeedMul = math.Clamp(1 - (Weight / 100000), 0, 1)
 		self.CarryWeightStaminaMul = math.Clamp(1 - (Weight / 100000), 0, 1)
@@ -533,8 +574,14 @@ function plyMeta:CalculateSpeed()
 	self.DynamicSprintSpeed = DSM
 	self:SetCrouchedWalkSpeed(.5 * gMul * wMul)
 	self:SetMaxSpeed((walk + (SprintAdd * (DSM / 100)) * mul) * gMul * wMul)
-	self:SetRunSpeed((walk + (SprintAdd * (DSM / 100)) * mul) * gMul * wMul)
+	if self.Stamina >= 25 then
+		self:SetRunSpeed((walk + (SprintAdd * (DSM / 100)) * mul) * gMul * wMul)
+	else
+		self:SetRunSpeed((walk * mul * gMul * wMul) * .75)
+	end
+
 	self:SetWalkSpeed(walk * mul * gMul * wMul)
+	self:SetSlowWalkSpeed(walk * mul * gMul * wMul)
 	self:SetJumpPower(jumppower * mul * gMul * wMul)
 end
 
@@ -698,7 +745,7 @@ function GM:PlayerDeath(ply, Inflictor, attacker)
 
 	if not ply.Murderer then
 		self.MurdererLastKill = CurTime()
-		local murderer
+		--local murderer
 		local players = team.GetPlayers(2)
 		for k, v in ipairs(players) do
 			if v.Murderer then murderer = v end
@@ -1730,20 +1777,20 @@ function PlayerMeta:DropAmmo(typ, amt)
 end
 
 function PlayerMeta:AddMerit(amt)
-	if GetConVar("sv_cheats"):GetBool() then return end
+	if GAMEMODE.GuiltEnabled:GetBool() then return end
 	local Old = tonumber(self:GetPData("JackHMCD_TotalMerit")) or 0
 	self:SetPData("JackHMCD_TotalMerit", math.abs(Old + amt))
 end
 
 function PlayerMeta:AddDemerit(amt)
-	if GetConVar("sv_cheats"):GetBool() then return end
+	if GAMEMODE.GuiltEnabled:GetBool() then return end
 	local Old = tonumber(self:GetPData("JackHMCD_TotalDemerit")) or 0
 	self:SetPData("JackHMCD_TotalDemerit", math.abs(Old + amt))
 end
 
 function PlayerMeta:AddExperience(amt)
 	--print("EXPERIENCE",self,amt)
-	if GetConVar("sv_cheats"):GetBool() then return end
+	if GAMEMODE.GuiltEnabled:GetBool() then return end
 	local Num = 0
 	for key, playah in pairs(team.GetPlayers(2)) do
 		if not playah:IsBot() then Num = Num + 1 end

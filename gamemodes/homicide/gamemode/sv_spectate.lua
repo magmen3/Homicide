@@ -42,11 +42,11 @@ function PlayerMeta:GetCSpectateMode()
 	return self.SpectateMode
 end
 
-function GM:SpectateNext(ply, direction)
+function GM:SpectateNext(ply, direction, specmode)
 	direction = direction or 1
 	local players = {}
 	local index = 1
-	for k, v in pairs(team.GetPlayers(2)) do
+	for k, v in ipairs(team.GetPlayers(2)) do
 		if v:Alive() then
 			table.insert(players, v)
 			if v == ply:GetCSpectatee() then index = #players end
@@ -59,7 +59,7 @@ function GM:SpectateNext(ply, direction)
 		if index < 1 then index = #players end
 		local ent = players[index]
 		if IsValid(ent) then
-			ply:CSpectate(OBS_MODE_IN_EYE, ent)
+			ply:CSpectate(specmode, ent)
 		else
 			if IsValid(ply:GetRagdollEntity()) then
 				if ply:GetCSpectating() ~= ply:GetRagdollEntity() then ply:CSpectate(OBS_MODE_CHASE, ply:GetRagdollEntity()) end
@@ -101,7 +101,19 @@ function GM:ChooseSpectatee(ply)
 			direction = -1
 		end
 
-		if direction then self:SpectateNext(ply, direction) end
+		local mode = ply:GetNWInt("Specmode", 1)
+		local specmode = OBS_MODE_IN_EYE
+		if mode == 1 then
+			specmode = OBS_MODE_IN_EYE
+		elseif mode == 2 then
+			specmode = OBS_MODE_CHASE
+		elseif mode == 3 then
+			ply:SetNWInt("Specmode", 1)
+		end
+
+		if ply:KeyPressed(IN_RELOAD) then ply:SetNWInt("Specmode", mode + 1) end
+		if direction then self:SpectateNext(ply, direction, specmode) end
+		ply:CSpectate(specmode, ply.Spectatee)
 	end
 
 	-- if invalid or dead

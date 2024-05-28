@@ -19,7 +19,7 @@
 if SERVER then
 	AddCSLuaFile()
 else
-	killicon.AddFont("wep_jack_hmcd_smallpistol", "HL2MPTypeDeath", "1", Color(255, 0, 0))
+	killicon.AddFont("wep_jack_hmcd_smallpistol", "HL2MPTypeDeath", "1", color_white)
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_smallpistol")
 	SWEP.BounceWeaponIcon = false
 end
@@ -40,28 +40,18 @@ SWEP.Weight = 5
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
 SWEP.Primary.Sound = "snd_jack_hmcd_smp_close.wav"
-SWEP.Primary.Damage = 120
 SWEP.Primary.NumShots = 1
-SWEP.Primary.Recoil = 5
-SWEP.Primary.Cone = 1
-SWEP.Primary.Delay = 3
 SWEP.Primary.ClipSize = 10
 SWEP.Primary.DefaultClip = 0
 SWEP.Primary.Tracer = 1
-SWEP.Primary.Force = 420
 SWEP.Primary.TakeAmmoPerBullet = false
 SWEP.Primary.Automatic = false
 SWEP.Primary.Ammo = "Pistol"
 SWEP.Secondary.Sound = ""
-SWEP.Secondary.Damage = 10
 SWEP.Secondary.NumShots = 1
-SWEP.Secondary.Recoil = 1
-SWEP.Secondary.Cone = 0
-SWEP.Secondary.Delay = 0.25
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Tracer = -1
-SWEP.Secondary.Force = 5
 SWEP.Secondary.TakeAmmoPerBullet = false
 SWEP.Secondary.Automatic = false
 SWEP.Secondary.Ammo = "none"
@@ -109,10 +99,26 @@ SWEP.DrawAnim = "draw"
 SWEP.ReloadAnim = "reload"
 SWEP.ReloadInterrupted = false
 SWEP.HomicideSWEP = true
+SWEP.SuicidePos = Vector(-7, 4, -18)
+SWEP.SuicideAng = Angle(100, -10, -90)
+--[[if SERVER then
+	concommand.Add("suicide", function(ply, cmd, args)
+		local wep = ply:GetActiveWeapon()
+		if not (wep.SuicidePos and wep.SuicideAng) or not wep:GetReady() then return end
+		if IsValid(wep) then
+			if wep:GetSuiciding() >= 40 then
+				ply:SetNWBool("Suiciding", false)
+			else
+				ply:SetNWBool("Suiciding", true)
+			end
+		end
+	end)
+end]]
 function SWEP:Initialize()
 	self.NextFrontBlockCheckTime = CurTime()
 	self:SetHoldType(self.HipHoldType)
 	self:SetAiming(0)
+	--self:SetSuiciding(0)
 	self:SetSprinting(0)
 	self:SetReady(true)
 	if self.CustomColor then self:SetColor(self.CustomColor) end
@@ -130,6 +136,7 @@ function SWEP:SetupDataTables()
 	self:NetworkVar("Bool", 0, "Ready")
 	self:NetworkVar("Int", 0, "Aiming")
 	self:NetworkVar("Int", 1, "Sprinting")
+	--self:NetworkVar("Int", 0, "Suiciding")
 	self:NetworkVar("Bool", 1, "Reloading")
 end
 
@@ -166,22 +173,24 @@ function SWEP:PrimaryAttack()
 		return
 	end
 
+	--if self:GetSuiciding() < 10 then
 	local WaterMul = 1
 	if owner:WaterLevel() >= 3 then WaterMul = .5 end
-	local dmgAmt, InAcc = self.Damage * math.Rand(.9, 1.1) * WaterMul, 1 - self.Accuracy
+	local dmgAmt, InAcc = (GAMEMODE.Realism:GetBool() and self.Damage * 1.4 or self.Damage) * math.Rand(.9, 1.1) * WaterMul, 1 - self.Accuracy
 	if self:GetAiming() <= 95 then InAcc = InAcc + self.HipFireInaccuracy end
-	local BulletTraj = (owner:GetAimVector() + VectorRand() * InAcc):GetNormalized()
+	local BulletTraj = (owner:GetAimVector() + VectorRand() * (InAcc / (GAMEMODE.Realism:GetBool() and 1.9 or 1))):GetNormalized()
 	local bullet = {}
 	bullet.Num = self.NumProjectiles
 	bullet.Src = owner:GetShootPos()
 	bullet.Dir = BulletTraj
-	bullet.Spread = Vector(self.Spread, self.Spread, 0)
+	bullet.Spread = Vector(self.Spread * (GAMEMODE.Realism:GetBool() and 0.4 or 1), self.Spread * (GAMEMODE.Realism:GetBool() and 0.4 or 1), 0)
 	bullet.Tracer = 0
 	bullet.Force = dmgAmt / 10
 	bullet.Damage = dmgAmt
 	bullet.Callback = function(ply, tr) ply:GetActiveWeapon():BulletCallbackFunc(dmgAmt, ply, tr, dmg, false, true, false) end
 	owner:FireBullets(bullet)
 	if self.Supersonic then self:BallisticSnap(BulletTraj) end
+	--end
 	if (self:Clip1() == 1) and self.LastFireAnim then
 		self:DoBFSAnimation(self.LastFireAnim)
 	elseif self:Clip1() > 0 then
@@ -242,9 +251,9 @@ function SWEP:PrimaryAttack()
 	end
 
 	local Ang, Rec = owner:EyeAngles(), self.Recoil
-	if owner.Murderer then Rec = .5 end
-	local RecoilY = math.Rand(.015, .03) * Rec
-	local RecoilX = math.Rand(-.03, .05) * Rec
+	if owner.Murderer or owner.Cop then Rec = .5 end
+	local RecoilY = math.Rand(.015, .03) * Rec * (GAMEMODE.Realism:GetBool() and 1.15 or 1)
+	local RecoilX = math.Rand(-.03, .05) * Rec * (GAMEMODE.Realism:GetBool() and 1.15 or 1)
 	if (SERVER and game.SinglePlayer()) or CLIENT then owner:SetEyeAngles((Ang:Forward() + RecoilY * Ang:Up() + Ang:Right() * RecoilX):Angle()) end
 	if not owner:OnGround() then owner:SetVelocity(-owner:GetAimVector() * 10) end
 	owner:ViewPunchReset()
@@ -253,6 +262,7 @@ function SWEP:PrimaryAttack()
 	local Extra = 0
 	if owner:WaterLevel() >= 3 then Extra = 1 end
 	self:SetNextPrimaryFire(CurTime() + self.TriggerDelay + self.CycleTime + Extra)
+	--	if self:GetSprinting() > 10 and SERVER and IsValid(owner) then owner:Kill() end
 end
 
 function SWEP:BarrelSmoke()
@@ -297,12 +307,17 @@ function SWEP:Think()
 		end
 
 		local Sprintin, Aimin, AimAmt, SprintAmt = owner:IsSprinting(), owner:KeyDown(IN_ATTACK2), self:GetAiming(), self:GetSprinting()
+		--local SuicIn, SuicAmt = owner:GetNWBool("Suiciding"), self:GetSuiciding()
 		if (Sprintin or self:FrontBlocked()) and self:GetReady() then
 			self:SetSprinting(math.Clamp(SprintAmt + 40 * (1 / self.BearTime), 0, 100))
 			self:SetAiming(math.Clamp(AimAmt - 40 * (1 / self.AimTime), 0, 100))
 		elseif Aimin and owner:OnGround() and not ((self.CycleType == "manual") and (self.LastFire + .75 > CurTime())) then
 			self:SetAiming(math.Clamp(AimAmt + 20 * (1 / self.AimTime), 0, 100))
 			self:SetSprinting(math.Clamp(SprintAmt - 20 * (1 / self.BearTime), 0, 100))
+			--[[elseif SuicIn and self:GetReady() then
+			self:SetSuiciding(math.Clamp(SuicAmt + 40 * (1 / self.BearTime), 0, 100))
+			self:SetSprinting(math.Clamp(SprintAmt - 30 * (1 / self.BearTime), 0, 100))
+			self:SetAiming(math.Clamp(AimAmt - 30 * (1 / self.AimTime), 0, 100))]]
 		else
 			self:SetAiming(math.Clamp(AimAmt - 40 * (1 / self.AimTime), 0, 100))
 			self:SetSprinting(math.Clamp(SprintAmt - 20 * (1 / self.BearTime), 0, 100))
@@ -505,7 +520,7 @@ function SWEP:RicochetOrPenetrate(initialTrace)
 	local MaxRicAngle = 60 * SMul
 	-- all the way through
 	if ApproachAngle > (MaxRicAngle * 1.25) then
-		local MaxDist, SearchPos, SearchDist, Penetrated = (self.Damage / SMul) * .15, IPos, 5, false
+		local MaxDist, SearchPos, SearchDist, Penetrated = ((GAMEMODE.Realism:GetBool() and self.Damage * 1.4 or self.Damage) / SMul) * .15, IPos, 5, false
 		while (not Penetrated) and (SearchDist < MaxDist) do
 			SearchPos = IPos + AVec * SearchDist
 			local PeneTrace = util.QuickTrace(SearchPos, -AVec * SearchDist)
@@ -531,7 +546,7 @@ function SWEP:RicochetOrPenetrate(initialTrace)
 
 			self:FireBullets({
 				Attacker = self:GetOwner(),
-				Damage = self.Damage * .65,
+				Damage = (GAMEMODE.Realism:GetBool() and self.Damage * 1.4 or self.Damage) * .65,
 				Force = self.Damage / 15,
 				Num = 1,
 				Tracer = 0,
@@ -551,7 +566,7 @@ function SWEP:RicochetOrPenetrate(initialTrace)
 		NewVec = NewVec:Forward()
 		self:FireBullets({
 			Attacker = self:GetOwner(),
-			Damage = self.Damage * .5,
+			Damage = (GAMEMODE.Realism:GetBool() and self.Damage * 1.4 or self.Damage) * .5,
 			Force = self.Damage / 15,
 			Num = 1,
 			Tracer = 0,
@@ -609,6 +624,7 @@ end
 if CLIENT then
 	local Crouched = 0
 	local LastSprintGotten = 0
+	--local LastSuicGotten = 0
 	local LastAimGotten = 0
 	local LastExtraAim = 0
 	function SWEP:GetViewModelPosition(pos, ang)
@@ -616,9 +632,12 @@ if CLIENT then
 		local FT = FrameTime()
 		local SprintGotten = Lerp(.1, LastSprintGotten, self:GetSprinting())
 		LastSprintGotten = SprintGotten
+		--local SuicGotten = Lerp(.1, LastSuicGotten, self:GetSuiciding())
+		--LastSuicGotten = SuicGotten
 		local AimGotten = Lerp(.1, LastAimGotten, self:GetAiming())
 		LastAimGotten = AimGotten
 		local Aim, Sprint, Up, Forward, Right = AimGotten, SprintGotten / 100, ang:Up(), ang:Forward(), ang:Right()
+		--local Suicid = SuicGotten / 100
 		local ExtraAim = 0
 		if self:GetOwner():KeyDown(IN_FORWARD) or self:GetOwner():KeyDown(IN_BACK) or self:GetOwner():KeyDown(IN_MOVELEFT) or self:GetOwner():KeyDown(IN_MOVERIGHT) then
 			ExtraAim = Lerp(4 * FT, LastExtraAim, 1)
@@ -642,6 +661,12 @@ if CLIENT then
 			ang:RotateAroundAxis(ang:Forward(), self.SprintAng.r * Sprint)
 		end
 
+		--[[if (Suicid > 0) and self:GetReady() and self.SuicidePos then
+			pos = pos + Up * self.SuicidePos.z * Suicid + Forward * self.SuicidePos.y * Suicid + Right * self.SuicidePos.x * Suicid
+			ang:RotateAroundAxis(ang:Right(), self.SuicideAng.p * Suicid)
+			ang:RotateAroundAxis(ang:Up(), self.SuicideAng.y * Suicid)
+			ang:RotateAroundAxis(ang:Forward(), self.SuicideAng.r * Suicid)
+		end]]
 		pos = pos + Vec.x * Right + Vec.y * Forward + Vec.z * Up
 		if self:GetOwner():Crouching() then
 			Crouched = math.Clamp(Crouched + .01, 0, 1)

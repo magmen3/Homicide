@@ -1,5 +1,3 @@
-local PlayerMeta = FindMetaTable("Player")
-local EntityMeta = FindMetaTable("Entity")
 local AmmoTypes = {
 	"AirboatGun", -- nails twice as likely
 	"AlyxGun",
@@ -54,7 +52,7 @@ local LootTable = {
 	},
 	{
 		"ent_jack_hmcd_axe",
-		5
+		3
 	},
 	{
 		"ent_jack_hmcd_bandagebig",
@@ -294,7 +292,7 @@ local SHTF_TraitorLootTable = {
 	},
 	{
 		"ent_jack_hmcd_axe",
-		4
+		3
 	},
 	{
 		"ent_jack_hmcd_rifle",
@@ -402,7 +400,7 @@ local DeathmatchLootTable = {
 	},
 	{
 		"ent_jack_hmcd_axe",
-		4
+		2
 	},
 	{
 		"ent_jack_hmcd_rifle",
@@ -432,7 +430,11 @@ local DeathmatchLootTable = {
 
 function GM:SelectLootItem(goodShit)
 	local Item, Rand, DemLoots = "ent_jack_hmcd_smallpistol", math.Rand(0, 100), LootTable
-	if self.DEATHMATCH then goodShit = math.random(1, 2) == 1 end
+	if self.DEATHMATCH then
+		DemLoots = DeathmatchLootTable
+		--goodShit = math.random(1, 2) == 1
+	end
+
 	if self.SHTF then
 		if goodShit then
 			DemLoots = SHTF_TraitorLootTable
@@ -453,7 +455,7 @@ function GM:SelectLootItem(goodShit)
 	end
 
 	-- HERE'S JOHNNY
-	if self.PUSSY then if math.random(1, 5) == 4 then Item = table.Random({"ent_jack_hmcd_hatchet", "ent_jack_hmcd_axe"}) end end
+	if self.PUSSY and not self.Realism:GetBool() and math.random(1, 5) == 4 then Item = table.Random({"ent_jack_hmcd_hatchet", "ent_jack_hmcd_axe"}) end
 	return Item
 end
 
@@ -553,7 +555,7 @@ function GM:PropBreak(dude, prop)
 	elseif prop.LootFilled then
 		local goodShit = false
 		for key, ply in player.Iterator() do
-			if ((ply:GetPos() - prop:GetPos()):Length() < 100) and ply.Murderer then
+			if (ply:GetPos():Distance(prop:GetPos()) <= 150) and ply.Murderer then
 				goodShit = true
 				break
 			end

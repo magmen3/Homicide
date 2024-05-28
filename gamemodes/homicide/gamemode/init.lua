@@ -65,7 +65,7 @@ GM.BonusForgiveness = 40 -- if you still have your innocence at the end of the r
 GM.HeroPlayer = nil
 GM.VillainPlayer = nil
 GM.PLAYER_SPEED_MUL = 1
-GM.LOOT_SPAWN_MUL = 2
+GM.LOOT_SPAWN_MUL = 1.5
 util.AddNetworkString("hmcd_tempspeedmul")
 util.AddNetworkString("hmcd_hudhalo")
 util.AddNetworkString("hmcd_player_accessory")
@@ -90,26 +90,29 @@ local function SpecSHTF(ply, cmd, args)
 		return
 	end
 
-	if args[1] == "1" then
-		GAMEMODE.SHTF_MODE_ENGAGED = true
-		GAMEMODE.PUSSY_MODE_ENGAGED = false
-		GAMEMODE.EPIC_MODE_ENGAGED = false
-		GAMEMODE.ISLAM_MODE_ENGAGED = false
-	elseif args[1] == "0" then
+	if args[1] == "0" then
 		GAMEMODE.SHTF_MODE_ENGAGED = false
 		GAMEMODE.DEATHMATCH_MODE_ENGAGED = false
 		GAMEMODE.ZOMBIE_MODE_ENGAGED = false
+		GAMEMODE.SHTF_Specified = false
+	elseif args[1] == "1" then
+		GAMEMODE.SHTF_MODE_ENGAGED = true
+		GAMEMODE.DEATHMATCH_MODE_ENGAGED = false
+		GAMEMODE.ZOMBIE_MODE_ENGAGED = false
+		GAMEMODE.SHTF_Specified = true
 	elseif args[1] == "2" then
 		GAMEMODE.SHTF_MODE_ENGAGED = true
 		GAMEMODE.DEATHMATCH_MODE_ENGAGED = true
 		GAMEMODE.ZOMBIE_MODE_ENGAGED = false
+		GAMEMODE.SHTF_Specified = true
 	elseif args[1] == "3" then
 		GAMEMODE.SHTF_MODE_ENGAGED = true
 		GAMEMODE.DEATHMATCH_MODE_ENGAGED = false
 		GAMEMODE.ZOMBIE_MODE_ENGAGED = true
+		GAMEMODE.SHTF_Specified = true
 	end
 
-	GAMEMODE.SHTF_Specified = true
+	--GAMEMODE.SHTF_Specified = true
 	print("SHTF mode specified as " .. tostring(GAMEMODE.SHTF_MODE_ENGAGED))
 	print("Zombie mode specified as " .. tostring(GAMEMODE.ZOMBIE_MODE_ENGAGED))
 	print("DM mode specified as " .. tostring(GAMEMODE.DEATHMATCH_MODE_ENGAGED))
@@ -357,7 +360,6 @@ end
 function GM:InitPostEntityAndMapCleanup()
 end
 
---
 local NextCopSpawnTime, NextCopThinkTime, NextSirenTime, NextZombieThinkTime, NextZombieSpawnTime = 0, 0, 0, 0, 0
 function GM:SpawnCop(pos)
 	local Cop = ents.Create("npc_metropolice")
@@ -383,7 +385,7 @@ function GM:SpawnCop(pos)
 	Cop:AddRelationship("player D_NU 50")
 	Cop:AddRelationship("npc_citizen D_NU 50")
 	if math.random(1, 2) == 1 then Cop:Fire("gagenable", "", 0) end
-	for key, other in pairs(ents.FindByClass("npc_metropolice")) do
+	for key, other in ipairs(ents.FindByClass("npc_metropolice")) do
 		constraint.NoCollide(Cop, other, 0, 0)
 	end
 	return Cop
@@ -417,7 +419,7 @@ function GM:SpawnGuardsman(pos)
 	dude:AddRelationship("player D_NU 50")
 	dude:AddRelationship("npc_citizen D_NU 50")
 	if math.random(1, 2) == 1 then dude:Fire("gagenable", "", 0) end
-	for key, other in pairs(ents.FindByClass("npc_metropolice")) do
+	for key, other in ipairs(ents.FindByClass("npc_metropolice")) do
 		constraint.NoCollide(dude, other, 0, 0)
 	end
 
@@ -456,11 +458,11 @@ function GM:SpawnZombie(pos)
 	dude:SetShouldServerRagdoll(false)
 	if math.random(1, 2) == 1 then
 		dude:Fire("gagenable", "", 0)
-		for key, other in pairs(self:GetZombies()) do
+		for key, other in ipairs(self:GetZombies()) do
 			constraint.NoCollide(dude, other, 0, 0)
 		end
 
-		for key, playa in pairs(team.GetPlayers()) do
+		for key, playa in ipairs(team.GetPlayers()) do
 			if playa.Murderer then constraint.NoCollide(dude, playa, 0, 0) end
 		end
 	end
@@ -555,9 +557,9 @@ function GM:CopThink()
 	if NextCopThinkTime > CurTime() then return end
 	NextCopThinkTime = CurTime() + .25
 	local Cops, Playas = ents.FindByClass("npc_metropolice"), player.GetAll()
-	for key, cop in pairs(Cops) do
+	for key, cop in ipairs(Cops) do
 		local KeepCop = cop:GetActivity() ~= ACT_IDLE
-		for key, playa in pairs(Playas) do
+		for key, playa in player.Iterator() do
 			if playa:Alive() then
 				if (playa:GetPos() - cop:GetPos()):Length() < 2000 then
 					KeepCop = true
@@ -569,7 +571,7 @@ function GM:CopThink()
 		if not KeepCop then
 			SafeRemoveEntity(cop)
 		else
-			for key, playa in pairs(Playas) do
+			for key, playa in player.Iterator() do
 				if playa:Alive() then
 					local Wep, Disp, Pri = playa:GetActiveWeapon(), D_NU, 80
 					if IsValid(Wep) then
@@ -603,15 +605,13 @@ function GM:CopThink()
 				end
 			end
 
-			for key, door in pairs(ents.FindInSphere(cop:GetPos(), 100)) do
+			for key, door in ipairs(ents.FindInSphere(cop:GetPos(), 100)) do
 				local Class = door:GetClass()
-				if not door:GetNoDraw() then
-					if math.random(1, 50) == 29 then
-						if (Class == "prop_door") or (Class == "prop_door_rotating") or (Class == "func_door") or (Class == "func_door_rotating") then
-							door:Fire("open", "", 0)
-						elseif door.PlayerHiddenInside then
-							door.PlayerHiddenInside:ExitContainer()
-						end
+				if not door:GetNoDraw() and math.random(1, 50) == 29 then
+					if (Class == "prop_door") or (Class == "prop_door_rotating") or (Class == "func_door") or (Class == "func_door_rotating") then
+						door:Fire("open", "", 0)
+					elseif door.PlayerHiddenInside then
+						door.PlayerHiddenInside:ExitContainer()
 					end
 				end
 			end
@@ -629,6 +629,7 @@ function GM:CopThink()
 			EffDat:SetScale(1)
 			util.Effect("eff_jack_hmcd_redflash", EffDat, true, true)
 			timer.Simple(.5, function()
+				if not (IsValid(SirenCop) or IsValid(Pos)) then return end
 				local EffDat = EffectData()
 				EffDat:SetOrigin(Pos)
 				EffDat:SetScale(1)
@@ -648,7 +649,7 @@ function GM:ZombieThink()
 	if NextZombieThinkTime > CurTime() then return end
 	NextZombieThinkTime = CurTime() + .25
 	local Zombs, Playas = self:GetZombies(), player.GetAll()
-	for key, zomb in pairs(Zombs) do
+	for key, zomb in ipairs(Zombs) do
 		local KeepZomb = zomb:GetActivity() ~= ACT_IDLE
 		for key, playa in pairs(Playas) do
 			if playa:Alive() then
@@ -686,7 +687,7 @@ end
 
 function GM:GetZombies()
 	local All, Result = ents.FindByClass("npc_*"), {}
-	for key, npc in pairs(All) do
+	for key, npc in ipairs(All) do
 		if npc.HMCD_Zomb then table.insert(Result, npc) end
 	end
 	return Result
@@ -920,13 +921,13 @@ end
 function GM:GlobalAntiCheat()
 	if GetConVar("sv_cheats"):GetBool() then return end
 	local Shit = ents.GetAll()
-	for key, ent in pairs(Shit) do
+	for key, ent in ipairs(Shit) do
 		if ent:IsPlayer() then
 			ent:AntiCheat()
 		else
 			if not ent.HmcdSpawned then
 				local Good, Class = false, ent:GetClass()
-				for key, suffix in pairs(HMCD_AllowedEntities) do
+				for key, suffix in ipairs(HMCD_AllowedEntities) do
 					if string.find(Class, suffix) then
 						Good = true
 						break
@@ -1109,7 +1110,7 @@ function GM:EntityTakeDamage(ent, dmginfo)
 				ent.LastAttackerName = translate.attGround
 			end
 
-			if Att:IsPlayer() and (GetConVar("sv_cheats"):GetInt() == 0) and not (ent == Att) and not Att.Murderer and (self:GetRound() == 1) and not self.DEATHMATCH then
+			if Att:IsPlayer() and (self.GuiltEnabled:GetBool() == false) and not (ent == Att) and not Att.Murderer and (self:GetRound() == 1) and not self.DEATHMATCH then
 				if Att.LastDamager and (Att.LastDamager == ent) and ((Att.LastDamagedTime + 3) > CurTime()) then
 				else -- self defense
 					local Ow = math.Clamp(dmginfo:GetDamage(), 0, 100)
@@ -1399,7 +1400,7 @@ function HMCD_ReplaceVehicle(veh)
 	elseif mdl == "models/airboat.mdl" then
 		Bug = ents.Create("prop_vehicle_airboat")
 		Bug:SetKeyValue("vehiclescript", "scripts/vehicles/normal_jeep.txt")
-		Bug:SetModel("models/airboat.mdl")
+		Bug:SetModel("models/buggy.mdl") -- "models/airboat.mdl"
 		Bug:Fire("EnableGun", "0", 0)
 	else
 		Bug = ents.Create("prop_vehicle_jeep_old")

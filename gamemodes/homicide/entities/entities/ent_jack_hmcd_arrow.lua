@@ -139,12 +139,10 @@ if SERVER then
 
 	function ENT:StartTouch(ply)
 	end
-	--
 elseif CLIENT then
 	function ENT:Initialize()
 	end
 
-	--
 	function ENT:Draw()
 		local Vel = self:GetVelocity()
 		if Vel:Length() > 1000 then
@@ -159,8 +157,6 @@ elseif CLIENT then
 	function ENT:Think()
 	end
 
-	--
 	function ENT:OnRemove()
 	end
 end
---

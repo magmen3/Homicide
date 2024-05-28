@@ -199,8 +199,8 @@ function SWEP:AttackFront()
 		end
 
 		if Ent:GetClass() == "func_breakable_surf" then
-			if math.random(1, 10) == 10 then Ent:Fire("break", "", 0) end
-		elseif HMCD_IsDoor(Ent) and (math.random(1, 10) == 5) then
+			if math.random(1, 6) == 4 then Ent:Fire("break", "", 0) end
+		elseif HMCD_IsDoor(Ent) and (math.random(1, 10) == 10) then
 			HMCD_BlastThatDoor(Ent)
 		end
 
@@ -225,7 +225,7 @@ function SWEP:Reload()
 		local Zombs = GAMEMODE:GetZombies()
 		self:PlayIdleSound()
 		self:GetOwner():DoAnimationEvent(ACT_SIGNAL_HALT)
-		for k, v in pairs(Zombs) do
+		for k, v in ipairs(Zombs) do
 			v:SetSchedule(SCHED_ALERT_SCAN)
 		end
 	end

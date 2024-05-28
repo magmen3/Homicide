@@ -128,7 +128,7 @@ function SWEP:PrimaryAttack()
 				self:GetOwner():PrintMessage(HUD_PRINTCENTER, translate.weaponDoorSealed)
 				timer.Simple(.1, function() if self.TapeAmount <= 0 then self:Remove() end end)
 			else
-				local Strength = HMCD_BindObjects(TrOne.Entity, TrOne.HitPos, TrTwo.Entity, TrTwo.HitPos)
+				local Strength = HMCD_BindObjects(TrOne.Entity, TrOne.HitPos, TrTwo.Entity, TrTwo.HitPos, 8)
 				if not self.TapeAmount then self.TapeAmount = 100 end
 				self.TapeAmount = self.TapeAmount - 10
 				sound.Play("snd_jack_hmcd_ducttape.wav", TrOne.HitPos, 65, math.random(80, 120))

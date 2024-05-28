@@ -22,7 +22,7 @@ if SERVER then
 	end
 
 	function ENT:Use(ply)
-		if ply.Murderer then
+		if ply.Murderer or GAMEMODE.Realism:GetBool() then
 			ply:Give("wep_jack_hmcd_shuriken")
 			ply:GetWeapon("wep_jack_hmcd_shuriken").HmcdSpawned = self.HmcdSpawned
 			self:Remove()

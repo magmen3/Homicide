@@ -56,10 +56,8 @@ end
 
 net.Receive("HMCD_Identity", SendIdentity)
 local function Act(len, ply)
-	print(231123) -- принтится
 	local str = net.ReadString()
 	if not IsValid(lply) then return end
-	print(str)
 	lply:ConCommand("act " .. str)
 end
 

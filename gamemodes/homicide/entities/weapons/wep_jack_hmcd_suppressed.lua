@@ -1,7 +1,7 @@
 if SERVER then
 	AddCSLuaFile()
 else
-	killicon.AddFont("wep_jack_hmcd_suppressed", "HL2MPTypeDeath", "1", Color(255, 0, 0))
+	killicon.AddFont("wep_jack_hmcd_suppressed", "HL2MPTypeDeath", "1", color_white)
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_suppressed")
 end
 
@@ -39,3 +39,5 @@ SWEP.CommandDroppable = false
 SWEP.MuzzleEffect = "pcf_jack_mf_suppressed"
 SWEP.CustomColor = Color(50, 50, 50, 255)
 SWEP.CarryWeight = 1200
+SWEP.SuicideAng = Angle(110, 30, 90)
+SWEP.SuicidePos = Vector(10, 3, -18)
