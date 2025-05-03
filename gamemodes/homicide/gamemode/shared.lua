@@ -31,16 +31,16 @@ game.AddParticles("particles/pcfs_jack_explosions_incendiary2.pcf")
 game.AddDecal("hmcd_jackanail", "decals/mat_jack_hmcd_nailhead")
 game.AddDecal("hmcd_jackatape", "decals/mat_jack_hmcd_ducttape")
 player_manager.AddValidModel("Homicide Murderer", "models/player/mkx_jajon.mdl")
-player_manager.AddValidHands("Homicide Murderer", "models/player/mkx_jajon_hands.mdl", 0, "10000000")
+player_manager.AddValidHands("Homicide Murderer", "models/weapons/c_arms_refugee.mdl", 2, "11111111")
+--player_manager.AddValidHands("Homicide Murderer", "models/player/mkx_jajon_hands.mdl", 0, "10000000")
 player_manager.AddValidModel("Homicide Alpha-Zombie", "models/player/zombie_classic.mdl")
+player_manager.AddValidHands("Homicide Alpha-Zombie", "models/weapons/c_arms_citizen.mdl", 2, "0000000")
 ----!! TODO: ----
--- hiding in object when the round ends
--- speed up wep aiming, reduce wep wobble, fix bug with containers getting you stuck, add sounds to container enter/exit, make knife quieter, make the pedestrian indicator shorter ranged in DM
 -- the living respawn as cops at coptime
 -- multiple killers when there are enough players
 -- stungun
 -- peperspray
--- ДОБАВИТЬ ИГРОКОВ ПОЛИЦЕЙСКИХ
+-- vrmod compatibility
 ----
 HMCD_SkillAwards = {{"pt", 4.6, 999999}, {"au", 3.7, 4.6}, {"pd", 2.9, 3.7}, {"ir", 2.2, 2.9}, {"os", 1.6, 2.2}, {"ru", 1.1, 1.6}, {"ag", .7, 1.1}, {"sn", .4, .7}, {"ni", .2, .4}, {"cu", 0, .2}}
 HMCD_ExperienceAwards = {{"10", 15360, 999999}, {"9", 7680, 15360}, {"8", 3840, 7680}, {"7", 1920, 3840}, {"6", 960, 1920}, {"5", 480, 960}, {"4", 240, 480}, {"3", 120, 240}, {"2", 60, 120}, {"1", 0, 60}}
@@ -456,7 +456,7 @@ HMCD_LootReplacements = {
 	["item_healthkit"] = {"ent_jack_hmcd_medkit", .5},
 	["item_healthcharger"] = {"ent_jack_hmcd_medkit", 1},
 	["item_suitcharger"] = {"ent_jack_hmcd_painpills", 1},
-	["item_battery"] = {"ent_jack_hmcd_painpills", .5}
+	["item_battery"] = {"ent_jack_hmcd_painpills", .5},
 }
 
 HMCD_AmmoWeights = {
@@ -467,7 +467,7 @@ HMCD_AmmoWeights = {
 	["Buckshot"] = 60,
 	["AR2"] = 50,
 	["SMG1"] = 18,
-	["XBowBolt"] = 22
+	["XBowBolt"] = 22,
 }
 
 HMCD_AmmoNames = {
@@ -478,11 +478,11 @@ HMCD_AmmoNames = {
 	["Buckshot"] = translate.ammoBuckshot,
 	["AR2"] = translate.ammoAR2,
 	["XBowBolt"] = translate.ammoXBowBolt,
-	["AirboatGun"] = translate.ammoAirboatGun
+	["AirboatGun"] = translate.ammoAirboatGun,
+	["Battery"] = "14x50mm Alkaline Battery",
+	["StriderMinigun"] = "2x50mm Strike-Anywhere Match",
 }
 
---["Battery"]="14x50mm Alkaline Battery"
---["StriderMinigun"]="2x50mm Strike-Anywhere Match"
 HMCD_PlayerModelInfoTable = {}
 function GM:addModel(model, sex, clothes)
 	local t = {}

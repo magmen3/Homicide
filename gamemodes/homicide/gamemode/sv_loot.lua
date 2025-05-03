@@ -519,7 +519,7 @@ function GM:LootThink()
 		if not self.LastSpawnLoot or self.LastSpawnLoot < CurTime() then
 			self.LastSpawnLoot = CurTime() + LootDelay
 			local Amt = 0
-			for key, exist in pairs(ents.GetAll()) do
+			for key, exist in ipairs(ents.GetAll()) do
 				if exist.IsLoot then Amt = Amt + 1 end
 			end
 

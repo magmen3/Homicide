@@ -4,9 +4,10 @@ function GM:FlashlightThink()
 	for k, ply in player.Iterator() do
 		if ply:Alive() and ply.HasFlashlight and ply.HMCD_Light then
 			ply.HMCD_Light.RenderPos = LerpVector(.3, ply.HMCD_Light.RenderPos, ply:GetShootPos())
-			ply.HMCD_Light.RenderAng = LerpAngle(.3, ply.HMCD_Light.RenderAng, ply:GetAimVector():Angle())
+			ply.HMCD_Light.RenderAng = LerpAngle(.3, ply.HMCD_Light.RenderAng, ply:GetAimVector():Angle() - (ply:GetViewPunchAngles() * 2))
 			ply.HMCD_Light:SetPos(ply.HMCD_Light.RenderPos)
 			ply.HMCD_Light:SetAngles(ply.HMCD_Light.RenderAng)
+			ply.HMCD_Light:SetKeyValue("lightfov", 60 * math.Rand(0.98, 1.02))
 		end
 	end
 end

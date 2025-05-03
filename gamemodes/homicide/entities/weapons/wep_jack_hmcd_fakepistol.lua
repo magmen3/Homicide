@@ -52,7 +52,7 @@ SWEP.Secondary.Force = 0
 SWEP.Secondary.TakeAmmoPerBullet = false
 SWEP.Secondary.Automatic = false
 SWEP.Secondary.Ammo = "none"
-SWEP.BarrelMustSmoke = false
+--SWEP.BarrelMustSmoke = false
 SWEP.AimTime = 3
 SWEP.BearTime = 3
 SWEP.SprintPos = Vector(-4, 0, -10)
@@ -232,6 +232,7 @@ if CLIENT then
 		end
 
 		Crouched = Crouched * (1 - (Aim / 100))
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		pos = pos + Up * Crouched * 2
 		return pos, ang
 	end

@@ -375,6 +375,7 @@ if CLIENT then
 		end
 
 		if (self:GetCurrentState() == "Nothing") or (self:GetCurrentState() == "Winding") then DownAmt = DownAmt + 10 end
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		pos = pos + ang:Forward() * 30 + ang:Right() * 15 - ang:Up() * (15 + DownAmt)
 		return pos, ang
 	end

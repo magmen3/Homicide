@@ -71,10 +71,6 @@ function SWEP:SetupWeaponHoldTypeForAI(t)
 	self.ActivityTranslateAI[ACT_MELEE_ATTACK1] = ACT_MELEE_ATTACK1
 end
 
-function SWEP:SetupDataTables()
-end
-
--- no
 function SWEP:Initialize()
 	self.NextThinkTime = CurTime() + .01
 	self:SetHoldType("pistol")
@@ -107,6 +103,7 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:Deploy()
+	if SERVER and self:GetOwner():IsPlayer() then self:OnDrop() return end
 	return true
 end
 
@@ -115,6 +112,7 @@ function SWEP:Think()
 	if not IsValid(self) then return end
 	if not IsValid(self:GetOwner()) then return end
 	if CLIENT then return end
+	if SERVER and self:GetOwner():IsPlayer() then self:OnDrop() return end
 	--JackaPrint(self:GetOwner():GetActivity())
 	local Time = CurTime()
 	if self.NextThinkTime <= Time then
@@ -229,8 +227,15 @@ end
 function SWEP:OnRemove()
 end
 
---
 function SWEP:OnDrop()
+	local Ent = ents.Create("ent_jack_hmcd_pistol")
+	Ent.HmcdSpawned = self.HmcdSpawned
+	Ent:SetPos(self:GetPos())
+	Ent:SetAngles(self:GetAngles())
+	Ent:Spawn()
+	Ent:Activate()
+	Ent.RoundsInMag = self:Clip1()
+	Ent:GetPhysicsObject():SetVelocity(self:GetVelocity() / 2)
 	self:Remove()
 end
 
@@ -238,7 +243,6 @@ if CLIENT then
 	function SWEP:ViewModelDrawn()
 	end
 
-	--
 	function SWEP:DrawWorldModel()
 		self:DrawModel()
 	end

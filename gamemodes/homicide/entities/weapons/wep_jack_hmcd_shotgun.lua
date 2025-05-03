@@ -51,3 +51,4 @@ SWEP.HolsterAng = Angle(160, 5, 180)
 SWEP.CarryWeight = 5000
 SWEP.SuicidePos = Vector(3, 7.5, -25.5)
 SWEP.SuicideAng = Angle(110, 2, 90)
+SWEP.PunchMul = 0.6

@@ -19,6 +19,7 @@ end
 
 GM.DeathEndTime = 0
 GM.SpectateTime = 0
+
 usermessage.Hook("rp_death", function(um)
 	GAMEMODE.DeathEndTime = CurTime() + um:ReadLong()
 	GAMEMODE.SpectateTime = CurTime() + um:ReadLong()

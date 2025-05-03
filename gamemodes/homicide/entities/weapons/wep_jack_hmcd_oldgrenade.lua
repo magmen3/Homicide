@@ -57,6 +57,14 @@ end
 function SWEP:SetupDataTables()
 end
 
+function SWEP:SanityCheck()
+	if IsValid(self) and IsValid(self:GetOwner()) and self:GetOwner():GetActiveWeapon() == self then
+		return true
+	else
+		return false
+	end
+end
+
 function SWEP:PrimaryAttack()
 	if not IsFirstTimePredicted() then return end
 	if self:GetOwner():IsSprinting() then return end
@@ -65,8 +73,8 @@ function SWEP:PrimaryAttack()
 	self:EmitSound("snd_jack_hmcd_throw.wav")
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	self:GetOwner():ViewPunch(Angle(-10, -5, 0))
-	timer.Simple(.2, function() if IsValid(self) then self:GetOwner():ViewPunch(Angle(20, 10, 0)) end end)
-	timer.Simple(.25, function() if IsValid(self) then self:ThrowGrenade() end end)
+	timer.Simple(.2, function() if self:SanityCheck() then self:GetOwner():ViewPunch(Angle(20, 10, 0)) end end)
+	timer.Simple(.25, function() if self:SanityCheck() then self:ThrowGrenade() end end)
 	self:SetNextPrimaryFire(CurTime() + 1)
 	self:SetNextSecondaryFire(CurTime() + 1)
 end
@@ -77,10 +85,10 @@ function SWEP:Deploy()
 	self:DoBFSAnimation("deploy")
 	self:GetOwner():GetViewModel():SetPlaybackRate(.6)
 	timer.Simple(1, function()
-		if IsValid(self) and IsValid(self:GetOwner()) and IsValid(self:GetOwner():GetViewModel()) then
+		if self:SanityCheck() and IsValid(self:GetOwner():GetViewModel()) then
 			self:DoBFSAnimation("pullpin")
 			self:GetOwner():GetViewModel():SetPlaybackRate(.75)
-			timer.Simple(.8, function() if IsValid(self) then self:EmitSound("snd_jack_hmcd_pinpull.wav") end end)
+			timer.Simple(.8, function() if self:SanityCheck() then self:EmitSound("snd_jack_hmcd_pinpull.wav") end end)
 		end
 	end)
 
@@ -177,7 +185,7 @@ function SWEP:Reload()
 	if self.Armed then return end
 	if self:GetNextPrimaryFire() > CurTime() then return end
 	owner:SetLagCompensated(true)
-	if IsValid(self) then
+	if self:SanityCheck() then
 		sound.Play("snd_jack_hmcd_spoonfling.wav", owner:GetPos(), 65, 100)
 		local Spoon = ents.Create("prop_physics")
 		Spoon.HmcdSpawned = self.HmcdSpawned -- owner.HmcdSpawned
@@ -186,6 +194,7 @@ function SWEP:Reload()
 		Spoon:SetAngles(owner:GetAngles())
 		Spoon:SetMaterial("models/shiny")
 		Spoon:SetColor(clr_spoon)
+		Spoon:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 		Spoon:Spawn()
 		Spoon:Activate()
 		Spoon:GetPhysicsObject():AddAngleVelocity(VectorRand() * 100)

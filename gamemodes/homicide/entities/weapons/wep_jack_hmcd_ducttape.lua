@@ -18,7 +18,7 @@ elseif CLIENT then
 	function SWEP:DrawHUD()
 		local Go, TrOne, TrTwo = self:FindObjects()
 		if Go then
-			local Rand = math.random(100, 200)
+			local Rand = 150 --math.random(100, 200)
 			surface.DrawCircle(ScrW() / 2, ScrH() / 2, 50, Color(Rand, Rand, Rand, 200))
 			surface.DrawCircle(ScrW() / 2, ScrH() / 2, 49, Color(Rand, Rand, Rand, 200))
 			surface.DrawCircle(ScrW() / 2, ScrH() / 2, 48, Color(Rand, Rand, Rand, 200))
@@ -136,7 +136,7 @@ function SWEP:PrimaryAttack()
 				self:GetOwner():ViewPunch(Angle(3, 0, 0))
 				util.Decal("hmcd_jackatape", TrOne.HitPos + TrOne.HitNormal, TrOne.HitPos - TrOne.HitNormal)
 				util.Decal("hmcd_jackatape", TrTwo.HitPos + TrTwo.HitNormal, TrTwo.HitPos - TrTwo.HitNormal)
-				self:GetOwner():PrintMessage(HUD_PRINTCENTER, translate.weaponDuctTapeBondStrength .. tostring(Strength))
+				self:GetOwner():PrintMessage(HUD_PRINTCENTER, "Strength: " .. tostring(Strength))
 				timer.Simple(.1, function() if self.TapeAmount <= 0 then self:Remove() end end)
 			end
 		end
@@ -229,6 +229,7 @@ if CLIENT then
 		--ang:RotateAroundAxis(ang:Up(),0)
 		ang:RotateAroundAxis(ang:Right(), 90)
 		ang:RotateAroundAxis(ang:Forward(), -90)
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		return pos, ang
 	end
 

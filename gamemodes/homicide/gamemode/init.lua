@@ -37,7 +37,7 @@ include("sv_flashlight.lua")
 local force_workshop = CreateConVar("hmcd_forceworkshop", 1, {FCVAR_ARCHIVE}, "Force clients to download Homicide gamemode? (requires a restart upon change)")
 if force_workshop:GetBool() then resource.AddWorkshop("488953849") end
 GM.RoundLimit = CreateConVar("hmcd_roundlimit", 0, bit.bor(FCVAR_NOTIFY), "Number of rounds we should play before map change")
-GM.Language = CreateConVar("hmcd_language", "", bit.bor(FCVAR_NOTIFY), "The language Murder should use")
+GM.Language = CreateConVar("hmcd_language", "", bit.bor(FCVAR_NOTIFY), "The language Homicide should use")
 GM.MurdererWins = 0
 GM.BystanderWins = 0
 GM.SHTF_MODE_ENGAGED = GM.SHTF_MODE_ENGAGED or false
@@ -174,7 +174,7 @@ function GM:FindSpawnLocation(human)
 						end
 					end
 
-					for key, thingamajig in pairs(ents.FindInSphere(TryPos, SpawnExclusionDist)) do
+					for key, thingamajig in ipairs(ents.FindInSphere(TryPos, SpawnExclusionDist)) do
 						-- for every spawn repellent item within range, there's a chance the spawn will be rejected
 						if thingamajig.SpawnRepellent then
 							if math.random(1, 2) == 2 then
@@ -230,7 +230,7 @@ function GM:FindSpawnLocation(human)
 								end
 
 								-- don't spawn shit in the skybox you stupid fucking game
-								for key, cayum in pairs(ents.FindByClass("sky_camera")) do
+								for key, cayum in ipairs(ents.FindByClass("sky_camera")) do
 									local ToTrace = util.TraceLine({
 										start = cayum:GetPos(),
 										endpos = TryPos
@@ -314,7 +314,7 @@ function GM:FindSpawnLocation(human)
 								end
 							end
 						end
-						for key,cayum in pairs(ents.FindByClass("sky_camera"))do -- don't spawn shit in the skybox you stupid fucking game
+						for key,cayum in ipairs(ents.FindByClass("sky_camera"))do -- don't spawn shit in the skybox you stupid fucking game
 							local ToTrace=util.TraceLine({start=cayum:GetPos(),endpos=TryPos})
 							if not(ToTrace.Hit)then
 								CanSee=true
@@ -344,13 +344,18 @@ function GM:FindSpawnLocation(human)
 	return SpawnPos,goodShit
 end
 --]]
+
+local lang, hmcdlang = GetConVar("gmod_language"), GetConVar("hmcd_language")
 function GM:Initialize()
 	self:LoadSpawns()
 	self.DeathRagdolls = {}
 	self:StartNewRound()
 	self:LoadMapList()
-	-- пошли все нахер
-	if GetConVar("gmod_language"):GetString() == "ru" or GetConVar("gmod_language"):GetString() == "uk" or GetConVar("gmod_language"):GetString() == "ua" and GetConVar("hmcd_language"):GetString() ~= "russian" then RunConsoleCommand("hmcd_language", "russian") end
+	-- idk for why i did this but i should keep this maybe
+	local langstr = lang:GetString()
+	if langstr == "ru" or langstr == "uk" and hmcdlang:GetString() ~= "russian" then
+		RunConsoleCommand("hmcd_language", "russian")
+	end
 end
 
 function GM:InitPostEntity()
@@ -360,6 +365,7 @@ end
 function GM:InitPostEntityAndMapCleanup()
 end
 
+local copnpcclr = Vector(.1, .125, .2)
 local NextCopSpawnTime, NextCopThinkTime, NextSirenTime, NextZombieThinkTime, NextZombieSpawnTime = 0, 0, 0, 0, 0
 function GM:SpawnCop(pos)
 	local Cop = ents.Create("npc_metropolice")
@@ -369,7 +375,7 @@ function GM:SpawnCop(pos)
 	Cop:SetKeyValue("squadname", "homicidal_police")
 	Cop:SetCurrentWeaponProficiency(WEAPON_PROFICIENCY_POOR)
 	Cop:SetBystanderName(translate.police)
-	Cop:SetPlayerColor(Vector(.1, .125, .2))
+	Cop:SetPlayerColor(copnpcclr)
 	Cop:SetPos(pos)
 	Cop:SetAngles(Angle(0, math.random(0, 360), 0))
 	Cop:Spawn()
@@ -397,6 +403,7 @@ local GuardModels = {
 	"models/wgrunt/wgrunt6.mdl"
 }
 
+local guardnpcclr = Vector(.15, .2, .1)
 function GM:SpawnGuardsman(pos)
 	local dude, Maudell = ents.Create("npc_combine_s"), table.Random(GuardModels)
 	dude.HmcdSpawned = true
@@ -408,7 +415,7 @@ function GM:SpawnGuardsman(pos)
 	dude:SetKeyValue("additionalequipment", "wep_jack_hmcd_npc_rifle")
 	dude:SetKeyValue("squadname", "homicide_guardsmen")
 	dude:SetBystanderName(translate.nationalguardsman)
-	dude:SetPlayerColor(Vector(.15, .2, .1))
+	dude:SetPlayerColor(guardnpcclr)
 	dude:SetPos(pos)
 	dude:SetAngles(Angle(0, math.random(0, 360), 0))
 	dude:Spawn()
@@ -439,6 +446,7 @@ local ZombTypes = {
 	"npc_poisonzombie"
 }
 
+local zombnpcclr = Vector(.3, .1, .1)
 function GM:SpawnZombie(pos)
 	if self.ZombiesLeft <= 0 then return end
 	if self.PoliceTime < CurTime() then return end
@@ -446,7 +454,7 @@ function GM:SpawnZombie(pos)
 	local dude = ents.Create(Typ)
 	dude.HmcdSpawned = true
 	dude:SetBystanderName(translate.zombieSimple)
-	dude:SetPlayerColor(Vector(.3, .1, .1))
+	dude:SetPlayerColor(zombnpcclr)
 	dude:SetPos(pos)
 	dude:SetAngles(Angle(0, math.random(0, 360), 0))
 	dude.HMCD_Zomb = true
@@ -502,11 +510,9 @@ function GM:ArmyThink()
 	for key, guard in pairs(Guards) do
 		local KeepGuard = guard:GetActivity() ~= ACT_IDLE
 		for key, playa in pairs(Playas) do
-			if playa:Alive() then
-				if (playa:GetPos() - guard:GetPos()):Length() < 5000 then
-					KeepGuard = true
-					break
-				end
+			if playa:Alive() and (playa:GetPos() - guard:GetPos()):Length() < 5000 then
+				KeepGuard = true
+				break
 			end
 		end
 
@@ -531,15 +537,13 @@ function GM:ArmyThink()
 				end
 			end
 
-			for key, door in pairs(ents.FindInSphere(guard:GetPos(), 100)) do
+			for key, door in ipairs(ents.FindInSphere(guard:GetPos(), 100)) do
 				local Class = door:GetClass()
-				if not door:GetNoDraw() then
-					if math.random(1, 50) == 29 then
-						if (Class == "prop_door") or (Class == "prop_door_rotating") or (Class == "func_door") or (Class == "func_door_rotating") then
-							door:Fire("open", "", 0)
-						elseif door.PlayerHiddenInside then
-							door.PlayerHiddenInside:ExitContainer()
-						end
+				if not door:GetNoDraw() and math.random(1, 50) == 29 then
+					if (Class == "prop_door") or (Class == "prop_door_rotating") or (Class == "func_door") or (Class == "func_door_rotating") then
+						door:Fire("open", "", 0)
+					elseif door.PlayerHiddenInside then
+						door.PlayerHiddenInside:ExitContainer()
 					end
 				end
 			end
@@ -560,11 +564,9 @@ function GM:CopThink()
 	for key, cop in ipairs(Cops) do
 		local KeepCop = cop:GetActivity() ~= ACT_IDLE
 		for key, playa in player.Iterator() do
-			if playa:Alive() then
-				if (playa:GetPos() - cop:GetPos()):Length() < 2000 then
-					KeepCop = true
-					break
-				end
+			if playa:Alive() and (playa:GetPos() - cop:GetPos()):Length() < 2000 then
+				KeepCop = true
+				break
 			end
 		end
 
@@ -652,11 +654,9 @@ function GM:ZombieThink()
 	for key, zomb in ipairs(Zombs) do
 		local KeepZomb = zomb:GetActivity() ~= ACT_IDLE
 		for key, playa in pairs(Playas) do
-			if playa:Alive() then
-				if (playa:GetPos() - zomb:GetPos()):Length() < 2000 then
-					KeepZomb = true
-					break
-				end
+			if playa:Alive() and (playa:GetPos() - zomb:GetPos()):Length() < 2000 then
+				KeepZomb = true
+				break
 			end
 		end
 
@@ -817,8 +817,8 @@ function GM:Think()
 		end
 
 		-- award system
-		if WillAdd then if (ply:Team() == 2) and ply:Alive() then ply:AddExperience(1) end end
-		if WillRegen then if ply.FoodBoost > Time then if ply:Health() < 100 then ply:SetHealth(ply:Health() + 1) end end end
+		if WillAdd and (ply:Team() == 2) and ply:Alive() then ply:AddExperience(1) end
+		if WillRegen and ply.FoodBoost > Time and ply:Health() < 100 then ply:SetHealth(ply:Health() + 1) end
 		if WillGodCheck then ply:GodCheck() end
 		if WillCalcSpeed then ply:CalculateSpeed() end
 		if WillCalc then
@@ -833,7 +833,7 @@ function GM:Think()
 				HMCD_StaminaPenalize(ply, StamAmt)
 			end
 
-			self:CalculateFoV(ply, ply:KeyDown(IN_WALK), ply:IsSprinting(), ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) or ply:KeyDown(IN_FORWARD) or ply:KeyDown(IN_BACK))
+			--self:CalculateFoV(ply, ply:KeyDown(IN_WALK), ply:IsSprinting())
 			ply.TempSpeedMul = math.Clamp(ply.TempSpeedMul + .1, .1, 1)
 			net.Start("hmcd_tempspeedmul")
 			net.WriteFloat(ply.TempSpeedMul)
@@ -900,7 +900,11 @@ function GM:Think()
 			ply:SetPos(ply:GetCSpectatee():GetPos())
 		end
 
-		if not ply.HasMoved then if ply:IsBot() or ply:KeyDown(IN_FORWARD) or ply:KeyDown(IN_JUMP) or ply:KeyDown(IN_ATTACK) or ply:KeyDown(IN_ATTACK2) or ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) or ply:KeyDown(IN_BACK) or ply:Crouching() then ply.HasMoved = true end end
+		if not ply.HasMoved then
+			if ply:IsBot() or ply:KeyDown(IN_FORWARD) or ply:KeyDown(IN_JUMP) or ply:KeyDown(IN_ATTACK) or ply:KeyDown(IN_ATTACK2) or ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT) or ply:KeyDown(IN_BACK) or ply:Crouching() then
+				ply.HasMoved = true
+			end
+		end
 	end
 end
 
@@ -962,30 +966,6 @@ function GM:GlobalAntiCheat()
 			end
 		end
 	end
-end
-
-function GM:CalculateFoV(ply, CalmYourShit, BallsToTheWall, Movin)
-	local FoV = 88
-	if BallsToTheWall or not ply:IsOnGround() then
-		FoV = 95
-	else
-		local Wep = ply:GetActiveWeapon()
-		if Wep and IsValid(Wep) and Wep.GetAiming then
-			local Aim = Wep:GetAiming()
-			if Aim > 99 then
-				if Wep.Scoped then
-					FoV = Wep.ScopeFoV
-				else
-					FoV = 87
-				end
-			end
-		end
-	end
-
-	if ply.HighOnDrugs then FoV = 105 end
-	if self:GetRound() == 2 then FoV = 90 end
-	if ply:InVehicle() then FoV = 90 end
-	ply:SetFOV(FoV, .24)
 end
 
 function GM:AllowPlayerPickup(ply, ent)

@@ -155,7 +155,7 @@ end
 net.Receive("hmcd_openappearancemenu", function() OpenMenu() end)
 function GM:PrePlayerDraw(ply)
 	if not self.Murderer then
-		for key, shroud in pairs(ents.FindByClass("ent_jack_hmcd_smokebomb")) do
+		for key, shroud in ipairs(ents.FindByClass("ent_jack_hmcd_smokebomb")) do
 			if shroud:GetDTBool(0) then
 				local Dist = (ply:GetPos() - shroud:GetPos()):Length()
 				if Dist < 150 then return true end

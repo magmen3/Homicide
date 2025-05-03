@@ -62,8 +62,7 @@ function SWEP:Deploy()
 end
 
 function SWEP:Holster()
-	self:OnRemove()
-	return true
+	return false
 end
 
 function SWEP:CanPrimaryAttack()
@@ -263,6 +262,7 @@ if CLIENT then
 		BlockAmt = math.Clamp(BlockAmt - FrameTime() * 1.5, 0, 1)
 		pos = pos - ang:Up() * 15 * BlockAmt
 		ang:RotateAroundAxis(ang:Right(), BlockAmt * 60)
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		return pos, ang
 	end
 end

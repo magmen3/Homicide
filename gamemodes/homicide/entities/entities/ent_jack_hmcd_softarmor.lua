@@ -35,7 +35,7 @@ if SERVER then
 			end
 
 			ply:SetChestArmor("Level IIIA")
-			sound.Play("snd_jack_hmcd_disguise.wav", ply:GetPos(), 65, 80)
+			sound.Play("snd_jack_hmcd_disguise.wav", ply:GetPos(), 60, 80)
 			self:Remove()
 		end
 	end

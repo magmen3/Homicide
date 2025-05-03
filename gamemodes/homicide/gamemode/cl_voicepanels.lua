@@ -126,7 +126,7 @@ function GM:PlayerStartVoice(ply)
 end
 
 local function VoiceClean()
-	for k, v in pairs(PlayerVoicePanels) do
+	for k, v in ipairs(PlayerVoicePanels) do
 		if not IsValid(k) then GAMEMODE:PlayerEndVoice(k) end
 	end
 end

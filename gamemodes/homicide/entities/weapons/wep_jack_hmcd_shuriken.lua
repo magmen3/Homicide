@@ -121,6 +121,7 @@ if CLIENT then
 			self.DownAmt = math.Clamp(self.DownAmt - .1, 0, 8)
 		end
 		--ang:RotateAroundAxis(ang:Right(),40)
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		return pos + ang:Forward() * 20 + ang:Right() * 10 - ang:Up() * (7 + self.DownAmt), ang
 	end
 

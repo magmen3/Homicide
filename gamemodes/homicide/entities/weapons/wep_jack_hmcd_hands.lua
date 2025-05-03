@@ -294,11 +294,14 @@ function SWEP:AttackFront()
 			SelfForce = 25
 			if Ent:IsPlayer() and IsValid(Ent:GetActiveWeapon()) and Ent:GetActiveWeapon().GetBlocking and Ent:GetActiveWeapon():GetBlocking() then
 				sound.Play("Flesh.ImpactSoft", HitPos, 65, math.random(90, 110))
+				self:GetOwner():ViewPunch(AngleRand(-1, 1))
 			else
 				sound.Play("Flesh.ImpactHard", HitPos, 65, math.random(90, 110))
+				self:GetOwner():ViewPunch(AngleRand(-2, 2))
 			end
 		else
 			sound.Play("Flesh.ImpactSoft", HitPos, 65, math.random(90, 110))
+			self:GetOwner():ViewPunch(AngleRand(-2, 2))
 		end
 
 		local DamageAmt = math.random(2, 4)
@@ -359,6 +362,7 @@ if CLIENT then
 
 		pos = pos - ang:Up() * 15 * BlockAmt
 		ang:RotateAroundAxis(ang:Right(), BlockAmt * 60)
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.2)
 		return pos, ang
 	end
 end

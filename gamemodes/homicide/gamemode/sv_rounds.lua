@@ -497,6 +497,7 @@ function GM:EndTheRound(reason, murderer)
 	end
 end
 
+local zombclr = Vector(.5, 0, 0)
 GM.RNDMode = math.random(1, 3)
 function GM:StartNewRound()
 	self.RNDMode = math.random(1, 3)
@@ -642,7 +643,7 @@ function GM:StartNewRound()
 
 		if self.ZOMBIE and dude.Murderer then
 			dude:SetBystanderName(translate.zombie)
-			dude:SetPlayerColor(Vector(.5, 0, 0))
+			dude:SetPlayerColor(zombclr)
 		end
 	end
 

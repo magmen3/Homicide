@@ -1,3 +1,5 @@
+--!! TODO: Make melee base
+
 if SERVER then
 	AddCSLuaFile()
 elseif CLIENT then
@@ -70,7 +72,13 @@ function SWEP:PrimaryAttack()
 	self:GetOwner():GetViewModel():SetPlaybackRate(1.5)
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	self:SetNextPrimaryFire(CurTime() + .65)
-	if SERVER then timer.Simple(.05, function() if IsValid(self) then sound.Play("weapons/slam/throw.wav", self:GetPos(), 55, math.random(90, 110)) end end) end
+	if SERVER then
+		timer.Simple(.05, function()
+			if IsValid(self) then
+				sound.Play("weapons/slam/throw.wav", self:GetPos(), 55, math.random(90, 110))
+			end
+		end)
+	end
 	timer.Simple(.15, function() if IsValid(self) then self:AttackFront() end end)
 end
 
@@ -224,6 +232,7 @@ if CLIENT then
 			DownAmt = math.Clamp(DownAmt - .1, 0, 8)
 		end
 
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		ang:RotateAroundAxis(ang:Right(), 40)
 		return pos - ang:Up() * 7 - ang:Forward() * (3 + DownAmt) - ang:Up() * DownAmt, ang
 	end

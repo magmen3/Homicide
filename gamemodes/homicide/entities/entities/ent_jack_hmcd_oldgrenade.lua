@@ -13,7 +13,7 @@ if SERVER then
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetMoveType(MOVETYPE_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)
-		self:SetCollisionGroup(COLLISION_GROUP_NONE)
+		self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 		self:SetUseType(SIMPLE_USE)
 		self:DrawShadow(true)
 		local phys = self:GetPhysicsObject()
@@ -21,6 +21,11 @@ if SERVER then
 			phys:Wake()
 			phys:SetMass(5)
 		end
+
+		timer.Simple(.5, function()
+			if not IsValid(self) then return end
+			self:SetCollisionGroup(COLLISION_GROUP_NONE)
+		end)
 		--self.Detonated=false
 		--self.Armed=false
 		--self.Rigged=false
@@ -45,7 +50,7 @@ if SERVER then
 				local Tr, WillArm = util.QuickTrace(self:GetPos(), VectorRand() * 40, {self}), false
 				if Tr.Hit and Tr.Entity and Tr.Entity.GetVelocity then
 					if (Tr.Entity:GetVelocity() - self:GetVelocity()):Length() >= 10 then WillArm = true end
-					for key, ent in pairs(ents.FindInSphere(self:GetPos(), 50)) do
+					for key, ent in ipairs(ents.FindInSphere(self:GetPos(), 50)) do
 						if ent.Murderer then WillArm = false end
 					end
 
@@ -70,6 +75,7 @@ if SERVER then
 		Spoon:SetAngles(self:GetAngles())
 		Spoon:SetMaterial("models/shiny")
 		Spoon:SetColor(Color(50, 40, 0))
+		Spoon:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 		Spoon:Spawn()
 		Spoon:Activate()
 		Spoon:GetPhysicsObject():SetMaterial("metal_bouncy")
@@ -169,7 +175,7 @@ if SERVER then
 		end)
 
 		timer.Simple(.1, function()
-			for key, rag in pairs(ents.FindInSphere(Pos, 750)) do
+			for key, rag in ipairs(ents.FindInSphere(Pos, 750)) do
 				if (rag:GetClass() == "prop_ragdoll") or rag:IsPlayer() then
 					for i = 1, 20 do
 						local Tr = util.TraceLine({

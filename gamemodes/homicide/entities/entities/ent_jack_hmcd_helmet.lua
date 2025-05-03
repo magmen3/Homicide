@@ -25,7 +25,7 @@ if SERVER then
 	function ENT:PickUp(ply)
 		if not ply.HeadArmor or (ply.HeadArmor == "") then
 			ply:SetHeadArmor("ACH")
-			sound.Play("snd_jack_hmcd_disguise.wav", ply:GetPos(), 65, 120)
+			sound.Play("snd_jack_hmcd_disguise.wav", ply:GetPos(), 55, 120)
 			self:Remove()
 		else
 			ply:PickupObject(self)

@@ -168,7 +168,7 @@ if SERVER then
 		end)
 
 		timer.Simple(.1, function()
-			for key, rag in pairs(ents.FindInSphere(Pos, 750)) do
+			for key, rag in ipairs(ents.FindInSphere(Pos, 750)) do
 				if (rag:GetClass() == "prop_ragdoll") or rag:IsPlayer() then
 					for i = 1, 20 do
 						local Tr = util.TraceLine({

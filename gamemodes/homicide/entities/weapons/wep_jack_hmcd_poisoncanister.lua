@@ -119,6 +119,7 @@ if CLIENT then
 		local NewPos = pos + ang:Forward() * 10 - ang:Up() * (4 + self.DownAmt) + ang:Right() * 5
 		ang:RotateAroundAxis(ang:Up(), 70)
 		ang:RotateAroundAxis(ang:Forward(), 5)
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		return NewPos, ang
 	end
 

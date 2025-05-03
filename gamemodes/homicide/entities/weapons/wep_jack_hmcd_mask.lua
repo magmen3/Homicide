@@ -62,7 +62,11 @@ function SWEP:PrimaryAttack()
 	if SERVER then self:GetOwner():MurdererHideIdentity() end
 	self:SetNextPrimaryFire(CurTime() + 1)
 	self:SetNextSecondaryFire(CurTime() + 1)
-	timer.Simple(.5, function() if IsValid(self) then if SERVER then self:GetOwner():SelectWeapon("wep_jack_hmcd_knife") end end end)
+	timer.Simple(.5, function()
+		if IsValid(self) and SERVER then
+			self:GetOwner():SelectWeapon("wep_jack_hmcd_knife")
+		end
+	end)
 end
 
 function SWEP:Deploy()
@@ -77,7 +81,11 @@ function SWEP:SecondaryAttack()
 	if SERVER then self:GetOwner():MurdererShowIdentity() end
 	self:SetNextPrimaryFire(CurTime() + 1)
 	self:SetNextSecondaryFire(CurTime() + 1)
-	timer.Simple(.5, function() if IsValid(self) then if SERVER then self:GetOwner():SelectWeapon("wep_jack_hmcd_hands") end end end)
+	timer.Simple(.5, function()
+		if IsValid(self) and SERVER then
+			self:GetOwner():SelectWeapon("wep_jack_hmcd_hands")
+		end
+	end)
 end
 
 function SWEP:Think()
@@ -106,6 +114,7 @@ if CLIENT then
 		end
 
 		pos = pos - ang:Up() * (self.DownAmt + 8) + ang:Forward() * 45 + ang:Right() * 22
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		--ang:RotateAroundAxis(ang:Forward(),-90)
 		return pos, ang
 	end

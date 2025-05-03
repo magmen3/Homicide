@@ -263,6 +263,7 @@ if CLIENT then
 		--ang:RotateAroundAxis(ang:Up(),0)
 		--ang:RotateAroundAxis(ang:Right(),0)
 		--ang:RotateAroundAxis(ang:Forward(),0)
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		return pos, ang
 	end
 

@@ -99,24 +99,24 @@ end
 function GM:RagdollSetDeathDetails(victim, inflictor, attacker)
 	local rag = victim:GetRagdollEntity()
 	if IsValid(rag) then
-		if IsValid(attacker:GetActiveWeapon()) then
-			local attwep = attacker:GetActiveWeapon()
-			local wep
-			if attwep.AmmoType and attwep.AmmoType ~= nil then
-				wep = translate.bodysearchWeaponwith .. tostring(HMCD_AmmoNames[attwep.AmmoType]) .. translate.bodysearchCaliber
-			else
-				wep = tostring(attwep:GetPrintName() or inflictor.PrintName)
-			end
-
-			rag:SetNWString("KilledWith", wep or translate.bodysearchNothing)
-		end
-
-		if IsValid(attacker) then
+		if attacker ~= nil and IsValid(attacker) then
 			local attpos = IsValid(attacker) and attacker:GetPos() or inflictor:GetPos()
 			rag:SetNWInt("KillDistance", rag:GetPos():Distance(attpos) * 0.0254)
+
+			if IsValid(attacker:GetActiveWeapon()) then
+				local attwep = attacker:GetActiveWeapon()
+				local wep
+				if attwep.AmmoType and attwep.AmmoType ~= nil then
+					wep = translate.bodysearchWeaponwith .. tostring(HMCD_AmmoNames[attwep.AmmoType]) .. translate.bodysearchCaliber
+				else
+					wep = tostring(attwep:GetPrintName() or inflictor.PrintName)
+				end
+	
+				rag:SetNWString("KilledWith", wep or translate.bodysearchNothing)
+			end
 		end
 
-		if IsValid(victim:GetActiveWeapon()) and victim:GetActiveWeapon():GetPrintName() ~= nil then
+		if IsValid(victim) and IsValid(victim:GetActiveWeapon()) and victim:GetActiveWeapon():GetPrintName() ~= nil then
 			local wep = tostring(victim:GetActiveWeapon():GetPrintName())
 			rag:SetNWString("LastWeapon", wep or translate.bodysearchNothing)
 		end
@@ -201,7 +201,7 @@ function EntityMeta:ExplodeIED()
 	timer.Simple(.03, function()
 		if SplodeType ~= 3 then
 			if SplodeType ~= 2 then
-				for key, ent in pairs(ents.FindInSphere(Pos, 75)) do
+				for key, ent in ipairs(ents.FindInSphere(Pos, 75)) do
 					if (ent ~= self) and (ent:GetClass() == "func_breakable") and ent:CanSee(Pos) then
 						ent:Fire("break", "", 0)
 					elseif (ent ~= self) and HMCD_IsDoor(ent) and not ent:GetNoDraw() and ent:CanSee(Pos) then
@@ -274,7 +274,7 @@ function EntityMeta:ExplodeIED()
 	end)
 
 	timer.Simple(.1, function()
-		for key, rag in pairs(ents.FindInSphere(Pos, 750)) do
+		for key, rag in ipairs(ents.FindInSphere(Pos, 750)) do
 			if (rag:GetClass() == "prop_ragdoll") or rag:IsPlayer() then
 				for i = 1, 20 do
 					local Tr = util.TraceLine({

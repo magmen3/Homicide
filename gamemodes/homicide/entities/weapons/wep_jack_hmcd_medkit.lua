@@ -155,6 +155,7 @@ if CLIENT then
 
 		pos = pos - ang:Up() * (self.DownAmt + 8) + ang:Forward() * 25 + ang:Right() * 12
 		ang:RotateAroundAxis(ang:Forward(), -90)
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		return pos, ang
 	end
 

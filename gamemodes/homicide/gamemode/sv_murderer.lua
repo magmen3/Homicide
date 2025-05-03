@@ -28,17 +28,17 @@ function GM:MurdererThink()
 		end
 	end
 
-	-- regenerate knife if on ground
+	-- regenerate shuriken if on ground
 	if IsValid(murderer) and murderer:Alive() and (not self.SHTF) and murderer.InfiniShuriken then
 		if murderer:HasWeapon("wep_jack_hmcd_shuriken") then
 			murderer.LastHadKnife = CurTime()
 		else
 			if murderer.LastHadKnife and murderer.LastHadKnife + NO_KNIFE_TIME < CurTime() then
-				for k, ent in pairs(ents.FindByClass("ent_jack_hmcd_shuriken")) do
+				for k, ent in ipairs(ents.FindByClass("ent_jack_hmcd_shuriken")) do
 					ent:Remove()
 				end
 
-				for k, ent in pairs(ents.FindByClass("wep_jack_hmcd_shuriken")) do
+				for k, ent in ipairs(ents.FindByClass("wep_jack_hmcd_shuriken")) do
 					ent:Remove()
 				end
 

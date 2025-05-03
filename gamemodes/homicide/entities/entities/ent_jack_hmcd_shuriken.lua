@@ -34,7 +34,7 @@ if SERVER then
 	function ENT:Think()
 		if (self:GetVelocity():Length() > 300) and not self.HitSomething then self:EmitSound("snd_jack_hmcd_tinyswish.wav", 70, math.random(90, 110)) end
 		if self.HitSomething then
-			for key, ply in pairs(ents.FindInSphere(self:GetPos(), 30)) do
+			for key, ply in ipairs(ents.FindInSphere(self:GetPos(), 30)) do
 				if ply:IsPlayer() and ply.Murderer then
 					ply:Give("wep_jack_hmcd_shuriken")
 					ply:GetWeapon("wep_jack_hmcd_shuriken").HmcdSpawned = self.HmcdSpawned

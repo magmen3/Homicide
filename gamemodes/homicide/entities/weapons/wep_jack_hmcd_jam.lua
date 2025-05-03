@@ -59,24 +59,22 @@ function SWEP:PrimaryAttack()
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	if SERVER then
 		local Tr = util.QuickTrace(self:GetOwner():GetShootPos(), self:GetOwner():GetAimVector() * 65, {self:GetOwner()})
-		if Tr.Hit and Tr.Entity then
-			if HMCD_IsDoor(Tr.Entity) then
-				local Doors = {Tr.Entity}
-				for key, other in pairs(ents.FindInSphere(Tr.HitPos, 65)) do
-					if HMCD_IsDoor(other) then table.insert(Doors, other) end
-				end
-
-				local Block = ents.Create(self.ENT)
-				Block.HmcdSpawned = self.HmcdSpawned
-				Block:SetPos(Tr.HitPos + Tr.HitNormal * 5)
-				local Ang = Tr.HitNormal:Angle()
-				Ang:RotateAroundAxis(Ang:Up(), -90)
-				Block:SetAngles(Ang)
-				Block:Spawn()
-				Block:Activate()
-				Block:Block(Doors)
-				self:Remove()
+		if Tr.Hit and Tr.Entity and HMCD_IsDoor(Tr.Entity) then
+			local Doors = {Tr.Entity}
+			for key, other in ipairs(ents.FindInSphere(Tr.HitPos, 65)) do
+				if HMCD_IsDoor(other) then table.insert(Doors, other) end
 			end
+
+			local Block = ents.Create(self.ENT)
+			Block.HmcdSpawned = self.HmcdSpawned
+			Block:SetPos(Tr.HitPos + Tr.HitNormal * 5)
+			local Ang = Tr.HitNormal:Angle()
+			Ang:RotateAroundAxis(Ang:Up(), -90)
+			Block:SetAngles(Ang)
+			Block:Spawn()
+			Block:Activate()
+			Block:Block(Doors)
+			self:Remove()
 		end
 	end
 end
@@ -120,6 +118,7 @@ if CLIENT then
 		ang:RotateAroundAxis(ang:Right(), -90)
 		ang:RotateAroundAxis(ang:Up(), 10)
 		ang:RotateAroundAxis(ang:Forward(), -110)
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		return pos, ang
 	end
 

@@ -153,6 +153,7 @@ if CLIENT then
 		end
 
 		local NewPos = pos + ang:Forward() * 40 - ang:Up() * (18 + self.DownAmt) + ang:Right() * 15
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		return NewPos, ang
 	end
 

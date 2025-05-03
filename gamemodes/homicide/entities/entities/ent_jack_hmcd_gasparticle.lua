@@ -56,7 +56,7 @@ function ENT:Think()
 
 	local Force = VectorRand() * 7 * self.Repulsion
 	Force = Force - self:GetVelocity() / 2
-	for key, obj in pairs(ents.FindInSphere(SelfPos, 200 * self.Repulsion)) do
+	for key, obj in ipairs(ents.FindInSphere(SelfPos, 200 * self.Repulsion)) do
 		if not (obj == self) and self:Visible(obj) then
 			if obj.HmcdGas then
 				local Vec = (obj:GetPos() - SelfPos):GetNormalized()

@@ -33,8 +33,7 @@ function GM:PlayerInitialSpawn(ply)
 	ply:SetTeam(2)
 	self:NetworkRound(ply)
 	self.LastPlayerSpawn = CurTime()
-	local vec = Vector(0.5, 0.5, 0.5)
-	ply:SetPlayerColor(vec)
+	ply:SetPlayerColor(vector_origin)
 end
 
 function GM:PlayerSpawn(ply)
@@ -92,7 +91,7 @@ function GM:PlayerSpawn(ply)
 	ply.Cop = false
 	ply:CrosshairDisable()
 	ply:SetCanZoom(false)
-	ply:SetDSP(0, true)
+	ply:SetDSP(0, false)
 	ply:SetNWInt("Specmode", 1)
 	ply:SetNWBool("Suiciding", false)
 	umsg.Start("HMCD_FoodBoost", ply)
@@ -110,29 +109,6 @@ function GM:PlayerSpawn(ply)
 	player_manager.OnPlayerSpawn(ply)
 	player_manager.RunClass(ply, "Spawn")
 	hook.Call("PlayerSetModel", GAMEMODE, ply)
-	local oldhands = ply:GetHands()
-	if IsValid(oldhands) then oldhands:Remove() end
-	local hands = ents.Create("gmod_hands")
-	hands.HmcdSpawned = true
-	if IsValid(hands) then
-		ply:SetHands(hands)
-		hands:SetOwner(ply)
-		-- Which hands should we use?
-		local cl_playermodel = ply:GetInfo("cl_playermodel")
-		local info = player_manager.TranslatePlayerHands(cl_playermodel)
-		if info then
-			hands:SetModel(info.model)
-			hands:SetSkin(info.skin)
-			hands:SetBodyGroups(info.body)
-		end
-
-		-- Attach them to the viewmodel
-		local vm = ply:GetViewModel(0)
-		hands:AttachToViewmodel(vm)
-		vm:DeleteOnRemove(hands)
-		ply:DeleteOnRemove(hands)
-		hands:Spawn()
-	end
 
 	local spawnPoint = self:PlayerSelectTeamSpawn(ply:Team(), ply)
 	if IsValid(spawnPoint) then
@@ -196,12 +172,29 @@ function GM:PlayerSpawn(ply)
 	end)
 
 	hook.Call("PlayerLoadout", GAMEMODE, ply)
-	timer.Simple(1, function()
-		if IsValid(ply) and ply:Alive() then
-			-- some maps do some weird override thing
-			if not ply:HasWeapon("wep_jack_hmcd_hands") then GAMEMODE:PlayerLoadout(ply) end
-		end
+	timer.Simple(1, function() -- some maps do some weird override thing
+		if not IsValid(ply) or not ply:Alive() then return end
+		if not ply:HasWeapon("wep_jack_hmcd_hands") then GAMEMODE:PlayerLoadout(ply) end
 	end)
+
+	ply:SetupHands()
+	timer.Simple(1, function() -- lonely lonely...
+		if not IsValid(ply) or not ply:Alive() then return end
+		ply:SetupHands() -- Create the hands and call GM:PlayerSetHandsModel
+	end)
+end
+
+-- Choose the model for hands according to their player model.
+function GM:PlayerSetHandsModel(ply, ent)
+	local simplemodel = player_manager.TranslateToPlayerModelName(ply:GetModel())
+	local info = player_manager.TranslatePlayerHands(simplemodel)
+	if info then
+		ent:SetModel(info.model)
+		ent:SetSkin(info.skin)
+		ent:SetBodyGroups(info.body)
+		if ent.SetPlayerColor then ent:SetPlayerColor(ply:GetPlayerColor()) end
+	end
+	ent.HmcdSpawned = true
 end
 
 function GM:PlayerLoadout(ply)
@@ -344,6 +337,7 @@ function GM:GiveLoadout(ply)
 			end
 		end
 	end
+	ply:SetupHands()
 end
 
 function GM:PlayerSetModel(ply)
@@ -369,6 +363,7 @@ function GM:PlayerSetModel(ply)
 	ply:SetModel(modelname)
 	ply.ModelSex = playerModel.sex
 	ply.ClothingMatIndex = playerModel.clothes
+	ply:SetupHands()
 end
 
 function GM:DoPlayerDeath(ply, attacker, dmginfo)
@@ -612,7 +607,7 @@ function GM:IsSpawnpointSuitable(ply, spawnpointent, bMakeSuitable)
 	if ply:IsPlayer() then Tem = ply:Team() end
 	if Tem == TEAM_SPECTATOR or Tem == TEAM_UNASSIGNED then return true end
 	local Blockers = 0
-	for k, v in pairs(Ents) do
+	for k, v in ipairs(Ents) do
 		if IsValid(v) and v:GetClass() == "player" and v:Alive() then
 			Blockers = Blockers + 1
 			if bMakeSuitable then v:SetPos(v:GetPos() + Vector(math.random(-100, 100), math.random(-100, 100), 0)) end
@@ -1180,7 +1175,7 @@ function GM:PlayerSay(ply, text, teem)
 
 		local Extra = ""
 		if WalkieTalkie then Extra = translate.radio end
-		if SERVER then print(ply:Nick() .. ": " .. text .. Extra) end
+		--if SERVER then print(ply:Nick() .. ": " .. text .. Extra) end -- you don't
 		return false
 	end
 	return true
@@ -1213,6 +1208,7 @@ function GM:PlayerUse(ply, ent)
 	return true
 end
 
+local jumpang = Angle(-2, 0, -1)
 function GM:KeyPress(ply, key)
 	if key == IN_USE then
 		if ply.ContainingContainer then
@@ -1239,7 +1235,7 @@ function GM:KeyPress(ply, key)
 					if Class == "prop_ragdoll" and Dist < 65 and not self.ZOMBIE then ply:MurdererDisguise(tr.Entity) end
 				end
 
-				if tr.Entity.GetModel and ply:KeyDown(IN_ATTACK2) and (Dist < 65) then
+				if tr.Entity.GetModel and ply:KeyDown(IN_ATTACK2) and (Dist < 65) and ply:WaterLevel() <= 1 then
 					local Mod = string.lower(tr.Entity:GetModel())
 					if Mod and table.HasValue(HMCD_PersonContainers, Mod) then ply:EnterContainer(tr.Entity) end
 				end
@@ -1248,7 +1244,10 @@ function GM:KeyPress(ply, key)
 	end
 
 	local Ground = ply:GetGroundEntity()
-	if (key == IN_JUMP) and (IsValid(Ground) or Ground:IsWorld()) then HMCD_StaminaPenalize(ply, 8) end
+	if (key == IN_JUMP) and (IsValid(Ground) or Ground:IsWorld()) then
+		ply:ViewPunch(jumpang)
+		HMCD_StaminaPenalize(ply, 8)
+	end
 end
 
 function PlayerMeta:EnterContainer(ent)
@@ -1262,7 +1261,7 @@ function PlayerMeta:EnterContainer(ent)
 		self:SetNoDraw(true)
 		self:SetNotSolid(true)
 		self:Freeze(true)
-		self:SetDSP(30, true)
+		self:SetDSP(30, false)
 		self:SetPos(ent:LocalToWorld(ent:OBBCenter()) - Vector(0, 0, 20))
 		timer.Simple(.1, function()
 			self:DropObject()
@@ -1277,6 +1276,7 @@ end
 function PlayerMeta:ExitContainer()
 	local Ent = self.ContainingContainer
 	if not Ent then return end
+	if Ent:WaterLevel() >= 3 then return end -- you're trapped
 	Ent:EmitSound("Body.ImpactSoft")
 	Ent.PlayerHiddenInside = nil
 	self.ContainingContainer = nil
@@ -1284,7 +1284,7 @@ function PlayerMeta:ExitContainer()
 	self:SetNotSolid(false)
 	self:SetViewEntity(self)
 	self:Freeze(false)
-	self:SetDSP(0, true)
+	self:SetDSP(0, false)
 	timer.Simple(.1, function()
 		self:DropObject()
 		local Wep = self:GetWeapon("wep_jack_hmcd_hands")
@@ -1385,6 +1385,7 @@ function PlayerMeta:MurdererDisguise(copyent)
 	if WillSwitchArmor then copyent:SetChestArmor(OrigArmor) end
 	if WillSwitchHelmet then copyent:SetHeadArmor(OrigHelmet) end
 	sound.Play("snd_jack_hmcd_disguise.wav", copyent:GetPos(), 60, math.random(90, 110))
+	self:SetupHands()
 end
 
 function PlayerMeta:UnMurdererDisguise()
@@ -1439,6 +1440,7 @@ function PlayerMeta:InvoluntaryEvent()
 	end
 end
 
+local hideclr = Vector(.25, 0, 0)
 function PlayerMeta:MurdererHideIdentity()
 	if self.MurdererIdentityHidden then return end
 	self.TrueIdentity = {self.ClothingType, self.UpperBody, self.Core, self.LowerBody, self:GetBystanderName(), self:GetModel(), self:GetPlayerColor(), self.ModelSex, self.ClothingMatIndex}
@@ -1455,7 +1457,7 @@ function PlayerMeta:MurdererHideIdentity()
 		self:SetBystanderName(translate.murderer)
 	end
 
-	self:SetPlayerColor(Vector(.25, 0, 0))
+	self:SetPlayerColor(hideclr)
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_R_UpperArm"), Vector(1, .8, .8))
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_L_UpperArm"), Vector(1, .8, .8))
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_Spine4"), Vector(1, 1, 1))
@@ -1463,8 +1465,9 @@ function PlayerMeta:MurdererHideIdentity()
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_Pelvis"), Vector(.8, .8, .8))
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_R_Thigh"), Vector(.9, .9, .9))
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_L_Thigh"), Vector(.9, .9, .9))
-	sound.Play("snd_jack_hmcd_disguise.wav", self:GetPos(), 65, 110)
+	sound.Play("snd_jack_hmcd_disguise.wav", self:GetPos(), 60, 110)
 	self.MurdererIdentityHidden = true
+	self:SetupHands()
 end
 
 function PlayerMeta:MurdererShowIdentity()
@@ -1478,9 +1481,10 @@ function PlayerMeta:MurdererShowIdentity()
 	self:SetBodyProportions(Orig[2], Orig[3], Orig[4])
 	self:SetBystanderName(Orig[5])
 	self:SetPlayerColor(Orig[7])
-	sound.Play("snd_jack_hmcd_disguise.wav", self:GetPos(), 65, 90)
+	sound.Play("snd_jack_hmcd_disguise.wav", self:GetPos(), 60, 90)
 	self.TrueIdentity = nil
 	self.MurdererIdentityHidden = false
+	self:SetupHands()
 end
 
 -- you can run on for a long time
@@ -1744,17 +1748,17 @@ concommand.Add("hmcd_lockedcontrols", function(ply, cmd, args)
 			local Phys, Obj = ply.ContainingContainer:GetPhysicsObject(), ply.ContainingContainer
 			if Phys then
 				if args[1] == "+moveleft" then
-					Phys:ApplyForceCenter(-Obj:GetRight() * 7000)
+					Phys:ApplyForceCenter(-Obj:GetRight() * 8000)
 				elseif args[1] == "+moveright" then
-					Phys:ApplyForceCenter(Obj:GetRight() * 7000)
+					Phys:ApplyForceCenter(Obj:GetRight() * 8000)
 				elseif args[1] == "+forward" then
-					Phys:ApplyForceCenter(Obj:GetForward() * 7000)
+					Phys:ApplyForceCenter(Obj:GetForward() * 8000)
 				elseif args[1] == "+back" then
-					Phys:ApplyForceCenter(-Obj:GetForward() * 7000)
+					Phys:ApplyForceCenter(-Obj:GetForward() * 8000)
 				elseif args[1] == "+jump" then
-					Phys:ApplyForceCenter(Obj:GetUp() * 7000)
+					Phys:ApplyForceCenter(Obj:GetUp() * 8000)
 				elseif args[1] == "+duck" then
-					Phys:ApplyForceCenter(-Obj:GetUp() * 7000)
+					Phys:ApplyForceCenter(-Obj:GetUp() * 8000)
 				end
 			end
 		end

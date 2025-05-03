@@ -111,7 +111,7 @@ function GM:PreDrawHalos()
 	if Modulus < 1 then Vary = 1 - (math.sin(CurTime() * math.pi * 2 - (math.pi / 2)) + 1) / 2 end
 	if IsValid(client) and client:Alive() then
 		local tab, tab2 = {}, {}
-		for k, v in pairs(ents.GetAll()) do
+		for k, v in ipairs(ents.GetAll()) do
 			if v.IsLoot and not v:GetDTBool(0) and not v.MurdererLoot then
 				table.insert(tab, v)
 			elseif murd then
@@ -293,7 +293,7 @@ end
 ---------------------------------------]]
 local Shine = Material("models/debug/debugwhite")
 function GM:PostDrawOpaqueRenderables(drawingDepth, drawingSkybox)
-	for key, ply in pairs(ents.FindByClass("prop_ragdoll")) do
+	for key, ply in ipairs(ents.FindByClass("prop_ragdoll")) do
 		self:RenderAccessories(ply)
 	end
 
@@ -301,7 +301,7 @@ function GM:PostDrawOpaqueRenderables(drawingDepth, drawingSkybox)
 		local Vary = math.sin(CurTime() * 3)
 		if Vary > .5 then
 			Vary = (Vary - .5) / .5
-			for key, targ in pairs(ents.GetAll()) do
+			for key, targ in ipairs(ents.GetAll()) do
 				local Ja = targ:IsPlayer() and targ:Alive()
 				if Ja then
 					if Ja and targ:IsEffectActive(EF_NODRAW) then
@@ -373,6 +373,34 @@ function GM:ShouldDrawLocalPlayer(ply)
 	return false
 end
 
+-- replacing global CalculateFoV that manually changes fov with this func that just returns fov value
+local function CalculateFoV(ply)
+	local FoV = 88
+	if ply:IsSprinting() and ply:GetVelocity():Length() >= 100 or not ply:IsOnGround() then
+		FoV = 95
+	else
+		local Wep = ply:GetActiveWeapon()
+		if Wep and IsValid(Wep) and Wep.GetAiming then
+			local Aim = Wep:GetAiming()
+			if Aim > 99 then
+				if Wep.Scoped then
+					FoV = Wep.ScopeFoV
+				else
+					FoV = 87
+				end
+			end
+		end
+	end
+
+	if ply.HighOnDrugs then FoV = 105 end
+	if GAMEMODE:GetRound() == 2 then FoV = 90 end
+	if ply:InVehicle() then FoV = 90 end
+
+	return FoV
+end
+
+local finalfov = 88
+local vec5up = Vector(0, 0, 5)
 function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
 	local Dude, Ent = self:GetVictor(), GetViewEntity()
 	if IsValid(Dude) and Dude.GetShootPos then
@@ -430,7 +458,9 @@ function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
 		return CamData
 	elseif ply:InVehicle() then
 		local Mdl, Vec = ply:GetVehicle():GetModel(), Vector(0, 0, 0)
-		if not ((Mdl == "models/airboat.mdl") or (Mdl == "models/buggy.mdl") or (Mdl == "models/vehicle.mdl")) then Vec = Vector(0, 0, 5) end
+		if not ((Mdl == "models/airboat.mdl") or (Mdl == "models/buggy.mdl") or (Mdl == "models/vehicle.mdl")) then
+			Vec = vec5up
+		end
 		local CamData = {
 			origin = pos + Vec,
 			angles = ang,
@@ -450,6 +480,18 @@ function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
 		}
 		return CamData
 	end
+
+	local ft, fovneed = FrameTime(), CalculateFoV(ply)
+	finalfov = Lerp(ft * 5, finalfov, fovneed)
+
+	local CamData = {
+		origin = pos,
+		angles = ang,
+		fov = finalfov,
+		znear = nearZ,
+		zfar = farZ
+	}
+	return CamData
 end
 --[[local PUNCH_DAMPING = 9
 local PUNCH_SPRING_CONSTANT = 65

@@ -112,6 +112,7 @@ if CLIENT then
 
 		Hidden = 22
 		local NewPos = pos + ang:Forward() * 50 - ang:Up() * (20 + self.DownAmt + Hidden) + ang:Right() * 20
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		return NewPos, ang
 	end
 
