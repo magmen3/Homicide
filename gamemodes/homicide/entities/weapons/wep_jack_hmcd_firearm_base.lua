@@ -105,6 +105,10 @@ SWEP.PunchMul = 1.5
 if SERVER then
 	concommand.Add("suicide", function(ply, cmd, args)
 		ply:SetNWBool("Suiciding", not ply:GetNWBool("Suiciding", false))
+
+		if ply:GetVR() then
+			ply:SetNWBool("Suiciding", false)
+		end
 	end)
 end
 function SWEP:Initialize()
@@ -166,6 +170,8 @@ function SWEP:PrimaryAttack()
 		return
 	end
 
+	--!! Fix for FuckedWorldModel in VR (not tested)
+	local handpos, handang = self:GetOwner():GetBonePosition(self:GetOwner():LookupBone("ValveBiped.Bip01_R_Hand"))
 	if self:GetSuiciding() < 10 then
 		local WaterMul = 1
 		if owner:WaterLevel() >= 3 then WaterMul = .5 end
@@ -174,9 +180,21 @@ function SWEP:PrimaryAttack()
 		local BulletTraj = (owner:GetAimVector() + VectorRand() * (InAcc / (GAMEMODE.Realism:GetBool() and 1.9 or 1))):GetNormalized()
 		local bullet = {}
 		bullet.Num = self.NumProjectiles
-		bullet.Src = owner:GetShootPos()
-		bullet.Dir = BulletTraj
-		bullet.Spread = Vector(self.Spread * (GAMEMODE.Realism:GetBool() and 0.4 or 1), self.Spread * (GAMEMODE.Realism:GetBool() and 0.4 or 1), 0)
+		if owner:GetVR() then
+			bullet.Src = self.FuckedWorldModel and handpos or owner:GetShootPos()
+		else
+			bullet.Src = owner:GetShootPos()
+		end
+		if owner:GetVR() then
+			bullet.Dir = self.FuckedWorldModel and handang or owner:GetAimVector()
+		else
+			bullet.Dir = BulletTraj
+		end
+		if owner:GetVR() then
+			bullet.Spread = Vector(0, 0, 0)
+		else
+			bullet.Spread = Vector(self.Spread * (GAMEMODE.Realism:GetBool() and 0.4 or 1), self.Spread * (GAMEMODE.Realism:GetBool() and 0.4 or 1), 0)
+		end
 		bullet.Tracer = 0
 		bullet.Force = dmgAmt / 10
 		bullet.Damage = dmgAmt
@@ -187,7 +205,7 @@ function SWEP:PrimaryAttack()
 		if SERVER then
 			local suicdmg = DamageInfo()
 			suicdmg:SetDamage(self.Damage * 10)
-			suicdmg:SetAttacker(self:GetOwner())
+			suicdmg:SetAttacker(owner)
 			suicdmg:SetInflictor(self)
 			suicdmg:SetDamageType(DMG_BULLET)
 			suicdmg:SetAmmoType(game.GetAmmoID(self.AmmoType))
@@ -199,6 +217,11 @@ function SWEP:PrimaryAttack()
 	elseif self:Clip1() > 0 then
 		self:DoBFSAnimation(self.FireAnim)
 		if self.FireAnimRate then owner:GetViewModel():SetPlaybackRate(self.FireAnimRate) end
+	end
+
+	if self:GetOwner():GetVR() and CLIENT then
+		VRMOD_TriggerHaptic("vibration_right", 0, 0.3, 15, 20)
+		VRMOD_TriggerHaptic("vibration_left", 0, 0.3, 15, 20)
 	end
 
 	owner:SetAnimation(PLAYER_ATTACK1)
@@ -290,6 +313,10 @@ function SWEP:Think()
 		self:BarrelSmoke()
 		self.BarrelMustSmoke = false
 	end]]
+
+	if owner:GetVR() then
+		owner:SetNWBool("Suiciding", false)
+	end
 
 	if SERVER then
 		if (self.ReloadType == "individual") and self:GetReloading() then
@@ -427,7 +454,9 @@ function SWEP:Deploy()
 
 		self:DoBFSAnimation(self.DrawAnim)
 		self:GetOwner():GetViewModel():SetPlaybackRate(.5)
-		self:SetReady(false)
+		if not self:GetOwner():GetVR() then
+			self:SetReady(false)
+		end
 		self:EmitSound("snd_jack_hmcd_pistoldraw.wav", 70, self.HandlingPitch)
 		self:EnforceHolsterRules(self)
 		self:GetOwner():SetNWBool("Suiciding", false)
@@ -468,7 +497,9 @@ end
 
 function SWEP:Holster(newWep)
 	self:EnforceHolsterRules(newWep)
-	self:SetReady(false)
+	if not self:GetOwner():GetVR() then
+		self:SetReady(false)
+	end
 	self:GetOwner():SetNWBool("Suiciding", false)
 	return true
 end
@@ -727,15 +758,24 @@ if CLIENT then
 					self.WModel:SetNoDraw(true)
 				else
 					local pos, ang = self:GetOwner():GetBonePosition(self:GetOwner():LookupBone("ValveBiped.Bip01_R_Hand"))
+					if self:GetOwner():GetVR() then
+						pos, ang = g_VR.tracking.pose_righthand.pos, g_VR.tracking.pose_righthand.ang
+					end
 					if pos and ang then
-						self.WModel:SetRenderOrigin(pos + ang:Right() + ang:Up())
-						ang:RotateAroundAxis(ang:Forward(), 180)
-						ang:RotateAroundAxis(ang:Right(), 10)
-						if self:GetOwner():GetNWBool("Suiciding") then
-							ang:RotateAroundAxis(ang:Forward(), -15)
-							ang:RotateAroundAxis(ang:Right(), 140)
+						if not self:GetOwner():GetVR() then
+							self.WModel:SetRenderOrigin(pos + ang:Right() + ang:Up())
+							ang:RotateAroundAxis(ang:Forward(), 180)
+							ang:RotateAroundAxis(ang:Right(), 10)
+							if self:GetOwner():GetNWBool("Suiciding") then
+								ang:RotateAroundAxis(ang:Forward(), -15)
+								ang:RotateAroundAxis(ang:Right(), 140)
+							end
+						else
+							self.WModel:SetRenderOrigin(pos + ang:Forward() * 1 + ang:Right() * -2 + ang:Up() * -2)
 						end
 						self.WModel:SetRenderAngles(ang)
+						self.WModel:SetPos(pos)
+						self.WModel:SetAngles(ang)
 						self.WModel:DrawModel()
 					end
 				end

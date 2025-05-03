@@ -128,7 +128,7 @@ function GM:RoundThink()
 			end
 		end
 
-		if (self.ForceRoundEndTime < CurTime()) and not self.DEATHMATCH then
+		if (self.ForceRoundEndTime < CurTime()) and not self.DEATHMATCH and not self.Dev then
 			if not self.MurdererLastKill then self.MurdererLastKill = CurTime() end
 			if (self.MurdererLastKill + 100) < CurTime() then
 				local murderer

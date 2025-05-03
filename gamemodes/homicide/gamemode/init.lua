@@ -736,7 +736,7 @@ function GM:Think()
 
 	local Time, WillCalc, WillBreathe, WillBleed, WillRegen, WillCalcSpeed, WillCheatCheck, WillAdd, WillGodCheck = CurTime(), false, false, false, false, false, false, false, false
 	self:MurdererThink()
-	if (self.PoliceTime < CurTime()) and not self.DEATHMATCH then
+	if (self.PoliceTime < CurTime()) and not self.DEATHMATCH and not self.Dev then
 		if not self.PoliceNotified then
 			self.PoliceNotified = true
 			for key, playah in player.Iterator() do
@@ -753,10 +753,10 @@ function GM:Think()
 		else
 			self:CopThink()
 		end
-	elseif self.DEATHMATCH and (self.DeathmatchEndTime < CurTime()) then
+	elseif self.DEATHMATCH and (self.DeathmatchEndTime < CurTime()) and not self.Dev then
 		self:EndTheRound(7, nil)
 	else
-		if self.ZOMBIE then self:ZombieThink() end
+		if self.ZOMBIE and not self.Dev then self:ZombieThink() end
 		self:LootThink()
 	end
 
@@ -983,11 +983,9 @@ end
 function GM:OnEndRound()
 end
 
---
 function GM:OnStartRound()
 end
 
--- hi
 function GM:SendMessageAll(msg)
 	for k, v in player.Iterator() do
 		v:ChatPrint(msg)
@@ -1139,6 +1137,7 @@ function file.ReadDataAndContent(path)
 end
 
 util.AddNetworkString("reopen_round_board")
+
 -- F2
 function GM:ShowTeam(ply)
 	net.Start("reopen_round_board")

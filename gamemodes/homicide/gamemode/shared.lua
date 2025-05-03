@@ -25,6 +25,7 @@ CreateConVar("hmcd_realism", 0, bit.bor(FCVAR_REPLICATED, FCVAR_NOTIFY), "Enable
 CreateConVar("hmcd_guiltdisable", 0, bit.bor(FCVAR_REPLICATED, FCVAR_NOTIFY), "Disable guilt?", 0, 1)
 GM.Realism = GetConVar("hmcd_realism")
 GM.GuiltEnabled = GetConVar("hmcd_guiltdisable")
+GM.Dev = true
 game.AddParticles("particles/pcfs_jack_muzzleflashes.pcf")
 game.AddParticles("particles/pcfs_jack_explosions_small3.pcf")
 game.AddParticles("particles/pcfs_jack_explosions_incendiary2.pcf")
@@ -40,7 +41,7 @@ player_manager.AddValidHands("Homicide Alpha-Zombie", "models/weapons/c_arms_cit
 -- multiple killers when there are enough players
 -- stungun
 -- peperspray
--- vrmod compatibility
+--!! vrmod compatibility (50%)
 ----
 HMCD_SkillAwards = {{"pt", 4.6, 999999}, {"au", 3.7, 4.6}, {"pd", 2.9, 3.7}, {"ir", 2.2, 2.9}, {"os", 1.6, 2.2}, {"ru", 1.1, 1.6}, {"ag", .7, 1.1}, {"sn", .4, .7}, {"ni", .2, .4}, {"cu", 0, .2}}
 HMCD_ExperienceAwards = {{"10", 15360, 999999}, {"9", 7680, 15360}, {"8", 3840, 7680}, {"7", 1920, 3840}, {"6", 960, 1920}, {"5", 480, 960}, {"4", 240, 480}, {"3", 120, 240}, {"2", 60, 120}, {"1", 0, 60}}
@@ -144,7 +145,10 @@ HMCD_AllowedEntities = {
 	"momentary_",
 	"game_",
 	"infodecal",
-	"entity_"
+	"entity_",
+	"vrmod_",
+	"vr_",
+	"vrmod_pickup"
 }
 
 HMCD_SurfaceHardness = {
@@ -684,6 +688,18 @@ end
 function HMCD_IsDoor(ent)
 	local Class = ent:GetClass()
 	return (Class == "prop_door") or (Class == "prop_door_rotating") or (Class == "func_door") or (Class == "func_door_rotating") or (Class == "func_breakable")
+end
+
+local PlayerMeta = FindMetaTable("Player")
+function PlayerMeta:GetVR()
+	--[[
+	if not IsValid(self) then return false end
+	if not vrmod or vrmod == nil then return false end
+	if not istable(vrmod) then return false end
+	if not vrmod.IsPlayerInVR(self) then return false end
+	return true
+	]]
+	return (vrmod and vrmod ~= nil and istable(vrmod) and IsValid(self) and self:IsPlayer() and vrmod.IsPlayerInVR(self))
 end
 
 function GM:ShouldCollide(ent1, ent2)

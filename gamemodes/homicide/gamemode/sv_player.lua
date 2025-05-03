@@ -216,7 +216,7 @@ function GM:PlayerLoadout(ply)
 	net.Broadcast()
 end
 
-function GM:GiveLoadout(ply)
+function GM:GiveLoadout(ply) --!! TODO: Make loadout function that will use a table with weapon ids
 	if ply.Cop then
 		ply:Give("wep_jack_hmcd_smallpistol")
 		ply:GetWeapon("wep_jack_hmcd_smallpistol"):SetClip1(10)
@@ -337,6 +337,19 @@ function GM:GiveLoadout(ply)
 			end
 		end
 	end
+
+	if self.Dev then
+		ply:Give("wep_jack_hmcd_knife")
+		ply:Give("wep_jack_hmcd_oldgrenade")
+		ply:Give("wep_jack_hmcd_pistol")
+		ply:GetWeapon("wep_jack_hmcd_pistol"):SetClip1(13)
+		ply:GiveAmmo(60, "Pistol", true)
+
+		ply:Give("wep_jack_hmcd_shotgun")
+		ply:GetWeapon("wep_jack_hmcd_shotgun"):SetClip1(6)
+		ply:GiveAmmo(60, "Buckshot", true)
+	end
+
 	ply:SetupHands()
 end
 
@@ -477,7 +490,7 @@ function GM:DoPlayerDeath(ply, attacker, dmginfo)
 		DeathString = DeathString .. HitLocationPhrases[ply.LastHitLocation] .. " "
 	end
 
-	if Att and not (Att == "") then
+	if Att and Att ~= "" then
 		local ServerAtt = Att
 		if Att == ply:GetBystanderName() then
 			Att = translate.attYourself
@@ -559,7 +572,7 @@ function plyMeta:CalculateSpeed()
 	if self.HighOnDrugs then Helths = 100 end
 	if self.PainBoost > CurTime() then Helths = math.Clamp(Helths, 99, 100) end
 	local mul = math.Clamp((self.Stamina / 100) * ((Helths * .5 + 50) / 100) * self.TempSpeedMul, .1, 1)
-	if ground and ballsToWall and self:KeyDown(IN_FORWARD) then
+	if ground and ballsToWall and self:KeyDown(IN_FORWARD) or self:GetVR() then
 		DSM = math.Clamp(DSM + 16, 1, 100)
 	else
 		DSM = 1
@@ -1235,7 +1248,7 @@ function GM:KeyPress(ply, key)
 					if Class == "prop_ragdoll" and Dist < 65 and not self.ZOMBIE then ply:MurdererDisguise(tr.Entity) end
 				end
 
-				if tr.Entity.GetModel and ply:KeyDown(IN_ATTACK2) and (Dist < 65) and ply:WaterLevel() <= 1 then
+				if tr.Entity.GetModel and ply:KeyDown(IN_ATTACK2) and (Dist < 65) then
 					local Mod = string.lower(tr.Entity:GetModel())
 					if Mod and table.HasValue(HMCD_PersonContainers, Mod) then ply:EnterContainer(tr.Entity) end
 				end
@@ -1251,6 +1264,9 @@ function GM:KeyPress(ply, key)
 end
 
 function PlayerMeta:EnterContainer(ent)
+	if self:GetVR() then return end
+
+	if ent:WaterLevel() >= 3 then return end
 	if ent.PlayerHiddenInside and IsValid(ent.PlayerHiddenInside) then
 		self:PrintMessage(HUD_PRINTCENTER, translate.someonesInside)
 	else

@@ -39,8 +39,9 @@ SWEP.BobScale = 3
 SWEP.Instructions = translate.weaponHandsDesc
 SWEP.AdminOnly = true
 SWEP.HoldType = "normal"
-SWEP.ViewModel = "models/weapons/c_arms_citizen.mdl"
-SWEP.WorldModel = "models/props_junk/cardboard_box004a.mdl"
+SWEP.ViewModel = "models/weapons/c_arms.mdl"
+SWEP.WorldModel = ""
+SWEP.UseHands = true
 SWEP.AttackSlowDown = .5
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
@@ -320,7 +321,14 @@ function SWEP:AttackFront()
 			self:GetOwner():SetVelocity(-AimVec * SelfForce * .8)
 		end
 
-		if Ent:GetClass() == "func_breakable_surf" then if math.random(1, 20) == 10 then Ent:Fire("break", "", 0) end end
+		if Ent:GetClass() == "func_breakable_surf" and math.random(1, 20) == 10 then
+			Ent:Fire("break", "", 0)
+		end
+
+		if self:GetOwner():GetVR() and CLIENT then
+			VRMOD_TriggerHaptic("vibration_right", 0, 0.3, 10, 15)
+			VRMOD_TriggerHaptic("vibration_left", 0, 0.3, 10, 15)
+		end
 	end
 
 	self:GetOwner():LagCompensation(false)

@@ -134,6 +134,7 @@ end
 function GM:RenderAccessories(ply)
 	local Mod = ply:GetModel()
 	if (Mod == "models/player/mkx_jajon.mdl") or (Mod == "models/player/zombie_classic.mdl") then return end
+	if IsValid(ply) and ply:IsPlayer() and ply:GetVR() then return end
 	if ply.Accessory and not (ply.Accessory == "none") and not (ply.HeadArmor and (ply.HeadArmor == "ACH") and HMCD_Accessories[ply.Accessory][5]) then
 		local AccInfo = HMCD_Accessories[ply.Accessory]
 		if ply.AccessoryModel then
@@ -402,6 +403,11 @@ end
 local finalfov = 88
 local vec5up = Vector(0, 0, 5)
 function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
+	if ply:GetVR() then
+		nearZ = 500
+		farZ = 500
+	end
+
 	local Dude, Ent = self:GetVictor(), GetViewEntity()
 	if IsValid(Dude) and Dude.GetShootPos then
 		local Origin, Offset, ViewPos, ViewAng = Dude:GetShootPos(), Vector(60 * math.cos(CurTime()), 60 * math.sin(CurTime()), 0), pos, ang

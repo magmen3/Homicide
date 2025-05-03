@@ -279,3 +279,53 @@ function GM:CreateMove(cmd)
 		end
 	end
 end
+
+-- when a player goes into VR, start keeping track of whether they are holding a weapon with a custom muzzle offset
+hook.Add("VRUtilStart", "HMCD_VRClientAimStart", function(ply)
+	-- needed a random once per frame hook between RenderScene and DrawTranslucentRenderables for the VRMod laser pointer to work
+	hook.Add("DrawMonitors", "HMCD_VRUpdateMuzzleOffset", function()
+		if LocalPlayer():GetActiveWeapon().Base ~= "wep_jack_hmcd_firearm_base" then return end
+
+		-- when they are holding one, fix the VRMod globals every frame with the proper muzzle position and angle before they actually get used
+		if g_VR.viewModelMuzzle then
+			local pos,ang = g_VR.viewModelPos, g_VR.viewModelAng
+			g_VR.viewModelMuzzle.Pos = pos + (ang:Forward() + ang:Right() + ang:Up())
+		end
+	end)
+end)
+
+-- stop keeping track when the player isn't in VR so we aren't wasting performance
+hook.Add("VRUtilExit", "HMCD_VRClientAimRemove", function(ply)
+	hook.Remove("DrawMonitors", "HMCD_VRUpdateMuzzleOffset")
+end)
+
+hook.Add("EntityFireBullets", "HMCD_VRSuicide", function(ply, bullet)
+	--[[if IsValid(ply) and ply:IsPlayer() and ply:GetVR() then
+		-- check if the shot hits the player's own head using a box 1.3x the size of their head hitbox so it's not difficult to trigger
+		local mins, maxs = ply:GetHitBoxBounds(0, 0)
+		local pos, normal, frac = util.IntersectRayWithOBB(bullet.Src, bullet.Dir*100, vrmod.GetHMDPos(ply), vrmod.GetHMDAng(ply), mins*1.3, maxs*1.3)
+
+		-- if it does, kill the person as if they were shot
+		if pos then
+			suicide = DamageInfo()
+			suicide:SetAmmoType(game.GetAmmoID(bullet.AmmoType))
+			suicide:SetAttacker(ply)
+			suicide:SetDamage(400)
+			suicide:SetDamageType(2)
+			suicide:SetInflictor(ply:GetActiveWeapon())
+
+			-- these don't really do anything but just in case
+			suicide:SetDamageForce(bullet.Dir)
+			suicide:SetDamagePosition(pos)
+
+			-- wait one frame to actually do the damage so that the gunshot sound plays
+			timer.Simple(0, function()
+				ply.was_headshot = true
+				ply:TakeDamageInfo(suicide)
+			end)
+
+			-- block the default shot so that the bullet can't also kill another person
+			return false
+		end
+	end]]
+end)

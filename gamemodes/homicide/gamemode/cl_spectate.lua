@@ -68,3 +68,13 @@ function GM:RenderSpectate()
 		end
 	end
 end
+
+local color_red = Color(255, 0, 0)
+hook.Add("VRMod_Start", "HMCD_VRStart", function(ply)
+	if ply == LocalPlayer() then
+		if not ply:Alive() then
+			--ply:ConCommand("vrmod_exit")
+			-- chat.AddText(color_red, "YOU MUST BE ALIVE TO ENTER VR!")
+		end
+	end
+end)

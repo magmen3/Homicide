@@ -309,6 +309,15 @@ function GM:DisplayEndRoundBoard(data)
 		wow:SetSize(530, 50)
 		menu.OnClose = function() Bottom:Close() end
 		--Top:Close()
+
+		if LocalPlayer():GetVR() then
+			timer.Simple(3, function()
+				if IsValid(menu) then
+					menu:SetVisible(false)
+					menu:Close()
+				end
+			end)
+		end
 	end
 end
 

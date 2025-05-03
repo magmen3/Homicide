@@ -54,6 +54,11 @@ function SWEP:Initialize()
 
 	self.PrintName = translate and translate.hands or "Hands"
 	self.Instructions = translate.weaponZombHandsDesc
+
+	if self:GetOwner():GetVR() then
+		self.ViewModel = "models/weapons/c_arms.mdl"
+		self.UseHands = true
+	end
 end
 
 function SWEP:Deploy()
@@ -120,6 +125,10 @@ function SWEP:Think()
 	if self:GetNextIdle() < Time then
 		self:SendWeaponAnim(ACT_VM_IDLE)
 		self:UpdateNextIdle()
+	end
+	if self:GetOwner():GetVR() then
+		self.ViewModel = "models/weapons/c_arms.mdl"
+		self.UseHands = true
 	end
 
 	if SERVER then self:SetHoldType(HoldType) end
