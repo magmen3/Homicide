@@ -82,7 +82,7 @@ concommand.Add("+menu", function(client, com, args, full)
 		if IsValid(Wep) then
 			if Wep.CommandDroppable and not (GAMEMODE.SHTF and Wep.SHTF_NoDrop) then addElement("Drop", "drop_item") end
 			local Num = 0
-			for amm, fuck in pairs(HMCD_AmmoWeights) do
+			for amm, fuck in ipairs(HMCD_AmmoWeights) do
 				local Amt = client:GetAmmoCount(amm) or 0
 				Num = Num + Amt
 			end

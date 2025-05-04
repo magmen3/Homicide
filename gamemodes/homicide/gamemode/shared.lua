@@ -42,6 +42,12 @@ player_manager.AddValidHands("Homicide Alpha-Zombie", "models/weapons/c_arms_cit
 -- stungun
 -- peperspray
 --!! vrmod compatibility (50%)
+--!! replace weapons when vr player picks it
+-- maybe port homicide weapons on arcvr base
+--!! fix prop pickup with vrmod
+-- make melee base
+-- make item base
+-- add weapon models with c_hands from jmod homicide
 ----
 HMCD_SkillAwards = {{"pt", 4.6, 999999}, {"au", 3.7, 4.6}, {"pd", 2.9, 3.7}, {"ir", 2.2, 2.9}, {"os", 1.6, 2.2}, {"ru", 1.1, 1.6}, {"ag", .7, 1.1}, {"sn", .4, .7}, {"ni", .2, .4}, {"cu", 0, .2}}
 HMCD_ExperienceAwards = {{"10", 15360, 999999}, {"9", 7680, 15360}, {"8", 3840, 7680}, {"7", 1920, 3840}, {"6", 960, 1920}, {"5", 480, 960}, {"4", 240, 480}, {"3", 120, 240}, {"2", 60, 120}, {"1", 0, 60}}
@@ -148,7 +154,8 @@ HMCD_AllowedEntities = {
 	"entity_",
 	"vrmod_",
 	"vr_",
-	"vrmod_pickup"
+	"vrmod_pickup",
+	"sim_fphys_"
 }
 
 HMCD_SurfaceHardness = {
@@ -424,8 +431,9 @@ HMCD_BigProjectileJunkModels = {
 }
 
 HMCD_LootReplacements = {
+	-- class = {replace_class, replace_chance, only_soe, ammo_type}
 	["prop_vehicle_jeep"] = {"REPLACEVEHICLE", 1},
-	["prop_vehcle_jeep_old"] = {"REPLACEVEHICLE", 1},
+	["prop_vehicle_jeep_old"] = {"REPLACEVEHICLE", 1},
 	["prop_vehicle_airboat"] = {"REPLACEVEHICLE", 1},
 	["weapon_crowbar"] = {"ent_jack_hmcd_baseballbat", .5},
 	["weapon_stunstick"] = {"ent_jack_hmcd_pocketknife", .5},
@@ -440,7 +448,7 @@ HMCD_LootReplacements = {
 	["weapon_frag"] = {"ent_jack_hmcd_pipebomb", .5, true},
 	["weapon_slam"] = {"ent_jack_hmcd_molotov", .5, true},
 	["weapon_rpg"] = {"ent_jack_hmcd_ammo", .5, true, "AlyxGun"},
-	["weapon_alyxgun"] = {"ent_jack_hmcd_bandage", .5},
+	["weapon_alyxgun"] = {"ent_jack_hmcd_fooddrink", .5}, -- ent_jack_hmcd_bandage
 	["item_ammo_ar2_altfire"] = {"ent_jack_hmcd_molotov", .5, true},
 	["item_ammo_357"] = {"ent_jack_hmcd_ammo", .6, true, "357"},
 	["item_ammo_357_large"] = {"ent_jack_hmcd_ammo", .6, true, "357"},

@@ -359,11 +359,11 @@ end
 function SWEP:CustomWindup()
 end
 
--- no
 if CLIENT then
+	local clr = Color(10, 10, 10, 255)
 	function SWEP:PreDrawViewModel(vm, ply, wep)
 		vm:SetMaterial("models/shiny")
-		vm:SetColor(Color(10, 10, 10, 255))
+		vm:SetColor(clr)
 	end
 
 	local DownAmt = 10
@@ -411,7 +411,7 @@ if CLIENT then
 			else
 				self.DatWorldModel = ClientsideModel("models/weapons/c_models/c_grappling_hook/c_grappling_hook.mdl")
 				self.DatWorldModel:SetMaterial("models/shiny")
-				self.DatWorldModel:SetColor(Color(10, 10, 10, 255))
+				self.DatWorldModel:SetColor(clr)
 				self.DatWorldModel:SetModelScale(.8, 0)
 				self.DatWorldModel:SetPos(self:GetPos())
 				self.DatWorldModel:SetParent(self)

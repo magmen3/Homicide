@@ -191,7 +191,7 @@ local SHTF_LootTable = {
 		.5
 	},
 	{
-		"ent_jack_hmcd_autorifle",
+		"ent_jack_hmcd_lightrifle",
 		.5
 	},
 	{
@@ -455,7 +455,9 @@ function GM:SelectLootItem(goodShit)
 	end
 
 	-- HERE'S JOHNNY
-	if self.PUSSY and not self.Realism:GetBool() and math.random(1, 5) == 4 then Item = table.Random({"ent_jack_hmcd_hatchet", "ent_jack_hmcd_axe"}) end
+	if self.PUSSY and not self.Realism:GetBool() and math.random(1, 5) == 4 then
+		Item = table.Random({"ent_jack_hmcd_hatchet", "ent_jack_hmcd_axe"})
+	end
 	return Item
 end
 

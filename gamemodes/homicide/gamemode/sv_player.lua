@@ -194,6 +194,7 @@ function GM:PlayerSetHandsModel(ply, ent)
 		ent:SetBodyGroups(info.body)
 		if ent.SetPlayerColor then ent:SetPlayerColor(ply:GetPlayerColor()) end
 	end
+
 	ent.HmcdSpawned = true
 end
 
@@ -551,7 +552,7 @@ function plyMeta:CalculateSpeed()
 			if wep.CarryWeight then Weight = Weight + wep.CarryWeight end
 		end
 
-		for typ, wght in pairs(HMCD_AmmoWeights) do
+		for typ, wght in ipairs(HMCD_AmmoWeights) do
 			local Amt = self:GetAmmoCount(typ)
 			if Amt > 0 then Weight = Weight + Amt * wght end
 		end
@@ -1733,7 +1734,7 @@ end)
 concommand.Add("hmcd_dropammo", function(ply, cmd, args)
 	if not ply then return end
 	local Num = 0
-	for amm, fuck in pairs(HMCD_AmmoWeights) do
+	for amm, fuck in ipairs(HMCD_AmmoWeights) do
 		local Amt = ply:GetAmmoCount(amm) or 0
 		Num = Num + Amt
 	end
