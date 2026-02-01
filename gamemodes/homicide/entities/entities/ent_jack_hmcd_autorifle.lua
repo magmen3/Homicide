@@ -6,7 +6,7 @@ ENT.SWEP = "wep_jack_hmcd_autorifle"
 ENT.ImpactSound = "physics/metal/weapon_impact_soft3.wav"
 if SERVER then
 	function ENT:Initialize()
-		self:SetModel("models/weapons/w_rif_m4a1.mdl")
+		self:SetModel("models/weapons/w_rif_m4a1_silencer.mdl")
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetMoveType(MOVETYPE_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)

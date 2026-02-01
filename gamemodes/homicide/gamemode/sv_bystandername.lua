@@ -34,11 +34,11 @@ function GM:GenerateName(gender, words)
 end
 
 local function SetCustomIdentity(ply, name, args)
-	local Name, Maudel, R, G, B, ProperName, Upper, Core, Lower, Clothes, Accessory = args[1], args[2], tonumber(args[3]), tonumber(args[4]), tonumber(args[5]), "", tonumber(args[6]), tonumber(args[7]), tonumber(args[8]), args[9], args[10]
+	local Name, Maudel, R, G, B, ProperName, Upper, Core, Lower, Clothes, Accessory --[[, Stature]] = args[1], args[2], tonumber(args[3]), tonumber(args[4]), tonumber(args[5]), "", tonumber(args[6]), tonumber(args[7]), tonumber(args[8]), args[9], args[10] --[[, tonumber(args[11])]]
 	if not Name then Name = "Bystander" end
 	if not Accessory then Accessory = "none" end
 	Name, Accessory = string.Replace(Name, "_", " "), string.Replace(Accessory, "_", " ")
-	if not (Name and Maudel and R and B and G and Upper and Core and Lower and Clothes and Accessory) then
+	if not (Name and Maudel and R and B and G and Upper and Core and Lower and Clothes and Accessory --[[and Stature]]) then
 		ply:ChatPrint(translate.identWrongFormat)
 		return
 	end
@@ -60,12 +60,16 @@ local function SetCustomIdentity(ply, name, args)
 		return
 	end
 
-	if not (((R >= 0) and (R <= 1)) and ((G >= 0) and (G <= 1)) and ((B >= 0) and (B <= 1))) then
+	if not ((R >= 0) and (R <= 1) and (G >= 0) and (G <= 1) and (B >= 0) and (B <= 1)) then
 		ply:ChatPrint(translate.identColor)
 		return
 	end
 
-	--if((Stature<95)or(Stature>105))then ply:PrintMessage(HUD_PRINTTALK,"Homicide: invalid stature parameter! Must be between 95 and 105") return end
+	--[[if (Stature < 95) or (Stature > 105) then
+		ply:ChatPrint(translate.identStature)
+		return
+	end]]
+
 	if (Upper < 80) or (Upper > 130) then
 		ply:ChatPrint(translate.identUpper)
 		return
@@ -105,7 +109,7 @@ local function SetCustomIdentity(ply, name, args)
 	ply.CustomLowerBody = Lower
 	ply.CustomClothes = Clothes
 	ply.CustomAccessory = Accessory
-	--ply.CustomStature=Stature
+	--ply.CustomStature = Stature
 	ply:ChatPrint(translate.identSuccess1 .. ProperName .. " " .. Maudel .. translate.identSuccess2 .. tostring(R) .. " " .. tostring(G) .. " " .. tostring(B) .. translate.identSuccess3 .. tostring(Upper) .. translate.identSuccess4 .. tostring(Core) .. translate.identSuccess5 .. tostring(Lower) .. translate.identSuccess6 .. Clothes .. translate.identSuccess7 .. Accessory)
 end
 

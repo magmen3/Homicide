@@ -2,19 +2,8 @@ if SERVER then
 	AddCSLuaFile()
 	util.AddNetworkString("hmcd_splodetype")
 elseif CLIENT then
-	SWEP.DrawAmmo = false
-	SWEP.DrawCrosshair = false
-	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 4
 	SWEP.SlotPos = 1
-	killicon.AddFont("wep_jack_hmcd_ied", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
-	function SWEP:DrawViewModel()
-		return false
-	end
-
-	function SWEP:DrawWorldModel()
-		self:DrawModel()
-	end
 
 	net.Receive("hmcd_splodetype", function()
 		local Ent = net.ReadEntity()
@@ -22,7 +11,7 @@ elseif CLIENT then
 	end)
 end
 
-SWEP.Base = "weapon_base"
+SWEP.Base = "wep_jack_hmcd_item_base"
 SWEP.ViewModel = "models/props_junk/cardboard_jox004a.mdl"
 SWEP.WorldModel = "models/props_junk/cardboard_jox004a.mdl"
 if CLIENT then
@@ -32,36 +21,19 @@ end
 
 SWEP.PrintName = translate.weaponJihad
 SWEP.Instructions = translate.weaponJihadDesc
-SWEP.BobScale = 2
-SWEP.SwayScale = 2
-SWEP.Weight = 3
-SWEP.AutoSwitchTo = true
-SWEP.AutoSwitchFrom = false
-SWEP.Primary.Delay = 0.5
-SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = true
-SWEP.Primary.Ammo = "none"
-SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.ClipSize = -1
-SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = false
-SWEP.Secondary.Ammo = "none"
 SWEP.HomicideSWEP = true
 SWEP.CarryWeight = 3500
+SWEP.HoldType = "normal"
+SWEP.DownAmt = 16
+
 function SWEP:Initialize()
-	self:SetHoldType("normal")
+	self:SetHoldType(self.HoldType)
 	self.PrintName = translate.weaponJihad
 	self.Instructions = translate.weaponJihadDesc
+	self.DownAmt = 16
 end
 
-function SWEP:SetupDataTables()
-end
-
---
-function SWEP:PrimaryAttack()
-	if not IsFirstTimePredicted() then return end
-	if self:GetOwner():IsSprinting() then return end
+function SWEP:UseActivate()
 	self:SetNextPrimaryFire(CurTime() + 2)
 	if CLIENT then
 		LocalPlayer():ConCommand("act zombie")
@@ -69,46 +41,18 @@ function SWEP:PrimaryAttack()
 	end
 
 	sound.Play("snd_jack_hmcd_jihad" .. math.random(1, 3) .. ".wav", self:GetOwner():GetShootPos(), 75, math.random(95, 105))
-	timer.Simple(math.Rand(.9, 1.1), function() if IsValid(self) and self:GetOwner() and self:GetOwner():Alive() then self:GetOwner():ExplodeIED() end end)
+	timer.Simple(math.Rand(.9, 1.1), function()
+		if IsValid(self and self:GetOwner()) and self:GetOwner():Alive() then
+			self:GetOwner():ExplodeIED()
+		end
+	end)
 end
 
-function SWEP:Deploy()
-	if not IsFirstTimePredicted() then return end
-	self.DownAmt = 16
-	self:SetNextPrimaryFire(CurTime() + 1)
-	self:SetNextSecondaryFire(CurTime() + 1)
-	return true
-end
-
-function SWEP:Holster()
-	return true
-end
-
-function SWEP:OnRemove()
-end
-
---
-function SWEP:SecondaryAttack()
-end
-
---
-function SWEP:Think()
-end
-
---
-function SWEP:Reload()
-end
-
---
 if CLIENT then
 	local Hidden = 0
-	function SWEP:GetViewModelPosition(pos, ang)
+	function SWEP:GetVMPos2(pos, ang)
 		if not self.DownAmt then self.DownAmt = 16 end
-		if self:GetOwner():IsSprinting() then
-			self.DownAmt = math.Clamp(self.DownAmt + .2, 0, 16)
-		else
-			self.DownAmt = math.Clamp(self.DownAmt - .2, 0, 16)
-		end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 16 or 0)
 
 		Hidden = 22
 		local NewPos = pos + ang:Forward() * 50 - ang:Up() * (20 + self.DownAmt + Hidden) + ang:Right() * 20

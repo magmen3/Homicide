@@ -1,22 +1,11 @@
 if SERVER then
 	AddCSLuaFile()
 elseif CLIENT then
-	SWEP.DrawAmmo = false
-	SWEP.DrawCrosshair = false
-	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 5
 	SWEP.SlotPos = 1
-	killicon.AddFont("wep_jack_hmcd_smokebomb", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
-	function SWEP:DrawViewModel()
-		return false
-	end
-
-	function SWEP:DrawWorldModel()
-		self:DrawModel()
-	end
 end
 
-SWEP.Base = "weapon_base"
+SWEP.Base = "wep_jack_hmcd_item_base"
 SWEP.ViewModel = "models/props_junk/jlare.mdl"
 SWEP.WorldModel = "models/props_junk/jlare.mdl"
 if CLIENT then
@@ -26,36 +15,19 @@ end
 
 SWEP.PrintName = translate.weaponSmokeBomb
 SWEP.Instructions = translate.weaponSmokeBombDesc
-SWEP.BobScale = 2
-SWEP.SwayScale = 2
-SWEP.Weight = 3
-SWEP.AutoSwitchTo = true
-SWEP.AutoSwitchFrom = false
-SWEP.Primary.Delay = 0.5
-SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = true
-SWEP.Primary.Ammo = "none"
-SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.ClipSize = -1
-SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = false
-SWEP.Secondary.Ammo = "none"
-SWEP.HomicideSWEP = true
 SWEP.CarryWeight = 800
+SWEP.HoldType = "normal"
+SWEP.DownAmt = 10
+SWEP.CommandDroppable = false
+
 function SWEP:Initialize()
-	self:SetHoldType("normal")
+	self:SetHoldType(self.HoldType)
 	self.PrintName = translate.weaponSmokeBomb
 	self.Instructions = translate.weaponSmokeBombDesc
+	self.DownAmt = 10
 end
 
-function SWEP:SetupDataTables()
-end
-
---
-function SWEP:PrimaryAttack()
-	if not IsFirstTimePredicted() then return end
-	if self:GetOwner():IsSprinting() then return end
+function SWEP:UseActivate()
 	self:SetNextPrimaryFire(CurTime() + 1)
 	if CLIENT then return end
 	local Bom = ents.Create("ent_jack_hmcd_smokebomb")
@@ -69,40 +41,10 @@ function SWEP:PrimaryAttack()
 	self:Remove()
 end
 
-function SWEP:Deploy()
-	if not IsFirstTimePredicted() then return end
-	self.DownAmt = 8
-	return true
-end
-
-function SWEP:Holster()
-	return true
-end
-
-function SWEP:OnRemove()
-end
-
---
-function SWEP:SecondaryAttack()
-end
-
---
-function SWEP:Think()
-end
-
---
-function SWEP:Reload()
-end
-
---
 if CLIENT then
-	function SWEP:GetViewModelPosition(pos, ang)
+	function SWEP:GetVMPos2(pos, ang)
 		if not self.DownAmt then self.DownAmt = 8 end
-		if self:GetOwner():IsSprinting() then
-			self.DownAmt = math.Clamp(self.DownAmt + .1, 0, 8)
-		else
-			self.DownAmt = math.Clamp(self.DownAmt - .1, 0, 8)
-		end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 8 or 0)
 
 		local NewPos = pos + ang:Forward() * 30 - ang:Up() * (12 + self.DownAmt) + ang:Right() * 10
 		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
@@ -125,8 +67,4 @@ if CLIENT then
 			self.DatWorldModel:SetModelScale(.75, 0)
 		end
 	end
-
-	function SWEP:ViewModelDrawn()
-	end
-	--
 end

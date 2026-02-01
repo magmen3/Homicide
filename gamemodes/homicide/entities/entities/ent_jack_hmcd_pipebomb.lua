@@ -192,12 +192,10 @@ if SERVER then
 
 	function ENT:StartTouch(ply)
 	end
-	--
 elseif CLIENT then
 	function ENT:Initialize()
 	end
 
-	--
 	function ENT:Draw()
 		self:DrawModel()
 	end
@@ -205,8 +203,6 @@ elseif CLIENT then
 	function ENT:Think()
 	end
 
-	--
 	function ENT:OnRemove()
 	end
 end
---

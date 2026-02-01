@@ -6,7 +6,7 @@ ENT.SWEP = "wep_jack_hmcd_revolver"
 ENT.ImpactSound = "physics/metal/weapon_impact_soft3.wav"
 if SERVER then
 	function ENT:Initialize()
-		self:SetModel("models/weapons/w_357.mdl")
+		self:SetModel("models/weapons/homicide/w_mr96.mdl")
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetMoveType(MOVETYPE_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)
@@ -42,4 +42,3 @@ if SERVER then
 		end
 	end
 end
---

@@ -6,7 +6,6 @@ elseif CLIENT then
 	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 1
 	SWEP.SlotPos = 2
-	killicon.AddFont("wep_jack_hmcd_pocketknife", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
 	function SWEP:DrawViewModel()
 		return false
 	end
@@ -16,9 +15,11 @@ elseif CLIENT then
 	end
 end
 
-SWEP.Base = "weapon_base"
-SWEP.ViewModel = "models/weapons/v_jnife_j.mdl"
-SWEP.WorldModel = "models/weapons/w_jnife_jj.mdl"
+SWEP.Base = "weapon_base_hmcd"
+SWEP.ViewModel = "models/weapons/homicide/c_pocketknife.mdl" -- "models/weapons/v_jnife_j.mdl"
+SWEP.UseHands = true
+SWEP.ViewModelFlip = true
+SWEP.WorldModel = "models/weapons/homicide/w_pocketknife.mdl"
 if CLIENT then
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_pocketknife")
 	SWEP.BounceWeaponIcon = false
@@ -26,8 +27,8 @@ end
 
 SWEP.PrintName = translate.weaponPocketKnife
 SWEP.Instructions = translate.weaponPocketKnifeDesc
-SWEP.BobScale = 3
-SWEP.SwayScale = 3
+SWEP.BobScale = 0
+SWEP.SwayScale = 0
 SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
@@ -48,6 +49,8 @@ SWEP.HomicideSWEP = true
 SWEP.ENT = "ent_jack_hmcd_pocketknife"
 SWEP.Poisonable = true
 SWEP.CarryWeight = 500
+SWEP.DangerLevel = 60
+SWEP.DownAmt = 0
 function SWEP:Initialize()
 	self:SetNextIdle(CurTime() + 1)
 	self:SetHoldType("normal")
@@ -62,14 +65,14 @@ end
 
 function SWEP:PrimaryAttack()
 	if not IsFirstTimePredicted() then
-		self:DoBFSAnimation("slash1")
+		self:DoBFSAnimation("midslash1")
 		self:GetOwner():GetViewModel():SetPlaybackRate(2)
 		return
 	end
 
 	if self:GetOwner().Stamina < 5 then return end
 	if self:GetOwner():IsSprinting() then return end
-	self:DoBFSAnimation("slash1")
+	self:DoBFSAnimation("midslash1")
 	self:UpdateNextIdle()
 	self:SetHoldType("melee")
 	self:GetOwner():GetViewModel():SetPlaybackRate(2)
@@ -104,7 +107,6 @@ end
 function SWEP:SecondaryAttack()
 end
 
---
 function SWEP:Think()
 	local Time = CurTime()
 	if self:GetNextIdle() < Time then
@@ -180,7 +182,6 @@ end
 function SWEP:Reload()
 end
 
---
 function SWEP:DoBFSAnimation(anim)
 	local vm = self:GetOwner():GetViewModel()
 	vm:SendViewModelMatchingSequence(vm:LookupSequence(anim))
@@ -208,17 +209,71 @@ function SWEP:OnDrop()
 end
 
 if CLIENT then
-	local DownAmt = 0
-	function SWEP:GetViewModelPosition(pos, ang)
-		if self:GetOwner():IsSprinting() then
-			DownAmt = math.Clamp(DownAmt + .6, 0, 50)
-		else
-			DownAmt = math.Clamp(DownAmt - .6, 0, 50)
+	function SWEP:GetVMPos2(pos, ang)
+		if not self.DownAmt then self.DownAmt = 0 end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 50 or 0)
+
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
+		ang:RotateAroundAxis(ang:Up(), 40)
+		ang:RotateAroundAxis(ang:Forward(), 5)
+		return pos + ang:Up() * 0 - ang:Forward() * 0.1 * (self.DownAmt - 10) - ang:Up() * self.DownAmt - ang:Right() * -10, ang
+	end
+
+	local vechands, vecfull = Vector(0.75, 0.75, 0.75), Vector(1, 1, 1)
+	function SWEP:PreDrawViewModel(vm, ply, wep)
+		if IsValid(vm) and IsValid(ply) then
+			for i = 0, vm:GetBoneCount() do
+				if vm:GetBoneName(i) == "__INVALIDBONE__" then
+					continue
+				end
+
+				if string.find(vm:GetBoneName(i), "ValveBiped") then
+					local matrix = vm:GetBoneMatrix(i)
+					if matrix then
+						matrix:SetScale(vechands)
+						vm:SetBoneMatrix(i, matrix)
+					end
+				end
+				if string.find(vm:GetBoneName(i), "Bip01_R") then
+					local matrix = vm:GetBoneMatrix(i)
+					if matrix then
+						matrix:Zero()
+						vm:SetBoneMatrix(i, matrix)
+					end
+				end
+
+				if vm:GetBoneName(i) == "ValveBiped.Bip01_L_UpperArm" then
+					local matrix = vm:GetBoneMatrix(i)
+					if matrix then
+						matrix:SetScale(vector_origin)
+						vm:SetBoneMatrix(i, matrix)
+					end
+				end
+			end
+		end
+	end
+
+	function SWEP:Holster()
+		local ply = self:GetOwner()
+		if IsValid(ply) then
+			local vm = ply:GetViewModel()
+			if IsValid(vm) then
+				for i = 0, vm:GetBoneCount() do
+					if vm:GetBoneName(i) == "__INVALIDBONE__" then
+						continue
+					end
+					local matrix = vm:GetBoneMatrix(i)
+					if matrix then
+						matrix:SetScale(vecfull)
+						matrix:SetAngles(angle_zero)
+						vm:SetBoneMatrix(i, matrix)
+					end
+				end
+				vm:SetSubMaterial()
+			end
 		end
 
-		ang:RotateAroundAxis(ang:Up(), -30)
-		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
-		return pos + ang:Up() * 3 - ang:Forward() * (DownAmt - 10) - ang:Up() * DownAmt - ang:Right() * 25, ang
+		return true
 	end
 
 	function SWEP:DrawWorldModel()

@@ -14,13 +14,14 @@ else
 	SWEP.BounceWeaponIcon = false
 end
 
-SWEP.SwayScale = 3
-SWEP.BobScale = 3
+SWEP.Base = "weapon_base_hmcd"
+SWEP.SwayScale = 0
+SWEP.BobScale = 0
 SWEP.Instructions = translate.weaponZombHandsDesc
 SWEP.AdminOnly = true
 SWEP.HoldType = "normal"
 SWEP.ViewModel = Model("models/Weapons/v_zombiearms.mdl")
-SWEP.WorldModel = "models/weapons/w_crowbar.mdl"
+SWEP.WorldModel = ""
 SWEP.AttackSlowDown = .1
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
@@ -39,7 +40,6 @@ end
 function SWEP:PreDrawViewModel(vm, wep, ply)
 end
 
---vm:SetMaterial("engine/occlusionproxy") -- Hide that view model with hacky material
 function SWEP:Initialize()
 	self:SetNextIdle(CurTime() + 5)
 	self:SetHoldType(self.HoldType)
@@ -55,7 +55,7 @@ function SWEP:Initialize()
 	self.PrintName = translate and translate.hands or "Hands"
 	self.Instructions = translate.weaponZombHandsDesc
 
-	if self:GetOwner():GetVR() then
+	if IsValid(self:GetOwner()) and self:GetOwner():GetVR() then
 		self.ViewModel = "models/weapons/c_arms.mdl"
 		self.UseHands = true
 	end
@@ -126,7 +126,7 @@ function SWEP:Think()
 		self:SendWeaponAnim(ACT_VM_IDLE)
 		self:UpdateNextIdle()
 	end
-	if self:GetOwner():GetVR() then
+	if IsValid(self:GetOwner()) and self:GetOwner():GetVR() and self.ViewModel ~= "models/weapons/c_arms.mdl" then
 		self.ViewModel = "models/weapons/c_arms.mdl"
 		self.UseHands = true
 	end
@@ -225,10 +225,11 @@ end
 
 local NextReload = 0
 function SWEP:Reload()
-	self:SetNextPrimaryFire(CurTime() + 2)
-	self:SetNextSecondaryFire(CurTime() + 2)
-	if NextReload > CurTime() then return end
-	NextReload = CurTime() + 2
+	local Time = CurTime()
+	self:SetNextPrimaryFire(Time + 2)
+	self:SetNextSecondaryFire(Time + 2)
+	if NextReload > Time then return end
+	NextReload = Time + 2
 	if SERVER then
 		local Zombs = GAMEMODE:GetZombies()
 		self:PlayIdleSound()
@@ -243,7 +244,7 @@ function SWEP:DrawWorldModel()
 end
 
 function SWEP:DirectZombies(pos, zombs)
-	for key, npc in pairs(zombs) do
+	for key, npc in ipairs(zombs) do
 		local NPCPos = npc:GetPos()
 		local Vec = (pos - NPCPos):GetNormalized()
 		if math.random(1, 3) == 2 then
@@ -267,7 +268,7 @@ end
 
 if CLIENT then
 	local BlockAmt = 0
-	function SWEP:GetViewModelPosition(pos, ang)
+	function SWEP:GetVMPos2(pos, ang)
 		BlockAmt = math.Clamp(BlockAmt - FrameTime() * 1.5, 0, 1)
 		pos = pos - ang:Up() * 15 * BlockAmt
 		ang:RotateAroundAxis(ang:Right(), BlockAmt * 60)

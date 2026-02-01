@@ -4,9 +4,10 @@ ENT.Base = "ent_jack_hmcd_loot_base"
 ENT.PrintName = "Light"
 ENT.ImpactSound = "physics/metal/weapon_impact_soft3.wav"
 if SERVER then
+	local clr = Color(100, 100, 100, 255)
 	function ENT:Initialize()
 		self:SetModel("models/maxofs2d/lamp_flashlight.mdl")
-		self:SetColor(Color(100, 100, 100, 255))
+		self:SetColor(clr)
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetMoveType(MOVETYPE_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)
@@ -23,7 +24,7 @@ if SERVER then
 		if self:GetModelScale() == 1 then
 			self:SetModelScale(.5, 0)
 			self:Activate()
-			self:SetColor(Color(100, 100, 100, 255))
+			self:SetColor(clr)
 		end
 	end
 
@@ -41,4 +42,3 @@ if SERVER then
 		end
 	end
 end
---

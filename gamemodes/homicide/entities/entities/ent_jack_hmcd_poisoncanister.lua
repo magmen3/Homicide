@@ -72,13 +72,14 @@ if SERVER then
 	end
 
 	function ENT:PhysicsCollide(data, ent)
-		if data.DeltaTime > .1 then sound.Play("physics/metal/soda_can_impact_soft" .. math.random(2, 3) .. ".wav", self:GetPos(), 55, math.random(90, 110)) end
+		if data.DeltaTime > .1 then
+			sound.Play("physics/metal/soda_can_impact_soft" .. math.random(2, 3) .. ".wav", self:GetPos(), 55, math.random(90, 110))
+		end
 	end
 elseif CLIENT then
 	function ENT:Initialize()
 	end
 
-	--
 	function ENT:Draw()
 		self:DrawModel()
 	end

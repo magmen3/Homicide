@@ -1,22 +1,11 @@
 if SERVER then
 	AddCSLuaFile()
 elseif CLIENT then
-	SWEP.DrawAmmo = false
-	SWEP.DrawCrosshair = false
-	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 5
 	SWEP.SlotPos = 3
-	killicon.AddFont("wep_jack_hmcd_walkietalkie", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
-	function SWEP:DrawViewModel()
-		return false
-	end
-
-	function SWEP:DrawWorldModel()
-		self:DrawModel()
-	end
 end
 
-SWEP.Base = "weapon_base"
+SWEP.Base = "wep_jack_hmcd_item_base"
 SWEP.ViewModel = "models/sirgibs/ragdoll/css/terror_arctic_radio.mdl"
 SWEP.WorldModel = "models/sirgibs/ragdoll/css/terror_arctic_radio.mdl"
 if CLIENT then
@@ -26,84 +15,29 @@ end
 
 SWEP.PrintName = translate.weaponWalkieTalkie
 SWEP.Instructions = translate.weaponWalkieTalkieDesc
-SWEP.BobScale = 3
-SWEP.SwayScale = 3
-SWEP.Weight = 3
-SWEP.AutoSwitchTo = true
-SWEP.AutoSwitchFrom = false
-SWEP.CommandDroppable = false
+SWEP.BobScale = 0
+SWEP.SwayScale = 0
 SWEP.DeathDroppable = false
-SWEP.Primary.Delay = 0.5
-SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = true
-SWEP.Primary.Ammo = "none"
-SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.ClipSize = -1
-SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = false
-SWEP.Secondary.Ammo = "none"
 SWEP.ENT = "ent_jack_hmcd_walkietalkie"
-SWEP.DownAmt = 0
-SWEP.HomicideSWEP = true
+SWEP.DownAmt = 20
 SWEP.CarryWeight = 800
 SWEP.CommandDroppable = true
+SWEP.HoldType = "normal"
+
 function SWEP:Initialize()
-	self:SetHoldType("normal")
+	self:SetHoldType(self.HoldType)
 	self.DownAmt = 20
 	self.PrintName = translate.weaponWalkieTalkie
 	self.Instructions = translate.weaponWalkieTalkieDesc
 end
 
-function SWEP:SetupDataTables()
-end
-
---
-function SWEP:PrimaryAttack()
-end
-
---
-function SWEP:Deploy()
-	self:SetNextPrimaryFire(CurTime() + 1)
-	self.DownAmt = 20
-	return true
-end
-
-function SWEP:SecondaryAttack()
-end
-
---
-function SWEP:Think()
-end
-
---
-function SWEP:Reload()
-end
-
---
-function SWEP:OnDrop()
-	local Ent = ents.Create(self.ENT)
-	Ent.HmcdSpawned = self.HmcdSpawned
-	Ent:SetPos(self:GetPos())
-	Ent:SetAngles(self:GetAngles())
-	Ent:Spawn()
-	Ent:Activate()
-	Ent:GetPhysicsObject():SetVelocity(self:GetVelocity() / 2)
-	self:Remove()
+function SWEP:UseActivate()
 end
 
 if CLIENT then
-	function SWEP:PreDrawViewModel(vm, ply, wep)
-	end
-
-	--
-	function SWEP:GetViewModelPosition(pos, ang)
+	function SWEP:GetVMPos2(pos, ang)
 		if not self.DownAmt then self.DownAmt = 0 end
-		if self:GetOwner():IsSprinting() then
-			self.DownAmt = math.Clamp(self.DownAmt + .2, 0, 20)
-		else
-			self.DownAmt = math.Clamp(self.DownAmt - .2, 0, 20)
-		end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 20 or 0)
 
 		pos = pos - ang:Up() * (self.DownAmt + 47) + ang:Forward() * 20 + ang:Right() * 5
 		ang:RotateAroundAxis(ang:Up(), -90)

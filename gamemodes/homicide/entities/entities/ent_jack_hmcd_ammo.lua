@@ -5,11 +5,11 @@ ENT.PrintName = "Ammo"
 ENT.ImpactSound = "physics/metal/weapon_impact_soft1.wav"
 ENT.SWEPS = {
 	["AlyxGun"] = {"wep_jack_hmcd_suppressed"},
-	["Pistol"] = {"wep_jack_hmcd_pistol", "wep_jack_hmcd_smallpistol"},
+	["Pistol"] = {"wep_jack_hmcd_pistol", "wep_jack_hmcd_smallpistol", "wep_jack_hmcd_lightrifle"},
 	["357"] = {"wep_jack_hmcd_revolver"},
 	["Buckshot"] = {"wep_jack_hmcd_shotgun"},
 	["AR2"] = {"wep_jack_hmcd_rifle", "wep_jack_hmcd_suppressedrifle"},
-	["SMG1"] = {"wep_jack_hmcd_assaultrifle"},
+	["SMG1"] = {"wep_jack_hmcd_assaultrifle", "wep_jack_hmcd_autorifle"},
 	["AirboatGun"] = {"wep_jack_hmcd_hammer"}
 }
 

@@ -77,10 +77,17 @@ util.AddNetworkString("hmcd_forgive")
 util.AddNetworkString("HMCD_AmmoShow")
 util.AddNetworkString("HMCD_Identity")
 util.AddNetworkString("HMCD_PlayerAct")
+util.AddNetworkString("HMCD_SurfaceSound")
+util.AddNetworkString("HMCD_StatusEffect")
+util.AddNetworkString("HMCD_FoodBoost")
+util.AddNetworkString("HMCD_PainBoost")
+util.AddNetworkString("HMCD_DrugsHigh")
+util.AddNetworkString("rpdeath")
+util.AddNetworkString("HMCD_SetHull")
 local function ThesePeopleAreJollyFellows(ply, cmd, args)
 	net.Start("hmcd_noscopeaberration")
 	net.Send(ply)
-	print(ply:Nick() .. " " .. ply:SteamID() .. " has disabled scope aberration.")
+	--print(ply:Nick() .. " " .. ply:SteamID() .. " has disabled scope aberration.")
 end
 
 concommand.Add("homicide_scope_fix", ThesePeopleAreJollyFellows)
@@ -351,11 +358,6 @@ function GM:Initialize()
 	self.DeathRagdolls = {}
 	self:StartNewRound()
 	self:LoadMapList()
-	-- idk for why i did this but i should keep this maybe
-	local langstr = lang:GetString()
-	if langstr == "ru" or langstr == "uk" and hmcdlang:GetString() ~= "russian" then
-		RunConsoleCommand("hmcd_language", "russian")
-	end
 end
 
 function GM:InitPostEntity()
@@ -368,12 +370,13 @@ end
 local copnpcclr = Vector(.1, .125, .2)
 local NextCopSpawnTime, NextCopThinkTime, NextSirenTime, NextZombieThinkTime, NextZombieSpawnTime = 0, 0, 0, 0, 0
 function GM:SpawnCop(pos)
-	local Cop = ents.Create("npc_metropolice")
+	local Cop = ents.Create("npc_citizen")
 	Cop.HmcdSpawned = true
 	Cop:SetKeyValue("model", "models/gta5/npc/citycop.mdl")
 	Cop:SetKeyValue("additionalequipment", "wep_jack_hmcd_npc_pistol")
 	Cop:SetKeyValue("squadname", "homicidal_police")
 	Cop:SetCurrentWeaponProficiency(WEAPON_PROFICIENCY_POOR)
+	Cop:SetSquad("homicidal_police")
 	Cop:SetBystanderName(translate.police)
 	Cop:SetPlayerColor(copnpcclr)
 	Cop:SetPos(pos)
@@ -390,8 +393,10 @@ function GM:SpawnCop(pos)
 	Cop:SetHealth(100)
 	Cop:AddRelationship("player D_NU 50")
 	Cop:AddRelationship("npc_citizen D_NU 50")
+	Cop:SelectWeapon("wep_jack_hmcd_npc_pistol")
 	if math.random(1, 2) == 1 then Cop:Fire("gagenable", "", 0) end
-	for key, other in ipairs(ents.FindByClass("npc_metropolice")) do
+	Cop:AddSpawnFlags(1048576)
+	for key, other in ipairs(ents.FindByClass("npc_citizen")) do
 		constraint.NoCollide(Cop, other, 0, 0)
 	end
 	return Cop
@@ -405,36 +410,38 @@ local GuardModels = {
 
 local guardnpcclr = Vector(.15, .2, .1)
 function GM:SpawnGuardsman(pos)
-	local dude, Maudell = ents.Create("npc_combine_s"), table.Random(GuardModels)
-	dude.HmcdSpawned = true
-	dude:SetKeyValue("model", Maudell)
-	dude:SetKeyValue("tacticalvariant", "1")
-	dude:SetKeyValue("spawnflags", tostring(bit.bor(256, 8192)))
-	dude:SetBloodColor(-1)
-	dude:SetCurrentWeaponProficiency(WEAPON_PROFICIENCY_PERFECT)
-	dude:SetKeyValue("additionalequipment", "wep_jack_hmcd_npc_rifle")
-	dude:SetKeyValue("squadname", "homicide_guardsmen")
-	dude:SetBystanderName(translate.nationalguardsman)
-	dude:SetPlayerColor(guardnpcclr)
-	dude:SetPos(pos)
-	dude:SetAngles(Angle(0, math.random(0, 360), 0))
-	dude:Spawn()
-	dude:SetModel(Maudell)
-	dude:Activate()
-	dude:SetMaxHealth(300)
-	dude:SetHealth(300)
-	dude:AddRelationship("player D_NU 50")
-	dude:AddRelationship("npc_citizen D_NU 50")
-	if math.random(1, 2) == 1 then dude:Fire("gagenable", "", 0) end
-	for key, other in ipairs(ents.FindByClass("npc_metropolice")) do
-		constraint.NoCollide(dude, other, 0, 0)
+	local Guard, mdl = ents.Create("npc_combine_s"), GuardModels[math.random(#GuardModels)]
+	Guard.HmcdSpawned = true
+	Guard:SetKeyValue("model", mdl)
+	Guard:SetKeyValue("tacticalvariant", "1")
+	Guard:SetKeyValue("spawnflags", tostring(bit.bor(256, 8192)))
+	Guard:SetSquad("homicide_guardsmen")
+	Guard:SetBloodColor(-1)
+	Guard:SetCurrentWeaponProficiency(WEAPON_PROFICIENCY_PERFECT)
+	Guard:SetKeyValue("additionalequipment", "wep_jack_hmcd_npc_rifle")
+	Guard:SetKeyValue("squadname", "homicide_guardsmen")
+	Guard:SetBystanderName(translate.nationalguardsman)
+	Guard:SetPlayerColor(guardnpcclr)
+	Guard:SetPos(pos)
+	Guard:SetAngles(Angle(0, math.random(0, 360), 0))
+	Guard:Spawn()
+	Guard:SetModel(mdl)
+	Guard:Activate()
+	Guard:SetMaxHealth(300)
+	Guard:SetHealth(300)
+	Guard:AddRelationship("player D_NU 50")
+	Guard:AddRelationship("npc_citizen D_NU 50")
+	Guard:SelectWeapon("wep_jack_hmcd_npc_rifle")
+	if math.random(1, 2) == 1 then Guard:Fire("gagenable", "", 0) end
+	for key, other in ipairs(ents.FindByClass("npc_combine_s")) do
+		constraint.NoCollide(Guard, other, 0, 0)
 	end
 
 	sound.Play("snd_jack_hmcd_heli" .. math.random(1, 2) .. ".mp3", pos, 85, math.random(90, 110))
 	return dude
 end
 
--- format: multiline
+
 local ZombTypes = {
 	"npc_zombie",
 	"npc_zombie",
@@ -560,7 +567,7 @@ end
 function GM:CopThink()
 	if NextCopThinkTime > CurTime() then return end
 	NextCopThinkTime = CurTime() + .25
-	local Cops, Playas = ents.FindByClass("npc_metropolice"), player.GetAll()
+	local Cops, Playas = ents.FindByClass("npc_citizen"), player.GetAll()
 	for key, cop in ipairs(Cops) do
 		local KeepCop = cop:GetActivity() ~= ACT_IDLE
 		for key, playa in player.Iterator() do
@@ -576,25 +583,11 @@ function GM:CopThink()
 			for key, playa in player.Iterator() do
 				if playa:Alive() then
 					local Wep, Disp, Pri = playa:GetActiveWeapon(), D_NU, 80
-					if IsValid(Wep) then
-						if Wep.ClassName == "wep_jack_hmcd_smallpistol" then
+					if IsValid(Wep) and Wep.DangerLevel ~= nil then
+						if Wep.DangerLevel >= 50 then
 							Disp = D_HT
-							Pri = 70
-						elseif Wep.ClassName == "wep_jack_hmcd_baseballbat" then
-							Disp = D_HT
-							Pri = 65
-						elseif Wep.ClassName == "wep_jack_hmcd_pocketknife" then
-							Disp = D_HT
-							Pri = 60
-						elseif Wep.ClassName == "wep_jack_hmcd_hammer" then
-							Disp = D_HT
-							Pri = 55
-						elseif Wep.ClassName == "wep_jack_hmcd_hands" then
-							if Wep:GetFists() then
-								Disp = D_HT
-								Pri = 50
-							end
 						end
+						Pri = Wep.DangerLevel or 80
 					end
 
 					if playa.Murderer then
@@ -729,14 +722,14 @@ function GM:Think()
 		end
 	end
 
-	if not (self:GetRound() == 1) then
+	if self:GetRound() ~= 1 then
 		self:IntermissionThink()
 		return
 	end
 
 	local Time, WillCalc, WillBreathe, WillBleed, WillRegen, WillCalcSpeed, WillCheatCheck, WillAdd, WillGodCheck = CurTime(), false, false, false, false, false, false, false, false
 	self:MurdererThink()
-	if (self.PoliceTime < CurTime()) and not self.DEATHMATCH and not self.Dev then
+	if (self.PoliceTime < CurTime()) and not self.DEATHMATCH and not self.Dev:GetBool() then
 		if not self.PoliceNotified then
 			self.PoliceNotified = true
 			for key, playah in player.Iterator() do
@@ -753,10 +746,10 @@ function GM:Think()
 		else
 			self:CopThink()
 		end
-	elseif self.DEATHMATCH and (self.DeathmatchEndTime < CurTime()) and not self.Dev then
+	elseif self.DEATHMATCH and (self.DeathmatchEndTime < CurTime()) and not self.Dev:GetBool() then
 		self:EndTheRound(7, nil)
 	else
-		if self.ZOMBIE and not self.Dev then self:ZombieThink() end
+		if self.ZOMBIE and not self.Dev:GetBool() then self:ZombieThink() end
 		self:LootThink()
 	end
 
@@ -879,7 +872,7 @@ function GM:Think()
 				Dmg:SetDamageType(DMG_GENERIC)
 				Dmg:SetAttacker(Att)
 				Dmg:SetInflictor(ply)
-				Dmg:SetDamageForce(Vector(0, 0, 0))
+				Dmg:SetDamageForce(vector_origin)
 				Dmg:SetDamagePosition(ply:GetPos())
 				ply:TakeDamageInfo(Dmg)
 				ply.Bleedout = Existing - 1
@@ -922,16 +915,16 @@ function GM:IntermissionThink()
 	end
 end
 
+local svcheats = GetConVar("sv_cheats")
 function GM:GlobalAntiCheat()
-	if GetConVar("sv_cheats"):GetBool() then return end
-	local Shit = ents.GetAll()
-	for key, ent in ipairs(Shit) do
+	if svcheats:GetBool() then return end
+	for key, ent in ents.Iterator() do
 		if ent:IsPlayer() then
 			ent:AntiCheat()
 		else
 			if not ent.HmcdSpawned then
 				local Good, Class = false, ent:GetClass()
-				for key, suffix in ipairs(HMCD_AllowedEntities) do
+				for key, suffix in pairs(HMCD_AllowedEntities) do
 					if string.find(Class, suffix) then
 						Good = true
 						break
@@ -973,7 +966,7 @@ function GM:AllowPlayerPickup(ply, ent)
 end
 
 function GM:PlayerNoClip(ply)
-	if (ply:GetMoveType() == MOVETYPE_NOCLIP) or GetConVar("sv_cheats"):GetBool() then
+	if (ply:GetMoveType() == MOVETYPE_NOCLIP) or svcheats:GetBool() then
 		return true
 	else
 		ply:ChatPrint(translate.notAllowedNoclip)
@@ -1012,7 +1005,9 @@ function GM:EntityTakeDamage(ent, dmginfo)
 	if Infl:IsVehicle() and Infl:GetDriver() then Att = Infl:GetDriver() end
 	if IsValid(Att) and IsValid(Att:GetPhysicsAttacker()) then Att = Att:GetPhysicsAttacker() end
 	if IsValid(Infl) and (Infl:GetClass() == "ent_jack_hmcd_grapl") then Att = Infl:GetOwner() end
-	if self.PoliceTime and (self.PoliceTime < CurTime()) and (ent:IsPlayer() or (ent:GetClass() == "npc_combine_s")) and not ent.Murderer then if IsValid(Att) and Att:IsPlayer() then Att.GuardGuilty = true end end
+	if self.PoliceTime and self.PoliceTime < CurTime() and (ent:IsPlayer() or ent:GetClass() == "npc_combine_s" or ent:GetClass() == "npc_citizen") and not ent.Murderer and IsValid(Att) and Att:IsPlayer() then
+		Att.GuardGuilty = true
+	end
 	if ent:IsPlayer() then
 		local Crush, Club, Slash, Bullet, Buckshot, Blast, Burn = dmginfo:IsDamageType(DMG_CRUSH), dmginfo:IsDamageType(DMG_CLUB), dmginfo:IsDamageType(DMG_SLASH), dmginfo:IsDamageType(DMG_BULLET), dmginfo:IsDamageType(DMG_BUCKSHOT), dmginfo:IsDamageType(DMG_BLAST), dmginfo:IsDamageType(DMG_BURN) or dmginfo:IsDamageType(DMG_DIRECT)
 		if ent:InVehicle() then
@@ -1060,9 +1055,9 @@ function GM:EntityTakeDamage(ent, dmginfo)
 		if IsValid(dmginfo:GetInflictor()) and dmginfo:GetInflictor().AttackSlowDown then
 			ent.TempSpeedMul = dmginfo:GetInflictor().AttackSlowDown
 			if dmginfo:GetInflictor().AttackSlowDown < 1 then
-				umsg.Start("HMCD_StatusEffect", ent)
-				umsg.String(translate.statusEffectImmobilized)
-				umsg.End()
+				net.Start("HMCD_StatusEffect")
+				net.WriteString(translate.statusEffectImmobilized)
+				net.Send(ent)
 			end
 		end
 
@@ -1078,7 +1073,7 @@ function GM:EntityTakeDamage(ent, dmginfo)
 				else
 					ent.LastAttackerName = Att:GetBystanderName()
 				end
-			elseif Class == "npc_metropolice" then
+			elseif Class == "npc_citizen" then
 				ent.LastAttackerName = translate.attPolice
 			elseif Class == "npc_combine_s" then
 				ent.LastAttackerName = translate.attGuardsman
@@ -1088,7 +1083,7 @@ function GM:EntityTakeDamage(ent, dmginfo)
 				ent.LastAttackerName = translate.attGround
 			end
 
-			if Att:IsPlayer() and (self.GuiltEnabled:GetBool() == false) and not (ent == Att) and not Att.Murderer and (self:GetRound() == 1) and not self.DEATHMATCH then
+			if Att:IsPlayer() and not self.GuiltDisabled:GetBool() and not (ent == Att) and not Att.Murderer and (self:GetRound() == 1) and not self.DEATHMATCH then
 				if Att.LastDamager and (Att.LastDamager == ent) and ((Att.LastDamagedTime + 3) > CurTime()) then
 				else -- self defense
 					local Ow = math.Clamp(dmginfo:GetDamage(), 0, 100)
@@ -1260,15 +1255,15 @@ function HMCD_Poison(vic, murd, fast)
 		timer.Simple(math.random(5, 10), function()
 			if Victim and IsValid(Victim) and Victim:Alive() and (Victim.LifeID == LifeID) then
 				HMCD_PainMoan(Victim, true)
-				umsg.Start("HMCD_StatusEffect", Victim)
-				umsg.String(translate.statusEffectPoisoned)
-				umsg.End()
+				net.Start("HMCD_StatusEffect")
+				net.WriteString(translate.statusEffectPoisoned)
+				net.Send(Victim)
 				timer.Simple(math.random(2, 4), function()
 					if IsValid(Victim) and Victim:Alive() and (Victim.LifeID == LifeID) then
 						HMCD_PainMoan(Victim, true)
-						umsg.Start("HMCD_StatusEffect", Victim)
-						umsg.String(translate.statusEffectPoisoned)
-						umsg.End()
+						net.Start("HMCD_StatusEffect")
+						net.WriteString(translate.statusEffectPoisoned)
+						net.Send(Victim)
 						Victim.TempSpeedMul = .1
 						timer.Simple(math.random(2, 4), function()
 							if IsValid(Victim) and Victim:Alive() and (Victim.LifeID == LifeID) then
@@ -1278,7 +1273,7 @@ function HMCD_Poison(vic, murd, fast)
 								Dmg:SetAttacker(Murderer or murd)
 								Dmg:SetInflictor(Victim)
 								Dmg:SetDamagePosition(Victim:GetPos())
-								Dmg:SetDamageForce(Vector(0, 0, 0))
+								Dmg:SetDamageForce(vector_origin)
 								Victim:TakeDamageInfo(Dmg)
 								if Victim:InVehicle() then Victim:Kill() end
 							end
@@ -1291,21 +1286,21 @@ function HMCD_Poison(vic, murd, fast)
 		timer.Simple(math.random(20, 40), function()
 			if Victim and IsValid(Victim) and Victim:Alive() and (Victim.LifeID == LifeID) then
 				HMCD_PainMoan(Victim)
-				umsg.Start("HMCD_StatusEffect", Victim)
-				umsg.String(translate.statusEffectPoisoned)
-				umsg.End()
+				net.Start("HMCD_StatusEffect")
+				net.WriteString(translate.statusEffectPoisoned)
+				net.Send(Victim)
 				timer.Simple(math.random(2, 4), function()
 					if IsValid(Victim) and Victim:Alive() and (Victim.LifeID == LifeID) then
 						HMCD_PainMoan(Victim)
-						umsg.Start("HMCD_StatusEffect", Victim)
-						umsg.String(translate.statusEffectPoisoned)
-						umsg.End()
+						net.Start("HMCD_StatusEffect")
+						net.WriteString(translate.statusEffectPoisoned)
+						net.Send(Victim)
 						Victim.TempSpeedMul = .1
 						timer.Simple(math.random(2, 4), function()
 							if IsValid(Victim) and Victim:Alive() and (Victim.LifeID == LifeID) then
-								umsg.Start("HMCD_StatusEffect", Victim)
-								umsg.String(translate.statusEffectAsphyxiating)
-								umsg.End()
+								net.Start("HMCD_StatusEffect")
+								net.WriteString(translate.statusEffectAsphyxiating)
+								net.Send(Victim)
 								Victim:Freeze(true)
 								timer.Simple(math.random(2, 4), function()
 									if IsValid(Victim) and Victim:Alive() and (Victim.LifeID == LifeID) then
@@ -1315,7 +1310,7 @@ function HMCD_Poison(vic, murd, fast)
 										Dmg:SetAttacker(Murderer)
 										Dmg:SetInflictor(Victim)
 										Dmg:SetDamagePosition(Victim:GetPos())
-										Dmg:SetDamageForce(Vector(0, 0, 0))
+										Dmg:SetDamageForce(vector_origin)
 										Victim:TakeDamageInfo(Dmg)
 										if Victim:InVehicle() then Victim:Kill() end
 									end
@@ -1571,13 +1566,6 @@ HMCD_CountAiNodes = function()
 	end
 end
 
---[[
-concommand.Add("homicide_identity_help",function(ply,cmd,args)
-	net.Start("hmcd_help")
-	net.WriteString("identity")
-	net.Send(ply)
-end)
---]]
 concommand.Add("homicide_player_speed_mul", function(ply, cmd, args)
 	if ply.IsAdmin and not ply:IsAdmin() then
 		ply:ChatPrint(translate.youAreNoAdmin)

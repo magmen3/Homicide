@@ -9,7 +9,7 @@ function EFFECT:Init(data)
 	local emitter = ParticleEmitter(vOffset)
 	local rollparticle = emitter:Add("sprites/mat_jack_basicglow", vOffset)
 	if rollparticle then
-		rollparticle:SetVelocity(Vector(0, 0, 0))
+		rollparticle:SetVelocity(vector_origin)
 		rollparticle:SetLifeTime(0)
 		local life = .1 * self.Scayul ^ 0.25
 		rollparticle:SetDieTime(life)
@@ -21,14 +21,14 @@ function EFFECT:Init(data)
 		rollparticle:SetRoll(math.Rand(-360, 360))
 		rollparticle:SetRollDelta(math.Rand(-0.61, 0.61) * 5)
 		rollparticle:SetAirResistance(0)
-		rollparticle:SetGravity(Vector(0, 0, 0))
+		rollparticle:SetGravity(vector_origin)
 		rollparticle:SetCollide(false)
 		rollparticle:SetLighting(false)
 	end
 
 	local rollparticle2 = emitter:Add("sprites/mat_jack_basicglow", vOffset)
 	if rollparticle2 then
-		rollparticle2:SetVelocity(Vector(0, 0, 0))
+		rollparticle2:SetVelocity(vector_origin)
 		rollparticle2:SetLifeTime(0)
 		local life = .1 * self.Scayul ^ 0.25
 		rollparticle2:SetDieTime(life)
@@ -40,7 +40,7 @@ function EFFECT:Init(data)
 		rollparticle2:SetRoll(math.Rand(-360, 360))
 		rollparticle2:SetRollDelta(math.Rand(-0.61, 0.61) * 5)
 		rollparticle2:SetAirResistance(0)
-		rollparticle2:SetGravity(Vector(0, 0, 0))
+		rollparticle2:SetGravity(vector_origin)
 		rollparticle2:SetCollide(false)
 		rollparticle2:SetLighting(false)
 	end
@@ -72,4 +72,3 @@ end
 ---------------------------------------------------------]]
 function EFFECT:Render()
 end
---damn

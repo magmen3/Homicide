@@ -1,22 +1,11 @@
 if SERVER then
 	AddCSLuaFile()
 elseif CLIENT then
-	SWEP.DrawAmmo = false
-	SWEP.DrawCrosshair = false
-	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 3
 	SWEP.SlotPos = 2
-	killicon.AddFont("wep_jack_hmcd_poisoncanister", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
-	function SWEP:DrawViewModel()
-		return false
-	end
-
-	function SWEP:DrawWorldModel()
-		self:DrawModel()
-	end
 end
 
-SWEP.Base = "weapon_base"
+SWEP.Base = "wep_jack_hmcd_item_base"
 SWEP.ViewModel = "models/jordfood/jtun.mdl"
 SWEP.WorldModel = "models/jordfood/jtun.mdl"
 if CLIENT then
@@ -26,39 +15,22 @@ end
 
 SWEP.PrintName = translate.weaponPoisonCan
 SWEP.Instructions = translate.weaponPoisonCanDesc
-SWEP.BobScale = 2
-SWEP.SwayScale = 2
-SWEP.Weight = 3
-SWEP.AutoSwitchTo = true
-SWEP.AutoSwitchFrom = false
-SWEP.Primary.Delay = 0.5
-SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = true
-SWEP.Primary.Ammo = "none"
-SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.ClipSize = -1
-SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = false
-SWEP.Secondary.Ammo = "none"
-SWEP.HomicideSWEP = true
 SWEP.DeathDroppable = false
 SWEP.CommandDroppable = false
+SWEP.HoldType = "slam"
+SWEP.DownAmt = 8
+SWEP.CommandDroppable = false
+
 function SWEP:Initialize()
-	self:SetHoldType("slam")
+	self:SetHoldType(self.HoldType)
 	self.PrintName = translate.weaponPoisonCan
 	self.Instructions = translate.weaponPoisonCanDesc
+	self.DownAmt = 8
 end
 
-function SWEP:SetupDataTables()
-end
-
---
-function SWEP:PrimaryAttack()
-	if not IsFirstTimePredicted() then return end
-	if self:GetOwner():IsSprinting() then return end
-	self:SetNextPrimaryFire(CurTime() + 1)
+function SWEP:UseActivate()
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
+	self:SetNextPrimaryFire(CurTime() + 1)
 	if CLIENT then return end
 	local Can = ents.Create("ent_jack_hmcd_poisoncanister")
 	Can:SetPos(self:GetOwner():GetShootPos() + self:GetOwner():GetAimVector() * 20)
@@ -69,52 +41,15 @@ function SWEP:PrimaryAttack()
 	Can:GetPhysicsObject():SetVelocity(self:GetOwner():GetVelocity())
 	self:GetOwner():LagCompensation(false)
 	sound.Play("physics/metal/soda_can_impact_hard2.wav", Can:GetPos(), 55, math.random(70, 90))
-	self:Remove()
-end
-
-function SWEP:Deploy()
-	if not IsFirstTimePredicted() then return end
-	self.DownAmt = 8
-	self:SetNextPrimaryFire(CurTime() + 1)
-	return true
-end
-
-function SWEP:Holster()
-	self:OnRemove()
-	return true
-end
-
-function SWEP:OnRemove()
-	if IsValid(self:GetOwner()) and CLIENT and self:GetOwner():IsPlayer() then
-		local vm = self:GetOwner():GetViewModel()
-		if IsValid(vm) then vm:SetMaterial("") end
+	if SERVER then
+		self:Remove()
 	end
 end
 
-function SWEP:SecondaryAttack()
-end
-
---
-function SWEP:Think()
-end
-
---
-function SWEP:Reload()
-end
-
---
 if CLIENT then
-	function SWEP:PreDrawViewModel(vm, ply, wep)
-	end
-
-	--
-	function SWEP:GetViewModelPosition(pos, ang)
+	function SWEP:GetVMPos2(pos, ang)
 		if not self.DownAmt then self.DownAmt = 8 end
-		if self:GetOwner():IsSprinting() then
-			self.DownAmt = math.Clamp(self.DownAmt + .1, 0, 8)
-		else
-			self.DownAmt = math.Clamp(self.DownAmt - .1, 0, 8)
-		end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 8 or 0)
 
 		local NewPos = pos + ang:Forward() * 10 - ang:Up() * (4 + self.DownAmt) + ang:Right() * 5
 		ang:RotateAroundAxis(ang:Up(), 70)
@@ -138,8 +73,4 @@ if CLIENT then
 			self.DatWorldModel:SetNoDraw(true)
 		end
 	end
-
-	function SWEP:ViewModelDrawn()
-	end
-	--
 end

@@ -1,22 +1,10 @@
 if SERVER then
 	AddCSLuaFile()
 elseif CLIENT then
-	SWEP.DrawAmmo = false
-	SWEP.DrawCrosshair = false
-	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 4
 	SWEP.SlotPos = 5
-	killicon.AddFont("wep_jack_hmcd_ducttape", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
-	function SWEP:DrawViewModel()
-		return false
-	end
-
-	function SWEP:DrawWorldModel()
-		self:DrawModel()
-	end
-
 	function SWEP:DrawHUD()
-		local Go, TrOne, TrTwo = self:FindObjects()
+		local Go = self:FindObjects()
 		if Go then
 			local Rand = 150 --math.random(100, 200)
 			surface.DrawCircle(ScrW() / 2, ScrH() / 2, 50, Color(Rand, Rand, Rand, 200))
@@ -26,7 +14,7 @@ elseif CLIENT then
 	end
 end
 
-SWEP.Base = "weapon_base"
+SWEP.Base = "wep_jack_hmcd_item_base"
 SWEP.ViewModel = "models/props_phx/wheels/drugster_front.mdl"
 SWEP.WorldModel = "models/props_phx/wheels/drugster_front.mdl"
 if CLIENT then
@@ -36,39 +24,20 @@ end
 
 SWEP.PrintName = translate.weaponDuctTape
 SWEP.Instructions = translate.weaponDuctTapeDesc
-SWEP.BobScale = 3
-SWEP.SwayScale = 3
-SWEP.Weight = 3
-SWEP.AutoSwitchTo = true
-SWEP.AutoSwitchFrom = false
-SWEP.CommandDroppable = true
-SWEP.Primary.Delay = 0.5
-SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = true
-SWEP.Primary.Ammo = "none"
-SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.ClipSize = -1
-SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = true
-SWEP.Secondary.Ammo = "none"
+SWEP.BobScale = 0
+SWEP.SwayScale = 0
 SWEP.ENT = "ent_jack_hmcd_ducttape"
-SWEP.DownAmt = 0
-SWEP.HomicideSWEP = true
-SWEP.CanAmmoShow = false
 SWEP.UnTapeables = {MAT_SAND, MAT_SLOSH, MAT_SNOW}
 SWEP.CarryWeight = 400
+SWEP.HoldType = "slam"
+SWEP.DownAmt = 20
 function SWEP:Initialize()
-	self:SetHoldType("slam")
+	self:SetHoldType(self.HoldType)
 	self.DownAmt = 20
 	self.PrintName = translate.weaponDuctTape
 	self.Instructions = translate.weaponDuctTapeDesc
 end
 
-function SWEP:SetupDataTables()
-end
-
---
 function SWEP:FindObjects()
 	local Pos, Vec, GotOne, Tries, TrOne, TrTwo = self:GetOwner():GetShootPos(), self:GetOwner():GetAimVector(), false, 0, nil, nil
 	while not GotOne and (Tries < 100) do
@@ -102,8 +71,7 @@ function SWEP:FindObjects()
 	end
 end
 
-function SWEP:PrimaryAttack()
-	if self:GetOwner():IsSprinting() then return end
+function SWEP:UseActivate()
 	if SERVER then
 		local Go, TrOne, TrTwo = self:FindObjects()
 		if Go then
@@ -142,9 +110,11 @@ function SWEP:PrimaryAttack()
 		end
 	end
 
+	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	self:SetNextPrimaryFire(CurTime() + 2.5)
 end
 
+local util = util
 function SWEP:SprayDecals()
 	local Tr = util.QuickTrace(self:GetOwner():GetShootPos(), self:GetOwner():GetAimVector() * 70, {self:GetOwner()})
 	util.Decal("hmcd_jackatape", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal)
@@ -162,31 +132,10 @@ function SWEP:SprayDecals()
 	util.Decal("hmcd_jackatape", Tr7.HitPos + Tr7.HitNormal, Tr7.HitPos - Tr7.HitNormal)
 end
 
-function SWEP:Deploy()
-	self:SetNextPrimaryFire(CurTime() + 1)
-	self.DownAmt = 60
-	return true
-end
-
-function SWEP:Holster()
-	self:OnRemove()
-	return true
-end
-
-function SWEP:SecondaryAttack()
-end
-
---
-function SWEP:Think()
-	if SERVER then
-		local HoldType = "slam"
-		if self:GetOwner():IsSprinting() then HoldType = "normal" end
-		self:SetHoldType(HoldType)
-	end
-end
-
 function SWEP:Reload()
-	if SERVER then self:GetOwner():PrintMessage(HUD_PRINTCENTER, tostring(self.TapeAmount or 100) .. translate.weaponDuctTapeRemaining) end
+	if SERVER then
+		self:GetOwner():PrintMessage(HUD_PRINTCENTER, tostring(self.TapeAmount or 100) .. translate.weaponDuctTapeRemaining)
+	end
 end
 
 function SWEP:OnDrop()
@@ -201,29 +150,16 @@ function SWEP:OnDrop()
 	self:Remove()
 end
 
-function SWEP:OnRemove()
-	if IsValid(self:GetOwner()) and CLIENT and self:GetOwner():IsPlayer() then
-		local vm = self:GetOwner():GetViewModel()
-		if IsValid(vm) then
-			vm:SetMaterial("")
-			vm:SetColor(color_white)
-		end
-	end
-end
-
 if CLIENT then
+	local clr = Color(100, 100, 100, 255)
 	function SWEP:PreDrawViewModel(vm, ply, wep)
 		vm:SetMaterial("models/shiny")
-		vm:SetColor(Color(100, 100, 100, 255))
+		vm:SetColor(clr)
 	end
 
-	function SWEP:GetViewModelPosition(pos, ang)
+	function SWEP:GetVMPos2(pos, ang)
 		if not self.DownAmt then self.DownAmt = 0 end
-		if self:GetOwner():IsSprinting() then
-			self.DownAmt = math.Clamp(self.DownAmt + 1, 0, 60)
-		else
-			self.DownAmt = math.Clamp(self.DownAmt - 1, 0, 60)
-		end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 60 or 0)
 
 		pos = pos - ang:Up() * (self.DownAmt + 30) + ang:Forward() * 100 + ang:Right() * 50
 		--ang:RotateAroundAxis(ang:Up(),0)
@@ -250,7 +186,7 @@ if CLIENT then
 			self.DatWorldModel:SetNoDraw(true)
 			self.DatWorldModel:SetModelScale(.2, 0)
 			self.DatWorldModel:SetMaterial("models/shiny")
-			self.DatWorldModel:SetColor(Color(100, 100, 100, 255))
+			self.DatWorldModel:SetColor(clr)
 		end
 	end
 end

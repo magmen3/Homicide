@@ -3,10 +3,11 @@ ENT.PrintName = "Grappling Hook"
 -- This was imported from BFS2114
 AddCSLuaFile()
 if SERVER then
+	local clr = Color(10, 10, 10, 255)
 	function ENT:Initialize()
 		self:SetModel("models/props_junk/cardboard_box004a.mdl")
 		self:SetMaterial("models/shiny")
-		self:SetColor(Color(10, 10, 10, 255))
+		self:SetColor(clr)
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:PhysicsInitBox(Vector(-4, -4, -4), Vector(4, 4, 4))
 		self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -44,7 +45,6 @@ if SERVER then
 	function ENT:StartTouch(activator)
 	end
 
-	--
 	function ENT:OnTakeDamage(dmginfo)
 		self:TakePhysicsDamage(dmginfo)
 	end
@@ -123,7 +123,6 @@ elseif CLIENT then
 	function ENT:Initialize()
 	end
 
-	--hurr
 	function ENT:Draw()
 		if self.DatWorldModel then
 			local Vel, Ang = self:GetVelocity(), self:GetAngles()
@@ -153,4 +152,3 @@ elseif CLIENT then
 	function ENT:OnRemove()
 	end
 end
---fuck you kid you're a dick

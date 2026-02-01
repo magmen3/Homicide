@@ -1,7 +1,6 @@
 if SERVER then
 	AddCSLuaFile()
 else
-	killicon.AddFont("wep_jack_hmcd_rifle", "HL2MPTypeDeath", "1", color_white)
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_suppressedrifle")
 end
 
@@ -26,7 +25,7 @@ SWEP.CycleTime = 1.2
 SWEP.Recoil = 1
 SWEP.Supersonic = true
 SWEP.Accuracy = .9999
-SWEP.ShotPitch = 90
+SWEP.ShotPitch = 85
 SWEP.ENT = "ent_jack_hmcd_suppressedrifle"
 SWEP.DeathDroppable = true
 SWEP.CommandDroppable = true

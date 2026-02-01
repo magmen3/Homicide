@@ -2,20 +2,8 @@ if SERVER then
 	AddCSLuaFile()
 	util.AddNetworkString("hmcd_splodetype")
 elseif CLIENT then
-	SWEP.DrawAmmo = false
-	SWEP.DrawCrosshair = false
-	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 4
 	SWEP.SlotPos = 1
-	killicon.AddFont("wep_jack_hmcd_ied", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
-	function SWEP:DrawViewModel()
-		return false
-	end
-
-	function SWEP:DrawWorldModel()
-		self:DrawModel()
-	end
-
 	local function drawTextShadow(t, f, x, y, c, px, py)
 		color_black.a = c.a
 		draw.SimpleText(t, f, x + 1, y + 1, color_black, px, py)
@@ -46,7 +34,7 @@ elseif CLIENT then
 	end
 end
 
-SWEP.Base = "weapon_base"
+SWEP.Base = "wep_jack_hmcd_item_base"
 SWEP.ViewModel = "models/props_junk/cardboard_jox004a.mdl"
 SWEP.WorldModel = "models/props_junk/cardboard_jox004a.mdl"
 if CLIENT then
@@ -56,37 +44,23 @@ end
 
 SWEP.PrintName = translate.weaponIED
 SWEP.Instructions = translate.weaponIEDDesc
-SWEP.BobScale = 2
-SWEP.SwayScale = 2
-SWEP.Weight = 3
-SWEP.AutoSwitchTo = true
-SWEP.AutoSwitchFrom = false
-SWEP.Primary.Delay = 0.5
-SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = true
-SWEP.Primary.Ammo = "none"
-SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.ClipSize = -1
-SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = false
-SWEP.Secondary.Ammo = "none"
-SWEP.HomicideSWEP = true
 SWEP.CarryWeight = 2000
+SWEP.DownAmt = 16
+SWEP.HoldType = "normal"
+
 function SWEP:Initialize()
 	self:SetRigged(false)
-	self:SetHoldType("normal")
+	self:SetHoldType(self.HoldType)
 	self.PrintName = translate.weaponIED
 	self.Instructions = translate.weaponIEDDesc
+	self.DownAmt = 16
 end
 
 function SWEP:SetupDataTables()
 	self:NetworkVar("Bool", 0, "Rigged")
 end
 
-function SWEP:PrimaryAttack()
-	if not IsFirstTimePredicted() then return end
-	if self:GetOwner():IsSprinting() then return end
+function SWEP:UseActivate()
 	if self:GetRigged() then self:GetOwner():SetAnimation(PLAYER_ATTACK1) end
 	if CLIENT then return end
 	if self:GetRigged() then
@@ -105,26 +79,11 @@ function SWEP:PrimaryAttack()
 		return
 	end
 
+	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	self:SetNextPrimaryFire(CurTime() + .25)
 	self:DeployFront(true)
 end
 
-function SWEP:Deploy()
-	if not IsFirstTimePredicted() then return end
-	self.DownAmt = 16
-	self:SetNextPrimaryFire(CurTime() + 1)
-	self:SetNextSecondaryFire(CurTime() + 1)
-	return true
-end
-
-function SWEP:Holster()
-	return true
-end
-
-function SWEP:OnRemove()
-end
-
---
 function SWEP:SecondaryAttack()
 	if not IsFirstTimePredicted() then return end
 	if self:GetOwner():IsSprinting() then return end
@@ -205,19 +164,11 @@ function SWEP:DeployFront(proper)
 	self:GetOwner():LagCompensation(false)
 end
 
-function SWEP:Reload()
-end
-
---
 if CLIENT then
 	local Hidden = 0
-	function SWEP:GetViewModelPosition(pos, ang)
+	function SWEP:GetVMPos2(pos, ang)
 		if not self.DownAmt then self.DownAmt = 16 end
-		if self:GetOwner():IsSprinting() then
-			self.DownAmt = math.Clamp(self.DownAmt + .2, 0, 16)
-		else
-			self.DownAmt = math.Clamp(self.DownAmt - .2, 0, 16)
-		end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 16 or 0)
 
 		if self:GetRigged() then
 			Hidden = 22

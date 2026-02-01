@@ -16,7 +16,7 @@ local CivilianAmmoTypes = {
 	"AirboatGun"
 }
 
--- format: multiline
+
 local LootTable = {
 	{
 		"ent_jack_hmcd_fooddrink",
@@ -80,7 +80,7 @@ local LootTable = {
 	}
 }
 
--- format: multiline
+
 local SHTF_LootTable = {
 	{
 		"ent_jack_hmcd_fooddrink",
@@ -200,7 +200,7 @@ local SHTF_LootTable = {
 	}
 }
 
--- format: multiline
+
 local SHTF_TraitorLootTable = {
 	{
 		"ent_jack_hmcd_flashlight",
@@ -320,7 +320,7 @@ local SHTF_TraitorLootTable = {
 	}
 }
 
--- format: multiline
+
 local DeathmatchLootTable = {
 	{
 		"ent_jack_hmcd_fooddrink",
@@ -521,7 +521,7 @@ function GM:LootThink()
 		if not self.LastSpawnLoot or self.LastSpawnLoot < CurTime() then
 			self.LastSpawnLoot = CurTime() + LootDelay
 			local Amt = 0
-			for key, exist in ipairs(ents.GetAll()) do
+			for key, exist in ents.Iterator() do
 				if exist.IsLoot then Amt = Amt + 1 end
 			end
 

@@ -26,16 +26,15 @@ if SERVER then
 	function ENT:Use(ply)
 	end
 
-	--
 	function ENT:Think()
-		if self:WaterLevel() >= 3 then
+		if self:WaterLevel() >= 2 then
 			self:Remove()
 			return
 		end
 
 		if self.NextSmokeTime < CurTime() then
 			self.NextSmokeTime = CurTime() + .5
-			ParticleEffect("pcf_jack_smokebomb3", self:GetPos(), Angle(0, 0, 0), self)
+			ParticleEffect("pcf_jack_smokebomb3", self:GetPos(), angle_zero, self)
 		end
 
 		if self.NextHide < CurTime() then self:SetDTBool(0, true) end
@@ -49,7 +48,6 @@ elseif CLIENT then
 	function ENT:Initialize()
 	end
 
-	--
 	function ENT:Draw()
 		local Pos = self:GetPos()
 		render.SetMaterial(Glow)

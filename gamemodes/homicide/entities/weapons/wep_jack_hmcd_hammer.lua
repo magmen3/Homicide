@@ -6,7 +6,6 @@ elseif CLIENT then
 	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 1
 	SWEP.SlotPos = 5
-	killicon.AddFont("wep_jack_hmcd_hammer", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
 	function SWEP:DrawViewModel()
 		return false
 	end
@@ -26,9 +25,10 @@ elseif CLIENT then
 	end
 end
 
-SWEP.Base = "weapon_base"
-SWEP.ViewModel = "models/weapons/v_jjife_t.mdl"
-SWEP.WorldModel = "models/weapons/w_jjife_t.mdl"
+SWEP.Base = "weapon_base_hmcd"
+SWEP.ViewModel = "models/weapons/homicide/c_clawhammer.mdl"
+SWEP.UseHands = true
+SWEP.WorldModel = "models/weapons/homicide/w_clawhammer.mdl"
 if CLIENT then
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_hammer")
 	SWEP.BounceWeaponIcon = false
@@ -36,8 +36,8 @@ end
 
 SWEP.PrintName = translate.weaponHammer
 SWEP.Instructions = translate.weaponHammerDesc
-SWEP.BobScale = 3
-SWEP.SwayScale = 3
+SWEP.BobScale = 0
+SWEP.SwayScale = 0
 SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
@@ -59,6 +59,7 @@ SWEP.AmmoType = "AirboatGun"
 SWEP.CanAmmoShow = true
 SWEP.UnNailables = {MAT_SAND, MAT_SLOSH, MAT_GLASS}
 SWEP.CarryWeight = 1000
+SWEP.DangerLevel = 55
 function SWEP:CanNail(Tr)
 	return (self:GetOwner():GetAmmoCount(self.Primary.Ammo) > 0) and Tr.Hit and Tr.Entity and (IsValid(Tr.Entity) or Tr.Entity:IsWorld()) and not (Tr.Entity:IsPlayer() or Tr.Entity:IsNPC()) and not table.HasValue(self.UnNailables, Tr.MatType)
 end
@@ -248,16 +249,9 @@ function SWEP:DoBFSAnimation(anim)
 end
 
 if CLIENT then
-	function SWEP:PreDrawViewModel(vm, ply, wep)
-	end
-
-	function SWEP:GetViewModelPosition(pos, ang)
+	function SWEP:GetVMPos2(pos, ang)
 		if not self.DownAmt then self.DownAmt = 0 end
-		if self:GetOwner():IsSprinting() then
-			self.DownAmt = math.Clamp(self.DownAmt + .2, 0, 20)
-		else
-			self.DownAmt = math.Clamp(self.DownAmt - .2, 0, 20)
-		end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 20 or 0)
 
 		pos = pos - ang:Up() * (self.DownAmt + 0) --+ang:Forward()*0+ang:Right()*0
 		--ang:RotateAroundAxis(ang:Up(),0)
@@ -265,6 +259,44 @@ if CLIENT then
 		--ang:RotateAroundAxis(ang:Forward(),0)
 		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		return pos, ang
+	end
+
+	local vechands, vecfull = Vector(0.75, 0.75, 0.75), Vector(1, 1, 1)
+	function SWEP:PreDrawViewModel(vm, ply, wep)
+		if IsValid(vm) and IsValid(ply) then
+			for i = 0, vm:GetBoneCount() do
+				if string.find(vm:GetBoneName(i), "ValveBiped") then
+					local matrix = vm:GetBoneMatrix(i)
+					if matrix then
+						matrix:SetScale(vechands)
+						vm:SetBoneMatrix(i, matrix)
+					end
+				end
+			end
+		end
+	end
+
+	function SWEP:Holster()
+		local ply = self:GetOwner()
+		if IsValid(ply) then
+			local vm = ply:GetViewModel()
+			if IsValid(vm) then
+				for i = 0, vm:GetBoneCount() do
+					if vm:GetBoneName(i) == "__INVALIDBONE__" then
+						continue
+					end
+					local matrix = vm:GetBoneMatrix(i)
+					if matrix then
+						matrix:SetScale(vecfull)
+						matrix:SetAngles(angle_zero)
+						vm:SetBoneMatrix(i, matrix)
+					end
+				end
+				vm:SetSubMaterial()
+			end
+		end
+
+		return true
 	end
 
 	function SWEP:DrawWorldModel()

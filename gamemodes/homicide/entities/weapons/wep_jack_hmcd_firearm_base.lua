@@ -19,23 +19,23 @@
 if SERVER then
 	AddCSLuaFile()
 else
-	killicon.AddFont("wep_jack_hmcd_smallpistol", "HL2MPTypeDeath", "1", color_white)
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_smallpistol")
 	SWEP.BounceWeaponIcon = false
 end
 
-SWEP.Base = "weapon_base"
+SWEP.Base = "weapon_base_hmcd"
 SWEP.Slot = 2
 SWEP.SlotPos = 1
 SWEP.DrawAmmo = false
 SWEP.DrawCrosshair = false
 SWEP.ViewModelFlip = true
 SWEP.ViewModelFOV = 75
-SWEP.ViewModel = "models/weapons/v_pist_jivejeven.mdl"
-SWEP.WorldModel = "models/weapons/w_pist_usp.mdl"
+SWEP.ViewModel = "models/weapons/homicide/c_px4.mdl"
+SWEP.UseHands = true
+SWEP.WorldModel = "models/weapons/homicide/w_px4.mdl"
 SWEP.HoldType = "pistol"
-SWEP.BobScale = 1.5
-SWEP.SwayScale = 1.5
+SWEP.BobScale = 0 -- 1.5
+SWEP.SwayScale = 1
 SWEP.Weight = 5
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
@@ -55,12 +55,12 @@ SWEP.Secondary.Tracer = -1
 SWEP.Secondary.TakeAmmoPerBullet = false
 SWEP.Secondary.Automatic = false
 SWEP.Secondary.Ammo = "none"
---SWEP.BarrelMustSmoke = false
+SWEP.BarrelMustSmoke = false
 SWEP.AimTime = 3
 SWEP.BearTime = 3
 SWEP.SprintPos = Vector(-4, 0, -10)
 SWEP.SprintAng = Angle(80, 0, 0)
-SWEP.AimPos = Vector(1.75, 0, 1.22)
+SWEP.AimPos = Vector(2.08, 0, 1.4)
 SWEP.DeathDroppable = true
 SWEP.CanAmmoShow = true
 SWEP.CommandDroppable = true
@@ -90,7 +90,7 @@ SWEP.Spread = 0
 SWEP.NumProjectiles = 1
 SWEP.ShotPitch = 100
 SWEP.VReloadTime = 0
-SWEP.HipFireInaccuracy = .18
+SWEP.HipFireInaccuracy = .16
 SWEP.CycleType = "auto"
 SWEP.ReloadType = "magazine"
 SWEP.LastFire = 0
@@ -99,9 +99,13 @@ SWEP.DrawAnim = "draw"
 SWEP.ReloadAnim = "reload"
 SWEP.ReloadInterrupted = false
 SWEP.HomicideSWEP = true
+SWEP.CanSuicide = true
 SWEP.SuicidePos = Vector(-7, 4, -18)
-SWEP.SuicideAng = Angle(100, -10, -90)
-SWEP.PunchMul = 1.5
+SWEP.SuicideAng = Angle(100, -10, -30)
+SWEP.PunchMul = 1.4
+SWEP.DangerLevel = 80
+SWEP.OneHanded = false
+
 if SERVER then
 	concommand.Add("suicide", function(ply, cmd, args)
 		ply:SetNWBool("Suiciding", not ply:GetNWBool("Suiciding", false))
@@ -171,10 +175,10 @@ function SWEP:PrimaryAttack()
 	end
 
 	--!! Fix for FuckedWorldModel in VR (not tested)
-	local handpos, handang = self:GetOwner():GetBonePosition(self:GetOwner():LookupBone("ValveBiped.Bip01_R_Hand"))
+	local handpos, handang = owner:GetBonePosition(owner:LookupBone("ValveBiped.Bip01_R_Hand"))
 	if self:GetSuiciding() < 10 then
 		local WaterMul = 1
-		if owner:WaterLevel() >= 3 then WaterMul = .5 end
+		if owner:WaterLevel() >= 2 then WaterMul = .5 end
 		local dmgAmt, InAcc = (GAMEMODE.Realism:GetBool() and self.Damage * 1.4 or self.Damage) * math.Rand(.9, 1.1) * WaterMul, 1 - self.Accuracy
 		if self:GetAiming() <= 95 then InAcc = InAcc + self.HipFireInaccuracy end
 		local BulletTraj = (owner:GetAimVector() + VectorRand() * (InAcc / (GAMEMODE.Realism:GetBool() and 1.9 or 1))):GetNormalized()
@@ -191,7 +195,7 @@ function SWEP:PrimaryAttack()
 			bullet.Dir = BulletTraj
 		end
 		if owner:GetVR() then
-			bullet.Spread = Vector(0, 0, 0)
+			bullet.Spread = vector_origin
 		else
 			bullet.Spread = Vector(self.Spread * (GAMEMODE.Realism:GetBool() and 0.4 or 1), self.Spread * (GAMEMODE.Realism:GetBool() and 0.4 or 1), 0)
 		end
@@ -219,7 +223,7 @@ function SWEP:PrimaryAttack()
 		if self.FireAnimRate then owner:GetViewModel():SetPlaybackRate(self.FireAnimRate) end
 	end
 
-	if self:GetOwner():GetVR() and CLIENT then
+	if owner:GetVR() and CLIENT then
 		VRMOD_TriggerHaptic("vibration_right", 0, 0.3, 15, 20)
 		VRMOD_TriggerHaptic("vibration_left", 0, 0.3, 15, 20)
 	end
@@ -257,7 +261,7 @@ function SWEP:PrimaryAttack()
 	end
 
 	ParticleEffect(self.MuzzleEffect, owner:GetShootPos() + owner:GetAimVector() * 20 + owner:EyeAngles():Right() * Rightness - owner:EyeAngles():Up() * Upness, owner:EyeAngles(), self)
-	--self.BarrelMustSmoke = true
+	self.BarrelMustSmoke = true
 	if SERVER and (self.CycleType == "auto") then
 		local effectdata = EffectData()
 		effectdata:SetOrigin(owner:GetShootPos() + owner:GetAimVector() * 15 + owner:EyeAngles():Right() * Rightness - owner:EyeAngles():Up() * Upness)
@@ -286,14 +290,14 @@ function SWEP:PrimaryAttack()
 	owner:ViewPunch(Angle(RecoilY * -100 * self.Recoil, RecoilX * -100 * self.Recoil, 0))
 	self:TakePrimaryAmmo(1)
 	local Extra = 0
-	if owner:WaterLevel() >= 3 then Extra = 1 end
+	if owner:WaterLevel() >= 2 then Extra = 1 end
 	self:SetNextPrimaryFire(CurTime() + self.TriggerDelay + self.CycleTime + Extra)
 	--	if self:GetSprinting() > 10 and SERVER and IsValid(owner) then owner:Kill() end
 end
 
---[[function SWEP:BarrelSmoke() -- broken
+function SWEP:BarrelSmoke()
 	local owner = self:GetOwner()
-	if owner:WaterLevel() >= 3 then return end
+	if owner:WaterLevel() >= 2 then return end
 	if CLIENT then
 		local ent = owner:GetViewModel()
 		if ent then ParticleEffectAttach("pcf_jack_mf_barrelsmoke", PATTACH_POINT_FOLLOW, ent, 2) end
@@ -302,20 +306,33 @@ end
 			timer.Simple(i / 2, function() if IsValid(self) and owner and owner.Alive and owner:Alive() then ParticleEffectAttach("pcf_jack_mf_barrelsmoke", PATTACH_POINT_FOLLOW, owner, owner:LookupAttachment("anim_attachment_RH")) end end)
 		end
 	end
-end]]
+end
 
 function SWEP:SecondaryAttack()
 end
 
 function SWEP:Think()
 	local owner = self:GetOwner()
-	--[[if self.BarrelMustSmoke and math.random(1, 300) == 4 then
+	if self.BarrelMustSmoke and math.random(1, 300) == 4 then
 		self:BarrelSmoke()
 		self.BarrelMustSmoke = false
-	end]]
+	end
 
-	if owner:GetVR() then
+	if owner:GetNWBool("Suiciding") and (owner:GetVR() or not self.CanSuicide) then
 		owner:SetNWBool("Suiciding", false)
+		owner:SetSuiciding(0)
+	end
+
+	if self:GetSuiciding() > 10 and CLIENT then
+		for i = 0, owner:GetBoneCount() do
+			if owner:GetBoneName(i) == "ValveBiped.Bip01_R_Forearm" then
+				local matrix = owner:GetBoneMatrix(i)
+				if matrix then
+					matrix:SetAngles(Angle(0, 90, 0))
+					owner:SetBoneMatrix(i, matrix)
+				end
+			end
+		end
 	end
 
 	if SERVER then
@@ -445,22 +462,24 @@ function SWEP:ReadyAfterAnim(anim)
 end
 
 function SWEP:Deploy()
-	if IsValid(self) and IsValid(self:GetOwner()) then
+	local owner = self:GetOwner()
+	if IsValid(self) and IsValid(owner) then
 		if not IsFirstTimePredicted() then
 			self:DoBFSAnimation(self.DrawAnim)
-			self:GetOwner():GetViewModel():SetPlaybackRate(.1)
+			owner:GetViewModel():SetPlaybackRate(.1)
 			return
 		end
 
 		self:DoBFSAnimation(self.DrawAnim)
-		self:GetOwner():GetViewModel():SetPlaybackRate(.5)
-		if not self:GetOwner():GetVR() then
+		owner:GetViewModel():SetPlaybackRate(.5)
+		if not owner:GetVR() then
 			self:SetReady(false)
 		end
 		self:EmitSound("snd_jack_hmcd_pistoldraw.wav", 70, self.HandlingPitch)
 		self:EnforceHolsterRules(self)
-		self:GetOwner():SetNWBool("Suiciding", false)
+		owner:SetNWBool("Suiciding", false)
 		timer.Simple(1.5, function() if IsValid(self) then self:SetReady(true) end end)
+
 		return true
 	end
 end
@@ -484,8 +503,9 @@ function SWEP:StallAnimation(anim, time)
 end
 
 function SWEP:DoBFSAnimation(anim)
-	if self:GetOwner() and self:GetOwner().GetViewModel then
-		local vm = self:GetOwner():GetViewModel()
+	local owner = self:GetOwner()
+	if IsValid(owner) and owner.GetViewModel then
+		local vm = owner:GetViewModel()
 		vm:SendViewModelMatchingSequence(vm:LookupSequence(anim))
 	end
 end
@@ -495,39 +515,50 @@ function SWEP:UpdateNextIdle()
 	self:SetNextIdle(CurTime() + vm:SequenceDuration())
 end
 
-function SWEP:Holster(newWep)
+local vecfull = Vector(1, 1, 1)
+function SWEP:Holster()
+	local ply = self:GetOwner()
 	self:EnforceHolsterRules(newWep)
-	if not self:GetOwner():GetVR() then
-		self:SetReady(false)
+
+	if IsValid(ply) then
+		if not ply:GetVR() then
+			self:SetReady(false)
+		end
+		ply:SetNWBool("Suiciding", false)
+
+		local vm = ply:GetViewModel()
+		if IsValid(vm) then
+			for i = 0, vm:GetBoneCount() do
+				if vm:GetBoneName(i) == "__INVALIDBONE__" then
+					continue
+				end
+				local matrix = vm:GetBoneMatrix(i)
+				if matrix then
+					matrix:SetScale(vecfull)
+					matrix:SetAngles(angle_zero)
+					vm:SetBoneMatrix(i, matrix)
+				end
+			end
+			vm:SetSubMaterial()
+		end
 	end
-	self:GetOwner():SetNWBool("Suiciding", false)
+
 	return true
-end
-
-function SWEP:OnRemove()
-end
-
-function SWEP:OnRestore()
-end
-
-function SWEP:Precache()
-end
-
-function SWEP:OwnerChanged()
 end
 
 function SWEP:FrontBlocked()
 	local Time = CurTime()
+	local owner = self:GetOwner()
 	if self.NextFrontBlockCheckTime < Time then
 		self.NextFrontBlockCheckTime = Time + .25
-		local ShootVec, Ang, ShootPos = self:GetOwner():GetAimVector(), self:GetOwner():GetAngles(), self:GetOwner():GetShootPos()
+		local ShootVec, Ang, ShootPos = owner:GetAimVector(), owner:GetAngles(), owner:GetShootPos()
 		ShootPos = ShootPos + ShootVec * 15
 		Ang.p = 0
 		Ang.r = 0
 		local Tr = util.TraceLine({
 			start = ShootPos - Ang:Forward() * 5,
 			endpos = ShootPos + (ShootVec * self.BarrelLength) + Ang:Forward() * 15,
-			filter = {self:GetOwner()}
+			filter = {owner}
 		})
 
 		if Tr.Hit then
@@ -580,7 +611,7 @@ function SWEP:RicochetOrPenetrate(initialTrace)
 				Tracer = 0,
 				TracerName = "",
 				Dir = -AVec,
-				Spread = Vector(0, 0, 0),
+				Spread = vector_origin,
 				Src = SearchPos + AVec
 			})
 
@@ -592,7 +623,7 @@ function SWEP:RicochetOrPenetrate(initialTrace)
 				Tracer = 0,
 				TracerName = "",
 				Dir = AVec,
-				Spread = Vector(0, 0, 0),
+				Spread = vector_origin,
 				Src = SearchPos + AVec
 			})
 		end
@@ -612,7 +643,7 @@ function SWEP:RicochetOrPenetrate(initialTrace)
 			Tracer = 0,
 			TracerName = "",
 			Dir = -NewVec,
-			Spread = Vector(0, 0, 0),
+			Spread = vector_origin,
 			Src = IPos + TNorm
 		})
 	end
@@ -662,34 +693,118 @@ function SWEP:BallisticSnap(traj)
 end
 
 if CLIENT then
-	local Crouched = 0
-	local LastSprintGotten = 0
-	local LastSuicGotten = 0
-	local LastAimGotten = 0
-	local LastExtraAim = 0
-	function SWEP:GetViewModelPosition(pos, ang)
-		if not IsValid(self:GetOwner()) then return pos, ang end
-		local FT = FrameTime()
-		local SprintGotten = Lerp(.1, LastSprintGotten, self:GetSprinting())
-		LastSprintGotten = SprintGotten
-		local SuicGotten = Lerp(.1, LastSuicGotten, self:GetSuiciding())
-		LastSuicGotten = SuicGotten
-		local AimGotten = Lerp(.1, LastAimGotten, self:GetAiming())
-		LastAimGotten = AimGotten
-		local Aim, Sprint, Up, Forward, Right = AimGotten, SprintGotten / 100, ang:Up(), ang:Forward(), ang:Right()
-		local Suicid = SuicGotten / 100
-		local ExtraAim = 0
-		if self:GetOwner():KeyDown(IN_FORWARD) or self:GetOwner():KeyDown(IN_BACK) or self:GetOwner():KeyDown(IN_MOVELEFT) or self:GetOwner():KeyDown(IN_MOVERIGHT) then
-			ExtraAim = Lerp(4 * FT, LastExtraAim, 1)
-		else
-			ExtraAim = Lerp(4 * FT, LastExtraAim, 0)
+	local c_oang, c_dang = Angle(0, 0, 0), Angle(0, 0, 0)
+	local c_jump, c_look, c_move, c_sight = 0, 0, 0, 0
+	local angdelta = Angle()
+
+	function SWEP:Sway(pos, ang, ft)
+		local owner = self:GetOwner()
+		if not IsValid(self or owner) then return end
+		local sway = 14 * (owner:OnGround() and 1 or 1.5)
+
+		angdelta = LerpAngle(ft * 6, angdelta, owner:EyeAngles() - c_oang)
+		if angdelta.y >= 180 then
+			angdelta.y = angdelta.y - 360
+		elseif angdelta.y <= -180 then
+			angdelta.y = angdelta.y + 360
 		end
 
-		LastExtraAim = ExtraAim
+		--print(angdelta)
+		angdelta.p = math.Clamp(angdelta.p, -1, 1)
+		angdelta.y = math.Clamp(angdelta.y, -1, 1)
+		angdelta.r = math.Clamp(angdelta.r, -1, 1)
+		if self.ViewModelFlip then
+			angdelta = -angdelta
+		end
+		angdelta = angdelta * 0.5
+
+		local newang = LerpAngle(ft * 4, c_dang, angdelta)
+		c_dang = newang
+		c_oang = owner:EyeAngles()
+
+		ang:RotateAroundAxis(ang:Right(), -c_dang.p * sway * 3.5)
+		ang:RotateAroundAxis(ang:Up(), c_dang.y * sway * 3.5)
+		ang:RotateAroundAxis(ang:Forward(), c_dang.y * sway * 1.5)
+		pos = pos + ang:Right() * c_dang.y * sway + ang:Up() * c_dang.p * sway
+		return pos, ang
+	end
+
+	function SWEP:Movement(pos, ang, ct, ft)
+		local owner = self:GetOwner()
+		if not IsValid(self or owner) then return end
+		local bob = 1.5 * (owner:OnGround() and 1 or 1.5)
+		local idle = 2 * (owner:OnGround() and 1 or 1.5)
+
+		if self:GetAiming() then
+			local asd = math.Clamp(1 - (self:GetAiming() / 100), 0.5, 1)
+			--print(asd)
+			bob = bob * asd
+		end
+
+		local move = Vector(owner:GetVelocity().x, owner:GetVelocity().y, 0)
+		local movement = move:LengthSqr()
+		local movepercent = math.Clamp(movement / owner:GetRunSpeed() ^ 2, 0, 1)
+		local vel = move:GetNormalized()
+		local rd = owner:GetRight():Dot(vel)
+		local fd = (owner:GetForward():Dot(vel) + 1) / 2
+		local ft8 = ft * 4
+		c_move = Lerp(ft8, c_move or 0, owner:OnGround() and movepercent or 0)
+		c_sight = Lerp(ft8, c_sight or 0, self:GetAiming() and owner:OnGround() and 0.15 or 1)
+		c_jump = Lerp(ft8, c_jump or 0, owner:GetMoveType() == MOVETYPE_NOCLIP and 0 or math.Clamp(owner:GetVelocity().z / 120, -1.5, 1))
+		if rd > 0.5 then
+			c_look = Lerp(math.Clamp(ft * 5, 0, 1), c_look, 5 * c_move)
+		elseif rd < -0.5 then
+			c_look = Lerp(math.Clamp(ft * 5, 0, 1), c_look, -5 * c_move)
+		else
+			c_look = Lerp(math.Clamp(ft * 5, 0, 1), c_look, 0)
+		end
+
+		pos = pos + ang:Up() * c_jump
+		ang.p = ang.p + (c_jump or 0) * 2
+		ang.r = ang.r + c_look
+		if bob ~= 0 and c_move > 0 then
+			local p = c_move * c_sight * bob
+			pos = pos - ang:Forward() * c_move * c_sight * fd - ang:Up() * 0.75 * c_move * c_sight
+			local viewmul = view and 5 or 1
+			ang.y = ang.y + math.sin(ct * 8.4 * viewmul) * 3.2 * p
+			ang.p = ang.p + math.sin(ct * 16 * viewmul) * 3.3 * p
+			ang.r = ang.r + math.cos(ct * 8.4 * viewmul) * 8 * p
+		end
+
+		if idle ~= 0 then
+			local p = (1 - c_move) * c_sight * idle
+			ang.p = ang.p + math.sin(ct * 1.5) * 1.2 * p
+			ang.y = ang.y + math.sin(ct * 1) * 0.7 * p
+			ang.r = ang.r + math.sin(ct * 3) * 0.6 * p
+		end
+		return pos, ang
+	end
+
+	local Crouched = 0
+	local SprintGotten = 0
+	local SuicGotten = 0
+	local AimGotten = 0
+	local ExtraAim = 0
+	function SWEP:GetViewModelPosition(pos, ang)
+		local owner = self:GetOwner()
+		local FT = FrameTime()
+		pos, ang = self:Sway(pos, ang, FT)
+		pos, ang = self:Movement(pos, ang, CurTime(), FT * 2)
+		SprintGotten = Lerp(FT * 5, SprintGotten, self:GetSprinting())
+		SuicGotten = Lerp(FT * 5, SuicGotten, self:GetSuiciding())
+		AimGotten = Lerp(FT * 5, AimGotten, self:GetAiming())
+		local Aim, Sprint, Up, Forward, Right = AimGotten, SprintGotten / 100, ang:Up(), ang:Forward(), ang:Right()
+		local Suicid = SuicGotten / 100
+		if owner:KeyDown(IN_FORWARD) or owner:KeyDown(IN_BACK) or owner:KeyDown(IN_MOVELEFT) or owner:KeyDown(IN_MOVERIGHT) then
+			ExtraAim = Lerp(FT * 4, ExtraAim, 1)
+		else
+			ExtraAim = Lerp(FT * 4, ExtraAim, 0)
+		end
+	
 		local Vec = self.AimPos * (Aim / 100)
 		if self.CloseAimPos and (Aim > 0) then Vec = Vec + self.CloseAimPos * ExtraAim end
 
-		if (Aim > 0) and self:GetReady() and self.AimAng then
+		if Aim > 0 and self:GetReady() and self.AimAng then
 			ang:RotateAroundAxis(ang:Right(), self.AimAng.p * Aim / 100)
 			ang:RotateAroundAxis(ang:Up(), self.AimAng.y * Aim / 100)
 			ang:RotateAroundAxis(ang:Forward(), self.AimAng.r * Aim / 100)
@@ -709,20 +824,138 @@ if CLIENT then
 			ang:RotateAroundAxis(ang:Forward(), self.SuicideAng.r * Suicid)
 		end
 		pos = pos + Vec.x * Right + Vec.y * Forward + Vec.z * Up
-		if self:GetOwner():Crouching() then
-			Crouched = math.Clamp(Crouched + .01, 0, 1)
-		else
-			Crouched = math.Clamp(Crouched - .01, 0, 1)
-		end
+		Crouched = Lerp(FT * 1, Crouched, owner:KeyDown(IN_DUCK) and 1 or 0)
 
 		Crouched = Crouched * (1 - (Aim / 100))
-		ang = ang + (self:GetOwner():GetViewPunchAngles() * self.PunchMul)
 
-		pos = pos + Up * Crouched
+		local VPAimMul = math.Clamp(Aim / 50, 1, 2)
+		ang = ang + ((owner:GetViewPunchAngles() / VPAimMul) * self.PunchMul)
+
+		pos = pos + Up * Crouched + Forward * (1.5 * Crouched)
+
 		return pos, ang
 	end
 
+	local RHIKBones = {
+		"ValveBiped.Bip01_R_UpperArm",
+		"ValveBiped.Bip01_R_Forearm",
+		"ValveBiped.Bip01_R_Wrist",
+		"ValveBiped.Bip01_R_Ulna",
+		"ValveBiped.Bip01_R_Hand",
+		"ValveBiped.Bip01_R_Finger4",
+		"ValveBiped.Bip01_R_Finger41",
+		"ValveBiped.Bip01_R_Finger42",
+		"ValveBiped.Bip01_R_Finger3",
+		"ValveBiped.Bip01_R_Finger31",
+		"ValveBiped.Bip01_R_Finger32",
+		"ValveBiped.Bip01_R_Finger2",
+		"ValveBiped.Bip01_R_Finger21",
+		"ValveBiped.Bip01_R_Finger22",
+		"ValveBiped.Bip01_R_Finger1",
+		"ValveBiped.Bip01_R_Finger11",
+		"ValveBiped.Bip01_R_Finger12",
+		"ValveBiped.Bip01_R_Finger0",
+		"ValveBiped.Bip01_R_Finger01",
+		"ValveBiped.Bip01_R_Finger02"
+	}
+
+	local LHIKBones = {
+		"ValveBiped.Bip01_L_UpperArm",
+		"ValveBiped.Bip01_L_Forearm",
+		"ValveBiped.Bip01_L_Wrist",
+		"ValveBiped.Bip01_L_Ulna",
+		"ValveBiped.Bip01_L_Hand",
+		"ValveBiped.Bip01_L_Finger4",
+		"ValveBiped.Bip01_L_Finger41",
+		"ValveBiped.Bip01_L_Finger42",
+		"ValveBiped.Bip01_L_Finger3",
+		"ValveBiped.Bip01_L_Finger31",
+		"ValveBiped.Bip01_L_Finger32",
+		"ValveBiped.Bip01_L_Finger2",
+		"ValveBiped.Bip01_L_Finger21",
+		"ValveBiped.Bip01_L_Finger22",
+		"ValveBiped.Bip01_L_Finger1",
+		"ValveBiped.Bip01_L_Finger11",
+		"ValveBiped.Bip01_L_Finger12",
+		"ValveBiped.Bip01_L_Finger0",
+		"ValveBiped.Bip01_L_Finger01",
+		"ValveBiped.Bip01_L_Finger02"
+	}
+
+	local delta = 1
+	local vechands = Vector(0.75, 0.75, 0.75)
+	local flipMatrix = Matrix({
+		{ 1, 0, 0, 0 },
+		{ 0, 1, 0, 0 },
+		{ 0, 0, -1, 0 },
+		{ 0, 0, 0, 1 }
+	})
 	function SWEP:ViewModelDrawn(vm)
+		-- lhik stuff
+		if GAMEMODE.Realism:GetBool() then
+			local ea = EyeAngles()
+			local onehand = self.OneHanded and self:GetAiming() <= 0 and self:GetReady() and not self:GetOwner():Crouching() or self:GetSuiciding() > 10
+			delta = Lerp(FrameTime() * 4, delta, onehand and 1 or 0)
+
+			for _, bone in ipairs(self.ViewModelFlip and RHIKBones or LHIKBones) do
+				local vmbone = vm:LookupBone(bone)
+				if !vmbone then continue end
+
+				local vmtransform = vm:GetBoneMatrix(vmbone)
+				if !vmtransform then continue end
+
+				--[[
+					{ x, 0, 0, 0 },
+					{ 0, y, 0, 0 },
+					{ 0, 0, z, 0 },
+					{ 0, 0, 0, w }
+				]]
+				if self.ViewModelFlip then
+					vmtransform = vmtransform * flipMatrix
+				end
+
+				local vm_pos = vmtransform:GetTranslation()
+				local vm_ang = vmtransform:GetAngles()
+
+				local newtransform = Matrix()
+
+				newtransform:SetTranslation(LerpVector(delta, vm_pos, vm_pos - (ea:Up() * 6) - (ea:Forward() * 12) - (ea:Right() * 4)))
+				newtransform:SetAngles(vm_ang)
+
+				if self.ShitHands then
+					newtransform:SetScale(vechands)
+				end
+
+				if self.ViewModelFlip then -- omg that's workin!!
+					newtransform = newtransform * flipMatrix
+
+					-- print(newtransform)
+				end
+
+				vm:SetBoneMatrix(vmbone, newtransform)
+			end
+		end
+
+		if self.ShitHands then
+			for i = 0, vm:GetBoneCount() do
+				if vm:GetBoneName(i) == "__INVALIDBONE__" then
+					continue
+				end
+
+				if string.find(vm:GetBoneName(i), "ValveBiped") then
+					local matrix = vm:GetBoneMatrix(i)
+					if matrix then
+						matrix:SetScale(vechands)
+						vm:SetBoneMatrix(i, matrix)
+					end
+				end
+			end
+		end
+
+		if self.CustomVMDrawn then
+			self:CustomVMDrawn(vm)
+		end
+
 		if self.Suppressed then
 			if not self.VMSuppModel then
 				self.VMSuppModel = ClientsideModel("models/mass_effect_3/weapons/misc/mods/pistols/barrela.mdl")
@@ -731,13 +964,19 @@ if CLIENT then
 				self.VMSuppModel:SetNoDraw(true)
 				self.VMSuppModel:SetModelScale(.7, 0)
 			elseif self.SuppressedLongGun then
-				local matr = vm:GetBoneMatrix(vm:LookupBone("sights_K98"))
+				local bone = vm:LookupBone("sights_K98")
+				if not bone then return end
+				local matr = vm:GetBoneMatrix(bone)
+				if not matr then return end
 				local pos, ang = matr:GetTranslation(), matr:GetAngles()
 				self.VMSuppModel:SetRenderOrigin(pos - ang:Up() * .6 - ang:Forward() * 14.5)
 				self.VMSuppModel:SetRenderAngles(ang)
 				self.VMSuppModel:DrawModel()
 			else
-				local matr = vm:GetBoneMatrix(vm:LookupBone("barrel"))
+				local bone = vm:LookupBone("barrel")
+				if not bone then return end
+				local matr = vm:GetBoneMatrix(bone)
+				if not matr then return end
 				local pos, ang = matr:GetTranslation(), matr:GetAngles()
 				self.VMSuppModel:SetRenderOrigin(pos - ang:Right() * 2.2 + ang:Forward() * .25)
 				ang:RotateAroundAxis(ang:Up(), -90)
@@ -748,25 +987,26 @@ if CLIENT then
 		end
 	end
 
-	function SWEP:DrawWorldModel()
-		if IsValid(self:GetOwner()) and GAMEMODE:ShouldDrawWeaponWorldModel(self) then
+	function SWEP:DrawWorldModel() --!! TODO: Refactor all this wm stuff
+		local owner = self:GetOwner()
+		if IsValid(owner) and GAMEMODE:ShouldDrawWeaponWorldModel(self) then
 			if self.FuckedWorldModel then
 				if not self.WModel then
 					self.WModel = ClientsideModel(self.WorldModel)
-					self.WModel:SetPos(self:GetOwner():GetPos())
-					self.WModel:SetParent(self:GetOwner())
+					self.WModel:SetPos(owner:GetPos())
+					self.WModel:SetParent(owner)
 					self.WModel:SetNoDraw(true)
 				else
-					local pos, ang = self:GetOwner():GetBonePosition(self:GetOwner():LookupBone("ValveBiped.Bip01_R_Hand"))
-					if self:GetOwner():GetVR() then
+					local pos, ang = owner:GetBonePosition(owner:LookupBone("ValveBiped.Bip01_R_Hand"))
+					if owner:GetVR() then
 						pos, ang = g_VR.tracking.pose_righthand.pos, g_VR.tracking.pose_righthand.ang
 					end
 					if pos and ang then
-						if not self:GetOwner():GetVR() then
+						if not owner:GetVR() then
 							self.WModel:SetRenderOrigin(pos + ang:Right() + ang:Up())
 							ang:RotateAroundAxis(ang:Forward(), 180)
 							ang:RotateAroundAxis(ang:Right(), 10)
-							if self:GetOwner():GetNWBool("Suiciding") then
+							if owner:GetNWBool("Suiciding") then
 								ang:RotateAroundAxis(ang:Forward(), -15)
 								ang:RotateAroundAxis(ang:Right(), 140)
 							end
@@ -786,12 +1026,12 @@ if CLIENT then
 			if self.Suppressed then
 				if not self.WMSuppModel then
 					self.WMSuppModel = ClientsideModel("models/mass_effect_3/weapons/misc/mods/pistols/barrela.mdl")
-					self.WMSuppModel:SetPos(self:GetOwner():GetPos())
-					self.WMSuppModel:SetParent(self:GetOwner())
+					self.WMSuppModel:SetPos(owner:GetPos())
+					self.WMSuppModel:SetParent(owner)
 					self.WMSuppModel:SetNoDraw(true)
 					self.WMSuppModel:SetModelScale(.9, 0)
 				elseif self.SuppressedLongGun then
-					local pos, ang = self:GetOwner():GetBonePosition(self:GetOwner():LookupBone("ValveBiped.Bip01_R_Hand"))
+					local pos, ang = owner:GetBonePosition(owner:LookupBone("ValveBiped.Bip01_R_Hand"))
 					if pos and ang then
 						self.WMSuppModel:SetRenderOrigin(pos + ang:Forward() * 47 - ang:Up() * 10 + ang:Right() * 1)
 						ang:RotateAroundAxis(ang:Right(), -10)
@@ -799,7 +1039,7 @@ if CLIENT then
 						self.WMSuppModel:DrawModel()
 					end
 				else
-					local pos, ang = self:GetOwner():GetBonePosition(self:GetOwner():LookupBone("ValveBiped.Bip01_R_Hand"))
+					local pos, ang = owner:GetBonePosition(owner:LookupBone("ValveBiped.Bip01_R_Hand"))
 					if pos and ang then
 						self.WMSuppModel:SetRenderOrigin(pos + ang:Forward() * 16 - ang:Up() * 4.5 + ang:Right() * 2)
 						ang:RotateAroundAxis(ang:Right(), -5)
@@ -814,5 +1054,4 @@ if CLIENT then
 	function SWEP:FireAnimationEvent(pos, ang, event, name)
 		return true
 	end
-	-- I do all this, bitch
 end

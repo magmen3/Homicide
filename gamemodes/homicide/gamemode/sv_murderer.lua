@@ -17,7 +17,6 @@ function PlayerMeta:SetGunman(bool)
 	net.Broadcast()
 end
 
-local NO_KNIFE_TIME = 30
 function GM:MurdererThink()
 	local players = team.GetPlayers(2)
 	local murderer
@@ -31,9 +30,9 @@ function GM:MurdererThink()
 	-- regenerate shuriken if on ground
 	if IsValid(murderer) and murderer:Alive() and (not self.SHTF) and murderer.InfiniShuriken then
 		if murderer:HasWeapon("wep_jack_hmcd_shuriken") then
-			murderer.LastHadKnife = CurTime()
+			murderer.LastHadShuriken = CurTime()
 		else
-			if murderer.LastHadKnife and murderer.LastHadKnife + NO_KNIFE_TIME < CurTime() then
+			if murderer.LastHadShuriken and (murderer.LastHadShuriken or 0) + 30 < CurTime() then
 				for k, ent in ipairs(ents.FindByClass("ent_jack_hmcd_shuriken")) do
 					ent:Remove()
 				end

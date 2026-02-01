@@ -12,7 +12,7 @@ function EFFECT:Init(data)
 	self.DieTime = CurTime() + .1
 	self.Opacity = 1
 	self.TimeToDie = CurTime() + 0.015 * self.Scale
-	if self:WaterLevel() == 3 then return end
+	if self:WaterLevel() >= 2 then return end
 	local Emitter = ParticleEmitter(vOffset)
 	for i = 0, 1000 * Scayul do
 		local sprite = "sprites/mat_jack_nsmokethick"

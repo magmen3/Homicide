@@ -1,7 +1,6 @@
 if SERVER then
 	AddCSLuaFile()
 else
-	killicon.AddFont("wep_jack_hmcd_suppressed", "HL2MPTypeDeath", "1", color_white)
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_suppressed")
 end
 
@@ -10,7 +9,8 @@ SWEP.PrintName = translate.weaponsuppressed
 SWEP.Instructions = translate.weaponsuppressedDesc
 SWEP.Primary.ClipSize = 10
 SWEP.SlotPos = 2
-SWEP.ViewModel = "models/weapons/v_pist_j228.mdl"
+SWEP.ViewModel = "models/weapons/homicide/c_walter.mdl"
+SWEP.UseHands = true
 SWEP.WorldModel = "models/weapons/w_pist_p228.mdl"
 SWEP.ViewModelFlip = false
 SWEP.Damage = 10
@@ -41,3 +41,4 @@ SWEP.CustomColor = Color(50, 50, 50, 255)
 SWEP.CarryWeight = 1200
 SWEP.SuicideAng = Angle(110, 30, 90)
 SWEP.SuicidePos = Vector(10, 3, -18)
+SWEP.OneHanded = true

@@ -1,7 +1,6 @@
 if SERVER then
 	AddCSLuaFile()
 else
-	killicon.AddFont("wep_jack_hmcd_shotgun", "HL2MPTypeDeath", "1", color_white)
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_shotgun")
 end
 
@@ -10,7 +9,8 @@ SWEP.PrintName = translate.weaponshotgun
 SWEP.Instructions = translate.weaponshotgunDesc
 SWEP.Primary.ClipSize = 6
 SWEP.SlotPos = 2
-SWEP.ViewModel = "models/weapons/v_shot_m3juper90.mdl"
+SWEP.ViewModel = "models/weapons/homicide/c_870.mdl"
+SWEP.UseHands = true
 SWEP.WorldModel = "models/weapons/w_shot_m3juper90.mdl"
 SWEP.ViewModelFlip = false
 SWEP.Damage = 15
@@ -18,7 +18,7 @@ SWEP.NumProjectiles = 8
 SWEP.Spread = .0285
 SWEP.SprintPos = Vector(5, -1, -1)
 SWEP.SprintAng = Angle(-20, 70, -40)
-SWEP.AimPos = Vector(-1.95, -1.5, 1.1)
+SWEP.AimPos = Vector(-2.34, -2.7, 1.35)
 SWEP.ReloadRate = .5
 SWEP.AmmoType = "Buckshot"
 SWEP.AimTime = 5

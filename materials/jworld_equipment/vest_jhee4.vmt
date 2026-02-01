@@ -1,5 +1,5 @@
 "VertexlitGeneric"
 {
-	"$basetexture" "models/tex_jack_cordura"
+	"$basetexture" "models/mat_jack_hmcd_armor"
 	"$models" 1
 }

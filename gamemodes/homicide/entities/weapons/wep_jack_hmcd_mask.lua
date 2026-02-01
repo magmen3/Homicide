@@ -1,22 +1,11 @@
 if SERVER then
 	AddCSLuaFile()
 elseif CLIENT then
-	SWEP.DrawAmmo = false
-	SWEP.DrawCrosshair = false
-	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 5
 	SWEP.SlotPos = 3
-	killicon.AddFont("wep_jack_hmcd_mask", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
-	function SWEP:DrawViewModel()
-		return false
-	end
-
-	function SWEP:DrawWorldModel()
-		self:DrawModel()
-	end
 end
 
-SWEP.Base = "weapon_base"
+SWEP.Base = "wep_jack_hmcd_item_base"
 SWEP.ViewModel = "models/props_c17/SuitCase_Passenger_Physics.mdl"
 SWEP.WorldModel = "models/props_c17/SuitCase_Passenger_Physics.mdl"
 if CLIENT then
@@ -26,40 +15,23 @@ end
 
 SWEP.PrintName = translate.weaponMask
 SWEP.Instructions = translate.weaponMaskDesc
-SWEP.BobScale = 3
-SWEP.SwayScale = 3
-SWEP.Weight = 3
-SWEP.AutoSwitchTo = true
-SWEP.AutoSwitchFrom = false
+SWEP.BobScale = 0
+SWEP.SwayScale = 0
+SWEP.DownAmt = 20
 SWEP.CommandDroppable = false
-SWEP.Primary.Delay = 0.5
-SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = true
-SWEP.Primary.Ammo = "none"
-SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.ClipSize = -1
-SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = false
-SWEP.Secondary.Ammo = "none"
-SWEP.DownAmt = 0
-SWEP.HomicideSWEP = true
 SWEP.DeathDroppable = false
+SWEP.HoldType = "normal"
+
 function SWEP:Initialize()
-	self:SetHoldType("normal")
+	self:SetHoldType(self.HoldType)
 	self.DownAmt = 20
 	self.PrintName = translate.weaponMask
 	self.Instructions = translate.weaponMaskDesc
 end
 
-function SWEP:SetupDataTables()
-end
-
---
-function SWEP:PrimaryAttack()
-	if self:GetOwner():IsSprinting() then return end
-	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
+function SWEP:UseActivate()
 	if SERVER then self:GetOwner():MurdererHideIdentity() end
+	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	self:SetNextPrimaryFire(CurTime() + 1)
 	self:SetNextSecondaryFire(CurTime() + 1)
 	timer.Simple(.5, function()
@@ -69,14 +41,8 @@ function SWEP:PrimaryAttack()
 	end)
 end
 
-function SWEP:Deploy()
-	self:SetNextPrimaryFire(CurTime() + 1)
-	self:SetNextSecondaryFire(CurTime() + 1)
-	self.DownAmt = 20
-	return true
-end
-
 function SWEP:SecondaryAttack()
+	if not IsFirstTimePredicted() then return end
 	if self:GetOwner():IsSprinting() then return end
 	if SERVER then self:GetOwner():MurdererShowIdentity() end
 	self:SetNextPrimaryFire(CurTime() + 1)
@@ -88,30 +54,10 @@ function SWEP:SecondaryAttack()
 	end)
 end
 
-function SWEP:Think()
-end
-
---
-function SWEP:Reload()
-end
-
---
-function SWEP:OnDrop()
-end
-
---
 if CLIENT then
-	function SWEP:PreDrawViewModel(vm, ply, wep)
-	end
-
-	--
-	function SWEP:GetViewModelPosition(pos, ang)
+	function SWEP:GetVMPos2(pos, ang)
 		if not self.DownAmt then self.DownAmt = 0 end
-		if self:GetOwner():IsSprinting() then
-			self.DownAmt = math.Clamp(self.DownAmt + .2, 0, 20)
-		else
-			self.DownAmt = math.Clamp(self.DownAmt - .2, 0, 20)
-		end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 20 or 0)
 
 		pos = pos - ang:Up() * (self.DownAmt + 8) + ang:Forward() * 45 + ang:Right() * 22
 		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)

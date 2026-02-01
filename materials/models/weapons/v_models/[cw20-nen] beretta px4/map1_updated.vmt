@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "models/weapons/v_models/[CW20-NeN] Beretta PX4/map1black"
+	"$bumpmap"	"models/weapons/v_models/[CW20-NeN] Beretta PX4/map1black_n"
+	"$normalmapalphaenvmapmask"	"1"
+
+	"$phong"	"1"
+	"$phongboost"	"1"
+	"$phongexponent"	"25"
+	"$phongfresnelranges"	"[.25 2 4]"
+	"$phongtint"	"[.6 .8 1]"
+
+	"$envmap"	"env_cubemap"
+	"$envmaptint"	"[.1 .1 .1]"
+
+}

@@ -15,7 +15,6 @@ include("cl_qmenu.lua")
 include("cl_spectate.lua")
 include("cl_flashlight.lua")
 include("cl_outline.lua")
-GM.Debug = CreateClientConVar("hmcd_debug", 0, true, true)
 GM.HeroPlayer = nil
 GM.VillainPlayer = nil
 GM.PlayerAwardStats = {}
@@ -36,18 +35,55 @@ end)
 
 GM.FogEmitters = {}
 if GAMEMODE then GM.FogEmitters = GAMEMODE.FogEmitters end
-local lply = LocalPlayer()
+
 function GM:Think()
+	local lply = LocalPlayer()
 	if not lply.TempSpeedMul then lply.TempSpeedMul = 1 end
 end
 
+CreateClientConVar("homicide_fov", 0, true, true, "Change weapon FOV (set 0 to use defaults)", 0, 90)
+
+cvars.AddChangeCallback("homicide_fov", function(newValue)
+	local fov = newValue
+	local wep = LocalPlayer():GetActiveWeapon()
+	if IsValid(wep) and wep ~= NULL then
+		if not wep.OldFoV then wep.OldFoV = wep.ViewModelFOV end
+		if fov == 0 then fov = wep.OldFoV end
+		wep.ViewModelFOV = fov
+	end
+end)
+
+local homicide_fov = GetConVar("homicide_fov")
+hook.Add("OnViewModelChanged", "HMCD_OnViewModelChanged", function(viewmodel, oldModel, newModel)
+	local wep = LocalPlayer():GetActiveWeapon()
+	if IsValid(wep) and wep ~= NULL then
+		if not wep.OldFoV then wep.OldFoV = wep.ViewModelFOV end
+		local fov = homicide_fov:GetInt()
+		if fov == 0 then fov = wep.OldFoV end
+		wep.ViewModelFOV = fov
+	end
+end)
+
+hook.Add("OnEntityCreated", "FixFoV", function(ent)
+	if IsValid(ent) and ent:IsWeapon() then
+		timer.Simple(0, function()
+			if not ent.OldFoV then ent.OldFoV = ent.ViewModelFOV end
+			local fov = homicide_fov:GetInt()
+			if fov == 0 then fov = ent.OldFoV end
+			ent.ViewModelFOV = fov
+		end)
+	end
+end)
+
 local function SendIdentity(len, ply)
+	local lply = LocalPlayer()
 	if not lply.ConCommand then return end
 	if file.Exists("homicide_identity.txt", "DATA") then
 		local RawData = string.Split(file.Read("homicide_identity.txt", "DATA"), "\n")
-		if #RawData >= 10 then
+		PrintTable(RawData)
+		if #RawData >= 11 then
 			local DatName, DatAccessory = string.Replace(RawData[1], " ", "_"), string.Replace(RawData[10], " ", "_")
-			lply:ConCommand("homicide_identity " .. DatName .. " " .. RawData[2] .. " " .. RawData[3] .. " " .. RawData[4] .. " " .. RawData[5] .. " " .. RawData[6] .. " " .. RawData[7] .. " " .. RawData[8] .. " " .. RawData[9] .. " " .. DatAccessory)
+			lply:ConCommand("homicide_identity " .. DatName .. " " .. RawData[2] .. " " .. RawData[3] .. " " .. RawData[4] .. " " .. RawData[5] .. " " .. RawData[6] .. " " .. RawData[7] .. " " .. RawData[8] .. " " .. RawData[9] .. " " .. DatAccessory .. " " .. RawData[11])
 		else
 			lply:ChatPrint(translate.identityIncorrectLines)
 		end
@@ -57,22 +93,14 @@ end
 net.Receive("HMCD_Identity", SendIdentity)
 local function Act(len, ply)
 	local str = net.ReadString()
-	if not IsValid(lply) then return end
-	lply:ConCommand("act " .. str)
+	local ply = net.ReadPlayer()
+	if not IsValid(ply) then return end
+
+	ply:ConCommand("act " .. str)
 end
 
 net.Receive("HMCD_PlayerAct", Act)
--- i hate you, garry
-local function FixGlitch(data)
-	if not lply.ConCommand then return end
-	lply:ConCommand("gm_demo_icon 0")
-	print(translate.miscExplanation)
-	lply:ConCommand("record HOMICIDE_FIXGLITCH_DELETEME")
-	timer.Simple(.01, function() lply:ConCommand("stop") end)
-	timer.Simple(5, function() if lply and lply.ConCommand then lply:ConCommand("stop") end end)
-end
 
-usermessage.Hook("HMCD_FixViewModelGlitch", FixGlitch)
 -- self:FootStepsRenderScene(origin, angles, fov)
 function GM:PostDrawTranslucentRenderables()
 	self:DrawFootprints()
@@ -97,8 +125,14 @@ local StopThatShit = 0
 local tabcolor = Color(0, 200, 200)
 local tab2color = Color(200, 0, 0)
 function GM:PreDrawHalos()
+	local lply = LocalPlayer()
+
+	--[[for k, v in ents.Iterator() do
+		outline.Add(v, tabcolor, OUTLINE_MODE_VISIBLE)
+	end]]
+
 	if self.ZOMBIE and lply.Murderer or not system.HasFocus() then return end
-	-- fucking losers
+	-- заботливый
 	if (1 / FrameTime()) < 30 then
 		StopThatShit = 100
 	else
@@ -111,11 +145,13 @@ function GM:PreDrawHalos()
 	if Modulus < 1 then Vary = 1 - (math.sin(CurTime() * math.pi * 2 - (math.pi / 2)) + 1) / 2 end
 	if IsValid(client) and client:Alive() then
 		local tab, tab2 = {}, {}
-		for k, v in ipairs(ents.GetAll()) do
+		for k, v in ents.Iterator() do
 			if v.IsLoot and not v:GetDTBool(0) and not v.MurdererLoot then
 				table.insert(tab, v)
 			elseif murd then
-				if v.MurdererLoot or v.MurdererInterest or v.MurdererPoison or v.MurdererExplosive then table.insert(tab2, v) end
+				if v.MurdererLoot or v.MurdererInterest or v.MurdererPoison or v.MurdererExplosive then
+					table.insert(tab2, v)
+				end
 			end
 		end
 
@@ -133,7 +169,7 @@ end
 
 function GM:RenderAccessories(ply)
 	local Mod = ply:GetModel()
-	if (Mod == "models/player/mkx_jajon.mdl") or (Mod == "models/player/zombie_classic.mdl") then return end
+	if (Mod == "models/player/homicide_jason.mdl") or string.find(Mod, "zombie") then return end
 	if IsValid(ply) and ply:IsPlayer() and ply:GetVR() then return end
 	if ply.Accessory and not (ply.Accessory == "none") and not (ply.HeadArmor and (ply.HeadArmor == "ACH") and HMCD_Accessories[ply.Accessory][5]) then
 		local AccInfo = HMCD_Accessories[ply.Accessory]
@@ -169,13 +205,11 @@ function GM:RenderAccessories(ply)
 			ply.AccessoryModel:SetPos(ply:GetPos())
 			ply.AccessoryModel:SetParent(ply)
 			ply.AccessoryModel:SetSkin(AccInfo[6])
-			local Mats = ply.AccessoryModel:GetMaterials() -- garry, fuck you
-			-- robotboy, fuck you too
+			local Mats = ply.AccessoryModel:GetMaterials()
 			for key, mat in pairs(Mats) do
-				ply.AccessoryModel:SetSubMaterial(key - 1, mat) -- i shouldn't have to do this
+				ply.AccessoryModel:SetSubMaterial(key - 1, mat)
 			end
 
-			-- you stupid bastards
 			ply.AccessoryModel:SetNoDraw(true)
 		end
 	end
@@ -208,13 +242,11 @@ function GM:RenderAccessories(ply)
 				ply.HolsterWepModelName = DrawWep.WorldModel
 				ply.HolsterWep:SetPos(ply:GetPos())
 				ply.HolsterWep:SetParent(ply)
-				local Mats = ply.HolsterWep:GetMaterials() -- garry, fuck you
-				-- robotboy, fuck you too
+				local Mats = ply.HolsterWep:GetMaterials()
 				for key, mat in pairs(Mats) do
-					ply.HolsterWep:SetSubMaterial(key - 1, mat) -- i shouldn't have to do this
+					ply.HolsterWep:SetSubMaterial(key - 1, mat)
 				end
 
-				-- you stupid bastards
 				ply.HolsterWep:SetNoDraw(true)
 			end
 		end
@@ -298,25 +330,23 @@ function GM:PostDrawOpaqueRenderables(drawingDepth, drawingSkybox)
 		self:RenderAccessories(ply)
 	end
 
+	local lply = LocalPlayer()
 	if self.ZOMBIE and lply.Murderer and not self:GetVictor() then
 		local Vary = math.sin(CurTime() * 3)
 		if Vary > .5 then
 			Vary = (Vary - .5) / .5
-			for key, targ in ipairs(ents.GetAll()) do
+			for key, targ in ents.Iterator() do
 				local Ja = targ:IsPlayer() and targ:Alive()
-				if Ja then
-					if Ja and targ:IsEffectActive(EF_NODRAW) then
-					else --nope
-						render.SetBlend(Vary)
-						render.ModelMaterialOverride(Shine)
-						render.SuppressEngineLighting(true)
-						render.SetColorModulation(1 * Vary, 1 * Vary ^ 2, 1 * Vary ^ 2)
-						targ:DrawModel()
-						render.SetColorModulation(1, 1, 1)
-						render.SuppressEngineLighting(false)
-						render.ModelMaterialOverride(nil)
-						render.SetBlend(1)
-					end
+				if Ja and not targ:IsEffectActive(EF_NODRAW) then
+					render.SetBlend(Vary)
+					render.ModelMaterialOverride(Shine)
+					render.SuppressEngineLighting(true)
+					render.SetColorModulation(1 * Vary, 1 * Vary ^ 2, 1 * Vary ^ 2)
+					targ:DrawModel()
+					render.SetColorModulation(1, 1, 1)
+					render.SuppressEngineLighting(false)
+					render.ModelMaterialOverride(nil)
+					render.SetBlend(1)
 				end
 			end
 		elseif Vary < -.5 then
@@ -339,7 +369,7 @@ end
 
 function GM:PlayerBindPress(ply, bind, pressed)
 	if self.PlayerAttackTime and (self.PlayerAttackTime > CurTime()) and (bind == "+attack") then return true end
-	if not (GetViewEntity() == lply) then RunConsoleCommand("hmcd_lockedcontrols", bind) end
+	if not (GetViewEntity() == LocalPlayer()) then RunConsoleCommand("hmcd_lockedcontrols", bind) end
 end
 
 net.Receive("hmcd_tker", function(len)
@@ -348,17 +378,17 @@ net.Receive("hmcd_tker", function(len)
 end)
 
 local function ExplosiveReceive(data)
-	lply.RecognizedExplosive = data:ReadEntity()
+	LocalPlayer().RecognizedExplosive = data:ReadEntity()
 end
 
 usermessage.Hook("HMCD_ExplosiveRecognition", ExplosiveReceive)
-local function SurfaceSound(data)
-	surface.PlaySound(data:ReadString())
+local function SurfaceSound(len, ply)
+	local snd = net.ReadString()
+	surface.PlaySound(snd)
 end
+net.Receive("HMCD_SurfaceSound", SurfaceSound)
 
-usermessage.Hook("HMCD_SurfaceSound", SurfaceSound)
 function GM:GetVictor()
-	--if(true)then return player.GetAll()[1] end
 	if self.RoundStage == 2 then
 		if ((self.WinCondition == 2) or (self.WinCondition == 5)) and self.HeroPlayer then
 			if self.HeroPlayer.IsPlayer and self.HeroPlayer:IsPlayer() then return self.HeroPlayer end
@@ -377,7 +407,7 @@ end
 -- replacing global CalculateFoV that manually changes fov with this func that just returns fov value
 local function CalculateFoV(ply)
 	local FoV = 88
-	if ply:IsSprinting() and ply:GetVelocity():Length() >= 100 or not ply:IsOnGround() then
+	if ply:IsSprinting() and ply:GetVelocity():LengthSqr() >= 10000 or not ply:IsOnGround() then
 		FoV = 95
 	else
 		local Wep = ply:GetActiveWeapon()
@@ -402,6 +432,7 @@ end
 
 local finalfov = 88
 local vec5up = Vector(0, 0, 5)
+local Aim = 0
 function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
 	if ply:GetVR() then
 		nearZ = 500
@@ -487,8 +518,17 @@ function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
 		return CamData
 	end
 
-	local ft, fovneed = FrameTime(), CalculateFoV(ply)
-	finalfov = Lerp(ft * 5, finalfov, fovneed)
+	local FT, fovneed = FrameTime(), CalculateFoV(ply)
+	finalfov = Lerp(FT * 5, finalfov, fovneed)
+
+	local Wep = ply:GetActiveWeapon()
+	if Wep and IsValid(Wep) and Wep.GetAiming and Wep.AimHoldType == "ar2" and not Wep.Scoped and self.Realism:GetBool() then
+		Aim = Lerp(FT * 10, Aim, Wep:GetAiming())
+		if Aim > 0 then
+			ang:RotateAroundAxis(ang:Forward(), Aim / 20)
+			pos = pos + ang:Forward() * -(Aim / 100)
+		end
+	end
 
 	local CamData = {
 		origin = pos,
@@ -499,67 +539,48 @@ function GM:CalcView(ply, pos, ang, efovee, nearZ, farZ)
 	}
 	return CamData
 end
---[[local PUNCH_DAMPING = 9
-local PUNCH_SPRING_CONSTANT = 65
-local vp_punch_angle = Angle()
-local vp_punch_angle_velocity = Angle()
-local vp_punch_angle_last = vp_punch_angle
-hook.Add("Think", "viewpunch_think", function()
-	if not vp_punch_angle:IsZero() or not vp_punch_angle_velocity:IsZero() then
-		vp_punch_angle = vp_punch_angle + vp_punch_angle_velocity * FrameTime()
-		local damping = 1 - (PUNCH_DAMPING * FrameTime())
-		if damping < 0 then damping = 0 end
-		vp_punch_angle_velocity = vp_punch_angle_velocity * damping
-		local spring_force_magnitude = math.Clamp(PUNCH_SPRING_CONSTANT * FrameTime(), 0, 0.2 / FrameTime())
-		vp_punch_angle_velocity = vp_punch_angle_velocity - vp_punch_angle * spring_force_magnitude
-		local x, y, z = vp_punch_angle:Unpack()
-		vp_punch_angle = Angle(math.Clamp(x, -89, 89), math.Clamp(y, -179, 179), math.Clamp(z, -89, 89))
-	else
-		vp_punch_angle = Angle()
-		vp_punch_angle_velocity = Angle()
-	end
 
-	if vp_punch_angle:IsZero() and vp_punch_angle_velocity:IsZero() then return end
-	if LocalPlayer():InVehicle() then return end
-	LocalPlayer():SetEyeAngles(LocalPlayer():EyeAngles() + vp_punch_angle - vp_punch_angle_last)
-	vp_punch_angle_last = vp_punch_angle
+function PrintPosParameters(ent)
+	for i = 0, ent:GetNumPoseParameters() - 1 do
+		local min, max = ent:GetPoseParameterRange( i )
+		print( ent:GetPoseParameterName( i ) .. ' ' .. min .. " / " .. max )
+	end
+end
+
+function PrintBones( entity )
+	for i = 0, entity:GetBoneCount() - 1 do
+		print( i, entity:GetBoneName( i ) )
+	end
+end
+
+function PrintBodygroups( entity )
+	PrintTable(entity:GetBodyGroups())
+end
+
+function PrintAnims( entity )
+	PrintTable(entity:GetSequenceList())
+end
+
+concommand.Add("printanims", function(ply)
+	PrintAnims(ply)
 end)
 
-function SetViewPunchAngles(angle)
-	if not angle then
-		print("[Local Viewpunch] SetViewPunchAngles called without an angle. wtf?")
-		return
-	end
+concommand.Add("printbones", function(ply)
+	PrintBones(ply)
+end)
 
-	vp_punch_angle = angle
-end
+concommand.Add("printbodygroups", function(ply)
+	PrintBodygroups(ply)
+end)
 
-function SetViewPunchVelocity(angle)
-	if not angle then
-		print("[Local Viewpunch] SetViewPunchVelocity called without an angle. wtf?")
-		return
-	end
+concommand.Add("printanimsvm", function(ply)
+	PrintAnims(ply:GetViewModel())
+end)
 
-	vp_punch_angle_velocity = angle * 20
-end
+concommand.Add("printbonesvm", function(ply)
+	PrintBones(ply:GetViewModel())
+end)
 
-function Viewpunch(angle)
-	if not angle then
-		print("[Local Viewpunch] Viewpunch called without an angle. wtf?")
-		return
-	end
-
-	vp_punch_angle_velocity = vp_punch_angle_velocity + angle * 20
-end
-
-function ViewPunch(angle)
-	Viewpunch(angle)
-end
-
-function GetViewPunchAngles()
-	return vp_punch_angle
-end
-
-function GetViewPunchVelocity()
-	return vp_punch_angle_velocity
-end]]
+concommand.Add("printbodygroupsvm", function(ply)
+	PrintBodygroups(ply:GetViewModel())
+end)

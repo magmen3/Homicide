@@ -6,7 +6,6 @@ elseif CLIENT then
 	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 4
 	SWEP.SlotPos = 2
-	killicon.AddFont("wep_jack_hmcd_oldgrenade", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
 	function SWEP:DrawViewModel()
 		return false
 	end
@@ -16,8 +15,9 @@ elseif CLIENT then
 	end
 end
 
-SWEP.Base = "weapon_base"
-SWEP.ViewModel = "models/weapons/v_jj_fraggrenade.mdl"
+SWEP.Base = "weapon_base_hmcd"
+SWEP.ViewModel = "models/weapons/homicide/c_oldgrenade.mdl"
+SWEP.UseHands = true
 SWEP.WorldModel = "models/weapons/w_jj_fraggrenade.mdl"
 if CLIENT then
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_oldgrenade")
@@ -26,8 +26,8 @@ end
 
 SWEP.PrintName = translate.weaponGrenade
 SWEP.Instructions = translate.weaponGrenadeDescDM
-SWEP.BobScale = 3
-SWEP.SwayScale = 3
+SWEP.BobScale = 0
+SWEP.SwayScale = 0
 SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
@@ -188,7 +188,7 @@ function SWEP:Reload()
 	if self:SanityCheck() then
 		sound.Play("snd_jack_hmcd_spoonfling.wav", owner:GetPos(), 65, 100)
 		local Spoon = ents.Create("prop_physics")
-		Spoon.HmcdSpawned = self.HmcdSpawned -- owner.HmcdSpawned
+		Spoon.HmcdSpawned = self.HmcdSpawned
 		Spoon:SetModel("models/shells/shell_gndspoon.mdl")
 		Spoon:SetPos(owner:GetBonePosition(owner:LookupBone("ValveBiped.Bip01_R_Hand")))
 		Spoon:SetAngles(owner:GetAngles())
@@ -226,6 +226,44 @@ function SWEP:FireAnimationEvent(pos, ang, event, name)
 end
 
 if CLIENT then
+	local vechands, vecfull = Vector(0.75, 0.75, 0.75), Vector(1, 1, 1)
+	function SWEP:PreDrawViewModel(vm, ply, wep)
+		if IsValid(vm) and IsValid(ply) then
+			for i = 0, vm:GetBoneCount() do
+				if string.find(vm:GetBoneName(i), "ValveBiped") then
+					local matrix = vm:GetBoneMatrix(i)
+					if matrix then
+						matrix:SetScale(vechands)
+						vm:SetBoneMatrix(i, matrix)
+					end
+				end
+			end
+		end
+	end
+
+	function SWEP:Holster()
+		local ply = self:GetOwner()
+		if IsValid(ply) then
+			local vm = ply:GetViewModel()
+			if IsValid(vm) then
+				for i = 0, vm:GetBoneCount() do
+					if vm:GetBoneName(i) == "__INVALIDBONE__" then
+						continue
+					end
+					local matrix = vm:GetBoneMatrix(i)
+					if matrix then
+						matrix:SetScale(vecfull)
+						matrix:SetAngles(angle_zero)
+						vm:SetBoneMatrix(i, matrix)
+					end
+				end
+				vm:SetSubMaterial()
+			end
+		end
+
+		return true
+	end
+
 	function SWEP:DrawWorldModel()
 		if GAMEMODE:ShouldDrawWeaponWorldModel(self) then self:DrawModel() end
 	end

@@ -152,6 +152,7 @@ pt.appearanceModel = "Player Model"
 pt.appearanceUBodySize = "Upper Body Size"
 pt.appearanceWaistSize = "Waist Size"
 pt.appearanceLBodySize = "Lower Body Size"
+pt.appearanceStature = "Stature"
 pt.appearanceCColor = "Clothing Color"
 pt.appearanceCStyle = "Clothing Style"
 pt.appearanceAccessory = "Accessory"
@@ -257,6 +258,7 @@ pt.identTraitorMurderer = "Homicide: 'traitor' and 'murderer' are reserved names
 pt.identModel = "Homicide: invalid requested model (example: male01)"
 pt.identColor = "Homicide: invalid color values (sample: 1 .5 .2)"
 pt.identUpper = "Homicide: invalid upper-body parameter! Must be between 80 and 130"
+pt.identStature = "Homicide: invalid stature parameter! Must be between 95 and 105"
 pt.identCore = "Homicide: invalid core-body parameter! Must be between 75 and 120"
 pt.identLower = "Homicide: invalid lower-body parameter! Must be between 80 and 130"
 pt.identClothes = "Homicide: invalid clothing type! Must be either normal, casual, striped, plaid, formal, young or cold!"
@@ -324,7 +326,6 @@ pt.tips = {
 	"Rejoining a server does NOT reset your RDM guilt. Guilt is stored per steam-ID.",
 	"Turning on sv_cheats disables RDM penalties and anticheat features (good for messing around or making videos).",
 	"The murderer generally stands no chance in open confrontation with a gunman. Stealth and cunning are necessary.",
-	"You can set a custom name and appearance for use in Homicide using an identity.txt file. For details type 'homicide_identity_help'",
 	"Holding right-click with your fists blocks, reducing incoming punch damage.",
 	"We live in a lawful society with assault laws. RDMing is dealt with very harshly. Turn on sv_cheats to disable penalties.",
 	"Your RDM offenses are forgiven over time. Go an entire round without losing your innocence and you get bonus forgiveness.",
@@ -386,7 +387,7 @@ pt.weaponassaultrifleDesc = "An absurdly powerful weapon, this aluminum/polymer 
 pt.weaponlightrifle = "AR-15 Carbine 9mm Luger"
 pt.weaponlightrifleDesc = "A weak semi-automatic rifle supplied for the civilian market in 9mm caliber, a good option for home defense.\n\nLMB to fire.\nRMB to aim.\nRELOAD to reload.\nShot placement counts.\nCrouching helps stability.\nBullets can ricochet and penetrate."
 pt.weaponautorifle = "Illegally-automatic AR-15"
-pt.weaponautorifleDesc = "An absurdly powerful weapon, this aluminum/polymer 5.56x45mm fully-automatic home-assembled 30-round-capacity rifle is the quintessence of an armed American citizenry in the early 21st century.\n\nIt has an illegal automatic firing mode built into it, very unstable and sloppy, but pretty effective indoors.\n\nLMB to fire.\nRMB to aim.\nRELOAD to reload.\nShot placement counts.\nCrouching helps stability.\nBullets can ricochet and penetrate."
+pt.weaponautorifleDesc = "An absurdly powerful weapon, this silenced aluminum/polymer 5.56x45mm fully-automatic home-assembled 30-round-capacity rifle is the quintessence of an armed American citizenry in the early 21st century.\n\nIt has an illegal automatic firing mode built into it, very unstable and sloppy, but pretty effective indoors.\n\nLMB to fire.\nRMB to aim.\nRELOAD to reload.\nShot placement counts.\nCrouching helps stability.\nBullets can ricochet and penetrate."
 pt.weaponAxe = "Woodcutting Axe"
 pt.weaponAxeDesc = "This is a typical woodcutter's axe with a sharp steel head. Murder the innocent like the a true psycopath.\n\nLBM to swing.\nCan also bust down doors and destroy fortifications."
 pt.weaponSmallBandage = "Small Bandage"
@@ -401,8 +402,8 @@ pt.weaponDuctTapeDesc = "This is a roll of normal aluminum-colored waterproof po
 pt.weaponDoorSealed = "Door Sealed"
 pt.weaponBondStrength = "Bond strength: "
 pt.weaponDuctTapeRemaining = "% of roll remaining"
-pt.weaponFakePistol = "Fake Pistol"
-pt.weaponFakePistolDesc = "This is an empty, black-spraypainted airsoft gun. Use it to trick innocents and lure them to their doom, either by pretending to be the gunman or pressing LMB to drop as bait."
+pt.weaponfakepistol = "Fake Pistol"
+pt.weaponfakepistolDesc = "This is an empty, black-spraypainted airsoft gun. Use it to trick innocents and lure them to their doom, either by pretending to be the gunman or pressing LMB to drop as bait."
 pt.weaponSmallConsumable = "Small Consumable"
 pt.weaponBigConsumable = "Large Consumable"
 pt.weaponConsumableDesc = "This is an item that you can eat/drink. Doing so grants a stamina-regeneration boost as well as some slow health regeneration.\n\nLMB to eat/drink."
@@ -437,15 +438,17 @@ pt.weaponGrenadeDescDM = "This is a cheap Chinese clone of an old Soviet RGD-5 o
 pt.weaponPills = "Pain Killers"
 pt.weaponPillsDesc = "A few non-steroidal anti-inflammatory drug (ibuprofen, acetaminophen, aspirin) pills in a plastic bottle. These allow a person to perform well (move, jump, etc) while injured.\n\nLMB to take pills"
 pt.weaponPhone = "Cellular Telephone"
-pt.weaponPhoneDesc = "This is an android smartphone that can be used to call the police, causing them to arrive sooner.\n\nLMB to dial 911"
+pt.weaponPhoneDesc = "This is an android smartphone that can be used to call the police, causing them to arrive sooner.\n\nLMB to dial 911/pretend to calling police if you are murderer."
 pt.weaponPhonePretend = "You pretend to call the police."
 pt.weaponPhoneCalledGuard = "Someone called the national guard!"
 pt.weaponPhoneCalledPolice = "Someone called the police!"
 pt.weaponPipeBomb = "Pipe Bomb"
 pt.weaponPipeBombDesc = "This improvised explosive device is a heavy-gauge steel pipe filled with black powder and surrounded by nails. It has a simple short pyrotechnic fuze. This device achieves high detonation speed and shrapnel projection through tight containment of the black powder (a low explosive). It's still not as deadly or reliable as a proper grenade, though.\n\nLMB to light and throw."
-pt.weaponpistol = "Beretta PX4-Storm SubCompact"
-pt.weaponsmallpistol = pt.weaponpistol
+pt.weaponpistol = "Beretta PX4-Storm"
+pt.weaponsmallpistol = "Beretta PX4-Storm SubCompact"
 pt.weaponpistolDesc = "This is your trusty 9x19mm pistol. Use it as you see fit.\n\nLMB to fire.\nRMB to aim.\nRELOAD to reload.\nShot placement counts.\nCrouching helps stability.\nBullets can ricochet and penetrate."
+pt.weaponstungun = "Taser X26"
+pt.weaponstungunDesc = "This is a pocket conducted electrical weapon firing two small barbed darts intended to puncture the skin of the target and cause neuromuscular incapacitation.\n\nLMB to fire.\nRMB to aim.\nRELOAD to reload."
 pt.weaponsmallpistolDesc = "This is your trusty 9x19mm concealed-carry pistol with a lightweight low-capacity magazine. Use it to defend the lives of the innocent.\n\nLMB to fire.\nRMB to aim.\nRELOAD to reload.\nShot placement counts.\nCrouching helps stability.\nBullets can ricochet and penetrate."
 pt.weaponPocketKnife = "CRKT M16-13Z"
 pt.weaponPocketKnifeDesc = "This is a carbon-steel safety-liner-lock folding pocket-knife. Use it as you see fit to attack or defend.\n\nLMB to slash."

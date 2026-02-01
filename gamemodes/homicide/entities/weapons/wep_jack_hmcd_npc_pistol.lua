@@ -1,6 +1,6 @@
 AddCSLuaFile()
 SWEP.Author = "Jackarunda"
-SWEP.Base = "weapon_base"
+SWEP.Base = "weapon_base_hmcd"
 SWEP.Purpose = "The answer? Use a gun. An' if that don't work, use more gun."
 SWEP.Primary.ClipSize = 10
 SWEP.Primary.DefaultClip = 10
@@ -12,7 +12,6 @@ SWEP.Secondary.Ammo = "none"
 SWEP.ShowViewModel = true
 SWEP.ShowWorldModel = false
 SWEP.WorldModel = "models/weapons/w_pist_glock18.mdl"
-SWEP.ViewModelFOV = 75
 SWEP.Primary.Automatic = false
 SWEP.NextChaseTime = 0
 SWEP.MagSize = 10
@@ -108,11 +107,11 @@ function SWEP:Deploy()
 end
 
 function SWEP:Think()
-	if not self then return end
 	if not IsValid(self) then return end
 	if not IsValid(self:GetOwner()) then return end
 	if CLIENT then return end
-	if SERVER and self:GetOwner():IsPlayer() then self:OnDrop() return end
+	if self:GetOwner():IsPlayer() then self:OnDrop() return end
+
 	--JackaPrint(self:GetOwner():GetActivity())
 	local Time = CurTime()
 	if self.NextThinkTime <= Time then
@@ -210,7 +209,7 @@ function SWEP:Fiah()
 		Damage = math.random(45, 55),
 		Num = 1,
 		Attacker = self:GetOwner(),
-		Spread = Vector(0, 0, 0)
+		Spread = vector_origin
 	})
 
 	local Pitch = math.random(85, 95)
@@ -221,7 +220,9 @@ function SWEP:Fiah()
 end
 
 function SWEP:SecondaryAttack()
-	if self:BadGuy() then self:GetOwner():EmitSound("snd_jack_hmcd_cop" .. math.random(1, 3) .. ".wav", 75, math.random(100, 120)) end
+	if self:BadGuy() then
+		self:GetOwner():EmitSound("snd_jack_hmcd_cop" .. math.random(1, 3) .. ".wav", 75, math.random(100, 120))
+	end
 end
 
 function SWEP:OnRemove()

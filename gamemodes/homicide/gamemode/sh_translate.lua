@@ -65,11 +65,11 @@ function Translator:ChangeLanguage(lang)
 		["Buckshot"] = translate.ammoBuckshot,
 		["AR2"] = translate.ammoAR2,
 		["XBowBolt"] = translate.ammoXBowBolt,
-		["AirboatGun"] = translate.ammoAirboatGun
+		["AirboatGun"] = translate.ammoAirboatGun,
+		["Battery"] = "14x50mm Alkaline Battery",
+		["StriderMinigun"] = "2x50mm Strike-Anywhere Match",
 	}
 
-	--["Battery"]="14x50mm Alkaline Battery"
-	--["StriderMinigun"]="2x50mm Strike-Anywhere Match"
 	GAMEMODE:CreateTeams()
 	HitLocationPhrases = {
 		[HITGROUP_HEAD] = translate.attHead,

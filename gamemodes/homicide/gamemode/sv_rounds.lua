@@ -1,7 +1,7 @@
 util.AddNetworkString("SetRound")
 util.AddNetworkString("DeclareWinner")
 util.AddNetworkString("hmcd_mode")
-local ForceZombi, ForceJihad, ForceDM, ForceStandard = false, false, false, false
+local ForceZombi, ForceJihad, ForceDM, ForceStandard = false, false, false, false --!! rewrite this shit
 concommand.Add("homicide_forcejihad", function(ply, cmd, args)
 	if IsValid(ply) and not ply:IsSuperAdmin() then return end
 	ForceJihad = true
@@ -112,7 +112,7 @@ function GM:RoundThink()
 			end
 		end
 
-		if #players > 2 then
+		if #players > 2 and not self.Dev:GetBool() then
 			for key, playa in pairs(players) do
 				if playa:IsBot() and playa.AutoSpawnedBot then playa:Kick() end
 			end
@@ -128,7 +128,7 @@ function GM:RoundThink()
 			end
 		end
 
-		if (self.ForceRoundEndTime < CurTime()) and not self.DEATHMATCH and not self.Dev then
+		if (self.ForceRoundEndTime < CurTime()) and not self.DEATHMATCH and not self.Dev:GetBool() then
 			if not self.MurdererLastKill then self.MurdererLastKill = CurTime() end
 			if (self.MurdererLastKill + 100) < CurTime() then
 				local murderer
@@ -208,9 +208,9 @@ end
 function GM:EndTheRound(reason, murderer)
 	if self.RoundStage ~= 1 then return end
 	local players = team.GetPlayers(2)
-	for k, ply in pairs(players) do
+	for k, ply in ipairs(players) do
 		ply:UnMurdererDisguise()
-		ply:SetFOV(90, 0)
+		--ply:SetFOV(90, 0)
 	end
 
 	if murderer then
@@ -569,7 +569,7 @@ function GM:StartNewRound()
 	end
 
 	local ct, DaText = ChatText(), translate.roundStarted
-	if self.GuiltEnabled:GetBool() == true then DaText = DaText .. translate.miscTKPenaltiesDisabled end
+	if self.GuiltDisabled:GetBool() == true then DaText = DaText .. translate.miscTKPenaltiesDisabled end
 	ct:Add(DaText)
 	ct:SendAll()
 	self.HeroPlayer = nil
@@ -589,7 +589,7 @@ function GM:StartNewRound()
 		ply.HMCD_MarkedForDeath = false
 		ply:KillSilent()
 		ply:Freeze(true)
-		if not (ply.CustomName and ply.CustomModel and ply.CustomColor and ply.CustomUpperBody and ply.CustomCoreBody and ply.CustomLowerBody and ply.CustomClothes) then
+		if not (ply.CustomName and ply.CustomModel and ply.CustomColor and ply.CustomUpperBody and ply.CustomCoreBody and ply.CustomLowerBody --[[and ply.CustomStature]] and ply.CustomClothes) then
 			net.Start("HMCD_Identity")
 			net.Send(ply)
 			net.Broadcast()

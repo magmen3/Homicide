@@ -6,7 +6,6 @@ elseif CLIENT then
 	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 2
 	SWEP.SlotPos = 2
-	killicon.AddFont("wep_jack_hmcd_bow", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
 	function SWEP:DrawViewModel()
 		return false
 	end
@@ -16,8 +15,9 @@ elseif CLIENT then
 	end
 end
 
-SWEP.Base = "weapon_base"
-SWEP.ViewModel = "models/weapons/v_snij_awp.mdl"
+SWEP.Base = "weapon_base_hmcd"
+SWEP.ViewModel = "models/weapons/homicide/c_bow.mdl"
+SWEP.UseHands = true
 SWEP.WorldModel = "models/weapons/w_snij_awp.mdl"
 if CLIENT then
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_bow")
@@ -26,8 +26,8 @@ end
 
 SWEP.PrintName = translate.weaponBow
 SWEP.Instructions = translate.weaponBowDesc
-SWEP.BobScale = 2
-SWEP.SwayScale = 2
+SWEP.BobScale = 0
+SWEP.SwayScale = 0
 SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
@@ -160,7 +160,6 @@ end
 function SWEP:SecondaryAttack()
 end
 
---
 function SWEP:Think()
 	if SERVER then
 		local HoldType = "ar2"
@@ -199,7 +198,6 @@ function SWEP:FireAnimationEvent(pos, ang, event, name)
 	return true
 end
 
--- I do all this, bitch
 function SWEP:Holster(newWep)
 	self:EnforceHolsterRules(newWep)
 	return true
@@ -222,9 +220,47 @@ if CLIENT then
 		if self:GetOwner():GetAmmoCount(self.Primary.Ammo) < 1 then vm:SendViewModelMatchingSequence(vm:LookupSequence("awm_draw")) end
 	end
 
-	function SWEP:GetViewModelPosition(pos, ang)
-		local Ft = FrameTime()
-		Aim = Lerp(4 * Ft, Aim, self:GetAiming())
+	local vechands, vecfull = Vector(0.75, 0.75, 0.75), Vector(1, 1, 1)
+	function SWEP:PreDrawViewModel(vm, ply, wep)
+		if IsValid(vm) and IsValid(ply) then
+			for i = 0, vm:GetBoneCount() do
+				if string.find(vm:GetBoneName(i), "ValveBiped") then
+					local matrix = vm:GetBoneMatrix(i)
+					if matrix then
+						matrix:SetScale(vechands)
+						vm:SetBoneMatrix(i, matrix)
+					end
+				end
+			end
+		end
+	end
+
+	function SWEP:Holster()
+		local ply = self:GetOwner()
+		if IsValid(ply) then
+			local vm = ply:GetViewModel()
+			if IsValid(vm) then
+				for i = 0, vm:GetBoneCount() do
+					if vm:GetBoneName(i) == "__INVALIDBONE__" then
+						continue
+					end
+					local matrix = vm:GetBoneMatrix(i)
+					if matrix then
+						matrix:SetScale(vecfull)
+						matrix:SetAngles(angle_zero)
+						vm:SetBoneMatrix(i, matrix)
+					end
+				end
+				vm:SetSubMaterial()
+			end
+		end
+
+		return true
+	end
+
+	function SWEP:GetVMPos2(pos, ang)
+		local FT = FrameTime()
+		Aim = Lerp(FT * 4, Aim, self:GetAiming())
 		if Aim == 100 then
 			self.Crosshair = true
 		else
@@ -232,22 +268,22 @@ if CLIENT then
 		end
 
 		if self:GetReloading() then
-			Forward = math.Clamp(Forward + 1 * Ft, -1, 0)
+			Forward = math.Clamp(Forward + 1 * FT, -1, 0)
 		else
-			Forward = math.Clamp(Forward - 1 * Ft, -1, 0)
+			Forward = math.Clamp(Forward - 1 * FT, -1, 0)
 		end
 
 		pos = pos - ang:Forward() * (Aim / 19 + 2 * Forward) - ang:Up() * Aim / 34 - ang:Right() * Aim / 48
 		if self:GetOwner():IsSprinting() then
-			Sprinting = Lerp(4 * Ft, Sprinting, 1)
+			Sprinting = Lerp(FT * 4, Sprinting, 1)
 		else
-			Sprinting = Lerp(2 * Ft, Sprinting, 0)
+			Sprinting = Lerp(FT * 2, Sprinting, 0)
 		end
 
 		if self:GetOwner():GetAmmoCount(self.Primary.Ammo) < 1 then
-			Passive = Lerp(Ft, Passive, 1)
+			Passive = Lerp(FT, Passive, 1)
 		else
-			Passive = Lerp(Ft, Passive, 0)
+			Passive = Lerp(FT, Passive, 0)
 		end
 
 		pos = pos - ang:Up() * 20 * Sprinting - ang:Forward() * 5 * Sprinting
@@ -260,19 +296,21 @@ if CLIENT then
 	end
 
 	local SightTex = Material("sprites/mat_jack_hmcd_bowsight")
+	local alphaLerp = 0
 	function SWEP:DrawHUD()
-		if (self:GetAiming() == 100) and not (self:GetOwner():KeyDown(IN_MOVERIGHT) or self:GetOwner():KeyDown(IN_BACK) or self:GetOwner():KeyDown(IN_FORWARD) or self:GetOwner():KeyDown(IN_MOVELEFT)) then
-			local Col = render.GetLightColor(self:GetOwner():GetShootPos() + self:GetOwner():GetAimVector() * 20)
-			surface.SetDrawColor(math.Clamp(510 * Col.x, 0, 255), math.Clamp(510 * Col.y, 0, 255), math.Clamp(510 * Col.z, 0, 255))
-			surface.SetMaterial(SightTex)
-			surface.DrawTexturedRect(ScrW() / 2 - 43, ScrH() / 2 - 65, 128, 128)
-		end
+		local ply = self:GetOwner()
+		if not IsValid(ply) then return end
+
+		local still = self:GetAiming() >= 99 and ply:GetVelocity():LengthSqr() <= 10000
+		local Col = render.GetLightColor(ply:GetShootPos() + ply:GetAimVector() * 20)
+		local lerpRnd = math.sin(CurTime() * 1.7) * 10
+		print(lerpRnd)
+		alphaLerp = Lerp(FrameTime() * 25, alphaLerp, still and 255 or (self:GetAiming() >= 99 and 20 or 0))
+		surface.SetDrawColor(math.Clamp(510 * Col.x, 0, 255), math.Clamp(510 * Col.y, 0, 255), math.Clamp(510 * Col.z, 0, 255), alphaLerp)
+		surface.SetMaterial(SightTex)
+		surface.DrawTexturedRect(ScrW() / 2 - 43 + ply:GetViewPunchAngles()[2] - lerpRnd, ScrH() / 2 - 72 + ply:GetViewPunchAngles()[1] + lerpRnd, 128, 128)
 	end
 
-	function SWEP:ViewModelDrawn(vm)
-	end
-
-	--
 	function SWEP:DrawWorldModel()
 		local Pos, Ang = self:GetOwner():GetBonePosition(self:GetOwner():LookupBone("ValveBiped.Bip01_R_Hand"))
 		if self.DatWorldModel then

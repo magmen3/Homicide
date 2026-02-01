@@ -1,6 +1,19 @@
 "VertexlitGeneric"
 {
 	"$baseTexture" "models\weapons\w_models\shadowshammer\hammer"
-	"$envmap" "env_cubemap"
 	"$envmapmask" "models\weapons\w_models\shadowshammer\hammer_ref"
+
+	// PHONG SHADING
+	$phong                      1
+	$phongboost                 1
+	$phongfresnelranges         "[1 3 6]"
+	$phongtint                  "[.8 .8 1]"
+	$phongexponenttexture       "models\weapons\w_models\shadowshammer\hammer"
+	$normalmapalphaphongmask    1
+
+	// ENVIRONMENT REFLECTION
+	$envmap                     env_cubemap
+	$envmaptint                 "[.008 .008 .008]"
+	$envmapfresnel              1
+	$normalmapalphaenvmapmask   1
 }

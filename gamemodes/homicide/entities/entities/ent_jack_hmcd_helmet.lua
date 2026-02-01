@@ -4,10 +4,11 @@ ENT.Base = "ent_jack_hmcd_loot_base"
 ENT.PrintName = "Ballistic Helmet"
 ENT.ImpactSound = "physics/body/body_medium_impact_soft5.wav"
 if SERVER then
+	local clr = Color(200, 200, 200, 255)
 	function ENT:Initialize()
 		self:SetModel("models/barney_helmet.mdl")
 		self:SetMaterial("models/mat_jack_hmcd_armor")
-		self:SetColor(Color(200, 200, 200, 255))
+		self:SetColor(clr)
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetMoveType(MOVETYPE_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)
@@ -32,4 +33,3 @@ if SERVER then
 		end
 	end
 end
---

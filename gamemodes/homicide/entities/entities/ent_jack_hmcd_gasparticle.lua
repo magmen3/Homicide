@@ -6,8 +6,8 @@ ENT.MinSize = 4
 ENT.MaxSize = 128
 ENT.HmcdGas = true
 function ENT:SetupDataTables()
-	self:NetworkVar("Float", 0, "BallSize", {
-		KeyName = "ballsize",
+	self:NetworkVar("Float", 0, "ParticleSize", {
+		KeyName = "ParticleSize",
 		Edit = {
 			type = "Float",
 			min = self.MinSize,
@@ -16,32 +16,16 @@ function ENT:SetupDataTables()
 		}
 	})
 
-	self:NetworkVar("Vector", 0, "BallColor", {
-		KeyName = "ballcolor",
-		Edit = {
-			type = "VectorColor",
-			order = 2
-		}
-	})
-
-	self:NetworkVarNotify("BallSize", self.OnBallSizeChanged)
+	self:NetworkVarNotify("ParticleSize", self.OnParticleSizeChanged)
 end
 
---[[---------------------------------------------------------
-	Name: Initialize
------------------------------------------------------------]]
 function ENT:Initialize()
 	self.LifeTime = 150
 	self.DieTime = CurTime() + self.LifeTime
-	-- We do NOT want to execute anything below in this FUNCTION on CLIENT
 	if CLIENT then return end
-	self:SetBallSize(.1)
-	-- Use the helibomb model just for the shadow (because it's about the same size)
+	self:SetParticleSize(.1)
 	self:SetModel("models/Combine_Helicopter/helicopter_bomb01.mdl")
-	-- We will put this here just in case, even though it should be called from OnBallSizeChanged in any case
 	self:RebuildPhysics()
-	-- Select a random color for the ball
-	self:SetBallColor(table.Random({Vector(1, 0.3, 0.3), Vector(0.3, 1, 0.3), Vector(1, 1, 0.3), Vector(0.2, 0.3, 1),}))
 	self.Repulsion = .01
 	self:DrawShadow(false)
 end
@@ -73,10 +57,11 @@ function ENT:Think()
 	return true
 end
 
+local physvec1, physvec2 = Vector(-.1, -.1, -.1), Vector(.1, .1, .1)
 function ENT:RebuildPhysics(value)
-	local size = math.Clamp(value or self:GetBallSize(), self.MinSize, self.MaxSize) / 2.1
+	local size = math.Clamp(value or self:GetParticleSize(), self.MinSize, self.MaxSize) / 2.1
 	self:PhysicsInitSphere(size, "metal_bouncy")
-	self:SetCollisionBounds(Vector(-.1, -.1, -.1), Vector(.1, .1, .1))
+	self:SetCollisionBounds(physvec1, physvec2)
 	self:PhysWake()
 	self:GetPhysicsObject():SetMass(1)
 	self:GetPhysicsObject():EnableGravity(false)
@@ -85,7 +70,7 @@ function ENT:RebuildPhysics(value)
 	self:GetPhysicsObject():SetMaterial("chainlink") -- pass-through for bullets
 end
 
-function ENT:OnBallSizeChanged(varname, oldvalue, newvalue)
+function ENT:OnParticleSizeChanged(varname, oldvalue, newvalue)
 	-- Do not rebuild if the size wasn't changed
 	if oldvalue == newvalue then return end
 	self:RebuildPhysics(newvalue)
@@ -109,8 +94,8 @@ if SERVER then -- We do NOT want to execute anything below in this FILE on SERVE
 	return
 end
 
-local matBall = Material("particle/smokestack")
---local matBall=Material( "sprites/sent_ball" )
+local matBall, vec = Material("particle/smokestack"), Vector(0, 0, 1)
+local svcheats = GetConVar("sv_cheats")
 function ENT:Draw()
 	--[[
 	render.SetMaterial( matBall )
@@ -127,11 +112,11 @@ function ENT:Draw()
 	--]]
 	-- hydrogen cyanide is invisible and practically odorless
 	-- but it is fun to see how the gas spreads, so let the murderer see it with sv_cheats
-	if LocalPlayer().Murderer and GetConVar("sv_cheats"):GetBool() then
+	if LocalPlayer().Murderer and svcheats:GetBool() then
 		local Time = CurTime()
 		render.SetMaterial(matBall)
 		local pos = self:GetPos()
-		local lcolor = render.ComputeLighting(pos, Vector(0, 0, 1))
+		local lcolor = render.ComputeLighting(pos, vec)
 		local a, size = math.Clamp(((self.DieTime - Time) / self.LifeTime) * 255, 0, 255), (1 - ((self.DieTime - Time) / self.LifeTime)) * 300
 		render.DrawSprite(pos, size, size, Color(lcolor.x, lcolor.y, lcolor.z, a))
 		size = math.Clamp(size + FrameTime() / 100, 0, 200)

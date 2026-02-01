@@ -113,7 +113,6 @@ function GM:DisplayEndRoundBoard(data)
 	function murdererPnl:Paint()
 	end
 
-	--
 	if data.murdererName and not self.DEATHMATCH then
 		local col = data.murdererColor
 		local msgs
@@ -178,7 +177,6 @@ function GM:DisplayEndRoundBoard(data)
 		function pnl:Paint(w, h)
 		end
 
-		--
 		function pnl:PerformLayout()
 			if self.NamePnl then self.NamePnl:SetWidth(self:GetWide() * 0.4) end
 			if self.BNamePnl then self.BNamePnl:SetWidth(self:GetWide() * 0.3) end

@@ -82,7 +82,7 @@ concommand.Add("+menu", function(client, com, args, full)
 		if IsValid(Wep) then
 			if Wep.CommandDroppable and not (GAMEMODE.SHTF and Wep.SHTF_NoDrop) then addElement("Drop", "drop_item") end
 			local Num = 0
-			for amm, fuck in ipairs(HMCD_AmmoWeights) do
+			for amm, fuck in pairs(HMCD_AmmoWeights) do
 				local Amt = client:GetAmmoCount(amm) or 0
 				Num = Num + Amt
 			end
@@ -112,8 +112,16 @@ local function drawTextShadow(t, f, x, y, c, px, py)
 	draw.SimpleText(t, f, x, y, c, px, py)
 end
 
+local interCodes = {
+	["drop_equipment"] = true,
+	["drop_item"] = true,
+	["drop_armor"] = true,
+	["drop_ammo"] = true,
+}
+
 local circleVertex
 local fontHeight = draw.GetFontHeight("MersRadial")
+local lerpAlpha = 0
 function GM:DrawRadialMenu()
 	if radialOpen then
 		local sw, sh = ScrW(), ScrH()
@@ -193,7 +201,7 @@ function GM:DrawRadialMenu()
 				surface.SetDrawColor(20, 120, 255, 120)
 				if ment.Code == "happy" then
 					surface.SetDrawColor(255, 20, 20, 120)
-				elseif (ment.Code == "drop_item") or (ment.Code == "drop_armor") or (ment.Code == "drop_ammo") then
+				elseif interCodes[ment.Code] then
 					surface.SetDrawColor(50, 50, 50, 120)
 				end
 
@@ -212,18 +220,17 @@ function GM:DrawRadialMenu()
 			local ply = LocalPlayer()
 			local H, W = ScrH(), ScrW()
 			local BarSize, BarLow = W * .75, H * .01 - 10
-			local col, Name = ply:GetPlayerColor(), ply:GetBystanderName()
+			local col, Name = ply:GetPlayerColor():ToColor(), ply:GetBystanderName()
+			local Vary = math.sin(CurTime() * 10) / 2 + .5
 			if (Name == translate.murderer) or (Name == translate.traitor) then
 				col = Color(255 * Vary, 0, 0)
-			else
-				col = Color(col.x * 255, col.y * 255, col.z * 255)
 			end
 
 			surface.SetDrawColor(col)
 			surface.SetFont("MersRadialS")
 			local Size = surface.GetTextSize(Name)
 			drawTextShadow(Name, "MersRadialS", W / 2.9 - 470 - Size, BarLow + 10, col, 0, TEXT_ALIGN_RIGHT)
-			if not self.Realism:GetBool() then
+			--if not self.Realism:GetBool() then
 				if ply.ChestArmor and (ply.ChestArmor ~= "") then
 					local tca
 					if ply.ChestArmor == "Level III" then
@@ -245,7 +252,7 @@ function GM:DrawRadialMenu()
 					local Size = surface.GetTextSize(str)
 					drawTextShadow(str, "MersRadialSuperS", W / 2 + 470 - Size, BarLow + 30, color_white, 0, TEXT_ALIGN_TOP)
 				end
-			end
+			--end
 
 			local shouldDraw = hook.Run("HUDShouldDraw", "MurderPlayerType")
 			if shouldDraw ~= false then

@@ -34,8 +34,9 @@ else
 	end
 end
 
-SWEP.SwayScale = 3
-SWEP.BobScale = 3
+SWEP.Base = "weapon_base_hmcd"
+SWEP.SwayScale = 0
+SWEP.BobScale = 0
 SWEP.Instructions = translate.weaponHandsDesc
 SWEP.AdminOnly = true
 SWEP.HoldType = "normal"
@@ -53,6 +54,8 @@ SWEP.Secondary.Automatic = false
 SWEP.Secondary.Ammo = "none"
 SWEP.ReachDistance = 60
 SWEP.HomicideSWEP = true
+SWEP.DangerLevel = 0
+SWEP.BlockAmt = 0
 function SWEP:SetupDataTables()
 	self:NetworkVar("Float", 0, "NextIdle")
 	self:NetworkVar("Bool", 2, "Fists")
@@ -60,10 +63,6 @@ function SWEP:SetupDataTables()
 	self:NetworkVar("Bool", 3, "Blocking")
 end
 
-function SWEP:PreDrawViewModel(vm, wep, ply)
-end
-
---vm:SetMaterial("engine/occlusionproxy") -- Hide that view model with hacky material
 function SWEP:Initialize()
 	self:SetNextIdle(CurTime() + 5)
 	self:SetNextDown(CurTime() + 5)
@@ -72,6 +71,7 @@ function SWEP:Initialize()
 	self:SetBlocking(false)
 	self.PrintName = translate and translate.hands or "Hands"
 	self.Instructions = translate.weaponHandsDesc
+	self.BlockAmt = 0
 end
 
 function SWEP:Deploy()
@@ -85,11 +85,6 @@ function SWEP:Deploy()
 	self:SetFists(false)
 	self:SetNextDown(CurTime())
 	self:DoBFSAnimation("fists_draw")
-	return true
-end
-
-function SWEP:Holster()
-	self:OnRemove()
 	return true
 end
 
@@ -175,13 +170,6 @@ function SWEP:ApplyForce()
 	end
 end
 
-function SWEP:OnRemove()
-	if IsValid(self:GetOwner()) and CLIENT and self:GetOwner():IsPlayer() then
-		local vm = self:GetOwner():GetViewModel()
-		if IsValid(vm) then vm:SetMaterial("") end
-	end
-end
-
 function SWEP:GetCarrying()
 	return self.CarryEnt
 end
@@ -237,9 +225,12 @@ function SWEP:Think()
 			self:SetFists(false)
 			self:SetBlocking(false)
 		end
+
+		self.DangerLevel = 50
 	else
 		HoldType = "normal"
 		self:DoBFSAnimation("fists_draw")
+		self.DangerLevel = 0
 	end
 
 	if IsValid(self.CarryEnt) or self.CarryEnt then HoldType = "magic" end
@@ -344,7 +335,6 @@ end
 function SWEP:DrawWorldModel()
 end
 
--- no, do nothing
 function SWEP:DoBFSAnimation(anim)
 	local vm = self:GetOwner():GetViewModel()
 	vm:SendViewModelMatchingSequence(vm:LookupSequence(anim))
@@ -360,17 +350,37 @@ function SWEP:IsEntSoft(ent)
 end
 
 if CLIENT then
-	local BlockAmt = 0
-	function SWEP:GetViewModelPosition(pos, ang)
-		if self:GetBlocking() then
-			BlockAmt = math.Clamp(BlockAmt + FrameTime() * 1.5, 0, 1)
-		else
-			BlockAmt = math.Clamp(BlockAmt - FrameTime() * 1.5, 0, 1)
+	local vecfull = Vector(1, 1, 1)
+	function SWEP:Holster()
+		local ply = self:GetOwner()
+		if IsValid(ply) then
+			local vm = ply:GetViewModel()
+			if IsValid(vm) then
+				for i = 0, vm:GetBoneCount() do
+					if vm:GetBoneName(i) == "__INVALIDBONE__" then
+						continue
+					end
+					local matrix = vm:GetBoneMatrix(i)
+					if matrix then
+						matrix:SetScale(vecfull)
+						matrix:SetAngles(angle_zero)
+						vm:SetBoneMatrix(i, matrix)
+					end
+				end
+				vm:SetSubMaterial()
+			end
 		end
 
-		pos = pos - ang:Up() * 15 * BlockAmt
-		ang:RotateAroundAxis(ang:Right(), BlockAmt * 60)
-		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.2)
+		return true
+	end
+
+	function SWEP:GetVMPos2(pos, ang)
+		if not self.BlockAmt then self.BlockAmt = 0 end
+		self.BlockAmt = Lerp(FrameTime() * 2, self.BlockAmt, self:GetBlocking() and 1 or 0)
+
+		pos = pos - ang:Up() * 15 * self.BlockAmt
+		ang:RotateAroundAxis(ang:Right(), self.BlockAmt * 60)
+		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.3)
 		return pos, ang
 	end
 end

@@ -8,23 +8,20 @@ net.Receive("spectating_status", function(length)
 	end
 end)
 
--- wow, inefficient much?
 function GM:IsCSpectating()
 	return self.Spectating
 end
 
--- a whole function call, scope, application stack, etc, all to return a single value
--- a value that's already visible from the scope of the caller
--- good job, MechanicalMind
 function GM:GetCSpectatee()
 	return self.Spectatee
 end
 
--- dumbass
 function GM:ShouldDrawWeaponWorldModel(wep)
 	if self.Spectating then
 		local Dude = self.Spectatee
-		if Dude and IsValid(Dude) and Dude:IsPlayer() and Dude:Alive() then if Dude == wep:GetOwner() then return false end end
+		if Dude and IsValid(Dude) and Dude:IsPlayer() and Dude:Alive() and Dude == wep:GetOwner() and LocalPlayer():GetNWInt("Specmode", 1) == 1 then
+			return false
+		end
 	end
 	return true
 end

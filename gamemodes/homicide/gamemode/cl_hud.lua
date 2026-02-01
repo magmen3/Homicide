@@ -35,6 +35,15 @@ surface.CreateFont("MersRadial_QM", {
 	extended = ext
 })
 
+surface.CreateFont("MersRadial_WeaponHUD", {
+	font = "Coolvetica Rg",
+	size = math.ceil(basesize * .3),
+	weight = 500,
+	antialias = true,
+	italic = false,
+	extended = ext
+})
+
 surface.CreateFont("MersRadialS", {
 	font = "Coolvetica Rg",
 	size = math.ceil(basesize * .76),
@@ -84,15 +93,6 @@ surface.CreateFont("MersRadialSmall_QM", {
 	font = "Coolvetica Rg",
 	size = math.ceil(basesize * .425),
 	weight = 100,
-	antialias = true,
-	italic = false,
-	extended = ext
-})
-
-surface.CreateFont("MersDeathBig", {
-	font = "Coolvetica Rg",
-	size = math.ceil(basesize * 1.89),
-	weight = 500,
 	antialias = true,
 	italic = false,
 	extended = ext
@@ -232,22 +232,19 @@ function GM:DrawStartRoundInformation()
 	end
 end
 
-local function StatusEffect(data)
-	LocalPlayer().StatusEffect = data:ReadString()
+net.Receive("HMCD_StatusEffect", function()
+	LocalPlayer().StatusEffect = net.ReadString()
 	LocalPlayer().StatusEffectShow = CurTime() + 1.5
-end
+end)
 
-usermessage.Hook("HMCD_StatusEffect", StatusEffect)
-local function FoodBoost(data)
-	LocalPlayer().FoodBoost = CurTime() + data:ReadShort()
-end
+net.Receive("HMCD_FoodBoost", function()
+	LocalPlayer().FoodBoost = CurTime() + net.ReadFloat()
+end)
 
-usermessage.Hook("HMCD_FoodBoost", FoodBoost)
-local function PainBoost(data)
-	LocalPlayer().PainBoost = CurTime() + data:ReadShort()
-end
+net.Receive("HMCD_PainBoost", function()
+	LocalPlayer().PainBoost = CurTime() + net.ReadFloat()
+end)
 
-usermessage.Hook("HMCD_PainBoost", PainBoost)
 local function colorDif(col1, col2)
 	local x = col1.x - col2.x
 	local y = col1.y - col2.y
@@ -259,22 +256,24 @@ local function colorDif(col1, col2)
 end
 
 local Health, Stamina, PersonTex, StamTex, HelTex, BGTex = 0, 0, surface.GetTextureID("vgui/hud/hmcd_person"), surface.GetTextureID("vgui/hud/hmcd_stamina"), surface.GetTextureID("vgui/hud/hmcd_health"), surface.GetTextureID("vgui/hud/hmcd_background")
+local foodClr = Color(175, 235, 255, 255)
 function GM:DrawGameHUD(ply)
 	if not IsValid(ply) then return end
 	if LocalPlayer() ~= ply then return end
 	if self:GetVictor() then return end
 	local W, H, Bleedout, Vary = ScrW(), ScrH(), ply.Bleedout, math.sin(CurTime() * 10) / 2 + .5
-	Health = Lerp(.1, Health, ply:Health())
-	Stamina = Lerp(.05, Stamina, ply.Stamina)
+	local FT = FrameTime()
+	Health = Lerp(FT * 5, Health, ply:Health())
+	Stamina = Lerp(FT * 5, Stamina, ply.Stamina)
 	if not Stamina then Stamina = 0 end
 	if not Bleedout then Bleedout = 0 end
 	local Bright = color_white
-	if ply.FoodBoost and (ply.FoodBoost > CurTime()) then Bright = Color(175, 235, 255, 255) end
+	if ply.FoodBoost and (ply.FoodBoost > CurTime()) then Bright = foodClr end
 	local tr = ply:GetEyeTraceNoCursor()
 	local shouldDraw = hook.Run("HUDShouldDraw", "MurderPlayerNames")
 	if shouldDraw ~= false then
 		-- draw names
-		if IsValid(tr.Entity) and ((tr.Entity:IsPlayer() or tr.Entity:GetClass() == "prop_ragdoll") or tr.Entity:GetClass() == "npc_metropolice" or tr.Entity:GetClass() == "npc_citizen") and tr.HitPos:Distance(tr.StartPos) < 60 then
+		if IsValid(tr.Entity) and ((tr.Entity:IsPlayer() or tr.Entity:GetClass() == "prop_ragdoll") or tr.Entity:GetClass() == "npc_combine_s" or tr.Entity:GetClass() == "npc_citizen") and tr.HitPos:Distance(tr.StartPos) < 60 then
 			self.LastLooked = tr.Entity
 			self.LookedFade = CurTime()
 		end
@@ -464,11 +463,13 @@ local function ShowAmmo(len, ply)
 end
 
 net.Receive("HMCD_AmmoShow", ShowAmmo)
-local function Drugs(data)
-	LocalPlayer().HighOnDrugs = data:ReadBool()
+
+local function Drugs(len, ply)
+	LocalPlayer().HighOnDrugs = net.ReadBool()
 end
 
-usermessage.Hook("HMCD_DrugsHigh", Drugs)
+net.Receive("HMCD_DrugsHigh", Drugs)
+
 function GM:GUIMousePressed(code, vector)
 end
 
@@ -498,6 +499,7 @@ local RedVision = {
 
 local ScpMat, Helm, Narrow = surface.GetTextureID("sprites/mat_jack_hmcd_scope_diffuse"), "sprites/mat_jack_hmcd_helmover", "sprites/mat_jack_hmcd_narrow"
 function GM:RenderScreenspaceEffects()
+	local W, H = ScrW(), ScrH()
 	local client, ViewEnt, SelfPos, Victor, FT = LocalPlayer(), GetViewEntity(), LocalPlayer():GetPos(), self:GetVictor(), FrameTime()
 	if self:GetVictor() then return end
 	if not client:Alive() then
@@ -505,6 +507,8 @@ function GM:RenderScreenspaceEffects()
 		client.Seizuring = false
 		self:RenderDeathOverlay()
 	else
+		surface.SetDrawColor(0, 0, 0, 255)
+		surface.DrawRect(W * 0, H * -0.001, W, 4)
 		if ViewEnt ~= client then
 			DrawMaterialOverlay(Narrow, 1)
 		elseif client.HeadArmor and (client.HeadArmor ~= "") then
@@ -547,7 +551,6 @@ function GM:RenderScreenspaceEffects()
 			if Wep.GetAiming and (Wep:GetAiming() > 5) then
 				if Wep.Scoped then
 					if Wep:GetAiming() >= 99 then
-						local W, H = ScrW(), ScrH()
 						surface.SetDrawColor(255, 255, 255, 255)
 						surface.SetTexture(ScpMat)
 						surface.DrawTexturedRect(-1, -1, W + 1, H + 1)
@@ -556,7 +559,7 @@ function GM:RenderScreenspaceEffects()
 						surface.DrawRect((W / 2) + 5, -1, 2, H + 1)
 					end
 				else
-					DrawToyTown(2, Wep:GetAiming() * ScrH() / 200)
+					DrawToyTown(2, Wep:GetAiming() * H / 200)
 				end
 			end
 		end
@@ -627,7 +630,7 @@ function GM:PostDrawHUD()
 	end
 end
 
-local hidechud = {
+local hideCHud = {
 	["CHudHealth"] = true,
 	["CHudBattery"] = true,
 	["CHudAmmo"] = true,
@@ -636,11 +639,17 @@ local hidechud = {
 	["CHudGeiger"] = true,
 	["CHudPoisonDamageIndicator"] = true,
 	["CHudSquadStatus"] = true,
-	["CHudZoom"] = true
+	["CHudZoom"] = true,
+	["CHudWeaponSelection"] = true,
+	["CHudDamageIndicator"] = true,
+	["CHudTrain"] = true,
+	["CHudSuitPower"] = true,
+	["CHUDQuickInfo"] = true,
+	["CHudHistoryResource"] = true
 }
 
 function GM:HUDShouldDraw(name)
-	if hidechud[name] then return false end
+	if hideCHud[name] then return false end
 	return true
 end
 
@@ -727,3 +736,210 @@ function GM:OpenAmmoDropMenu()
 		RunConsoleCommand("hmcd_droprequest_ammo", AmmoType, tostring(AmmoAmt))
 	end
 end
+
+-- by sadsalat from ZCity :D
+local WS = {}
+local function WS_GetPrintName(self)
+	local class = self:GetClass()
+	local phrase = language.GetPhrase(class)
+	return phrase ~= class and phrase or self:GetPrintName()
+end
+
+WS.Show = 0
+WS.Transparent = 0
+WS.LastSelectedSlot = 0
+WS.LastSelectedSlotPos = 0
+WS.SelectedSlot = 0
+WS.SelectedSlotPos = 0
+local function WS_DrawText(text, font, posX, posY, color, textAlign)
+	draw.DrawText(text, font, posX + 2, posY + 2, ColorAlpha(color_black, WS.Transparent * 255), textAlign)
+	draw.DrawText(text, font, posX, posY, ColorAlpha(color, WS.Transparent * 255), textAlign)
+end
+
+local function WS_GetWepTable(ply)
+	if not IsValid(ply) or not ply:Alive() then return end
+	local WeaponsGet = ply:GetWeapons()
+	local FormatedTable = {
+		[0] = {},
+		[1] = {},
+		[2] = {},
+		[3] = {},
+		[4] = {},
+		[5] = {},
+	}
+
+	table.sort(WeaponsGet, function(a, b) return (a.SlotPos or 0) > (b.SlotPos or 0) end)
+	for k, wep in ipairs(WeaponsGet) do
+		local tTbl = FormatedTable[wep.Slot or 0]
+		local iMinPos = math.min((wep.SlotPos and wep.SlotPos) or 1, (#tTbl or 0) + 1) - 1
+		local iPos = tTbl[iMinPos] and #tTbl + 1 or iMinPos
+		tTbl[iPos] = wep
+	end
+	return FormatedTable
+end
+
+local function WS_GetSelWeapon()
+	if not IsValid(LocalPlayer()) or not LocalPlayer():Alive() then return end
+	local Weapons = WS_GetWepTable(LocalPlayer())
+	return Weapons[WS.SelectedSlot] and Weapons[WS.SelectedSlot][WS.SelectedSlotPos] or Weapons[WS.LastSelectedSlot][WS.LastSelectedSlotPos] or Weapons[0][0]
+end
+
+local scrW, scrH = ScrW(), ScrH()
+local gradient_D = Material("vgui/gradient-d")
+local function WS_WepSelectDraw(ply)
+	if not IsValid(ply) or not ply:Alive() then return end
+	if WS.Show < CurTime() then
+		WS.SelectedSlot = WS.LastSelectedSlot
+		WS.SelectedSlotPos = -1
+		return
+	end
+
+	local Weapons = WS_GetWepTable(ply)
+	local SelectedWep = WS_GetSelWeapon()
+	if not IsValid(SelectedWep) then return end
+	WS.Transparent = Lerp(FrameTime() * 10, WS.Transparent, math.min(WS.Show - CurTime(), 1))
+
+	local SuperAmmout = 0
+	local AmmoutSlots = 0
+	for i = 0, #Weapons do
+		local slotTbl = Weapons[i]
+		if table.Count(slotTbl) < 1 then continue end
+		AmmoutSlots = AmmoutSlots + 1
+	end
+
+	for i = 0, #Weapons do
+		local slotTbl = Weapons[i]
+		if table.Count(slotTbl) < 1 then continue end
+		local sizeX = scrW * 0.1
+		local position = scrW / 2 + ((SuperAmmout - (AmmoutSlots / 2)) * sizeX)
+		draw.RoundedBox(
+			2,
+			position,
+			scrH * 0.024,
+			sizeX,
+			scrH * 0.02, 
+			ColorAlpha(color_black, WS.Transparent * 50) 
+		)
+		WS_DrawText(i + 1, "MersRadialSuperS", position + sizeX / 2, scrH * 0.02, ColorAlpha(color_white, WS.Transparent * 255), TEXT_ALIGN_CENTER)
+		local Ammout = 0
+		local lastPos = 0
+		for Id = 0, #slotTbl do
+			wepId = Id
+			local wep = slotTbl[wepId]
+			if not wep then continue end
+
+			local sizeH = SelectedWep == wep and (scrH * 0.12) or (scrH * 0.025)
+			if slotTbl[wepId - 1] and SelectedWep == slotTbl[wepId - 1] then lastPos = scrH * 0.095 end
+			draw.RoundedBox(0, position, (scrH * 0.025) * Ammout + (scrH * 0.05) + lastPos, sizeX, sizeH, ColorAlpha(color_black, WS.Transparent * 205))
+			draw.RoundedBox(0, position, ((scrH * 0.025) * Ammout + (scrH * 0.05) + lastPos) + sizeH - 2, sizeX, 2, ColorAlpha(color_black, WS.Transparent * 205))
+			-- 0, 20, 40, 255 | 20, 120, 255, 120
+			-- local clrply = ply:GetPlayerColor():ToColor()
+			surface.SetDrawColor(20, 120, 255, WS.Transparent * (SelectedWep == wep and 120 or 0))
+			surface.SetMaterial(gradient_D)
+			surface.DrawTexturedRect(position, (scrH * 0.025) * Ammout + (scrH * 0.05) + lastPos, sizeX, sizeH)
+			if SelectedWep == wep then
+				surface.SetDrawColor(0, 20, 40, WS.Transparent * 255)
+				surface.DrawOutlinedRect(position, (scrH * 0.025) * Ammout + (scrH * 0.05) + lastPos, sizeX, sizeH, 2)
+			end
+
+			local sizeHi = (scrH * 0.025) * Ammout + (scrH * 0.05) + lastPos
+			sizeHi = sizeHi + 2.5
+			WS_DrawText(WS_GetPrintName(wep), "MersRadial_WeaponHUD", position + sizeX / 2, sizeHi, ColorAlpha(color_white, WS.Transparent * 255), TEXT_ALIGN_CENTER)
+			Ammout = Ammout + 1
+			if SelectedWep == wep and wep.DrawWeaponSelection then wep:DrawWeaponSelection(position + 5, (scrH * 0.025) * Ammout + (scrH * 0.055) + lastPos, sizeX - 10, sizeH, WS.Transparent * 255) end
+		end
+
+		SuperAmmout = SuperAmmout + 1
+	end
+end
+
+local tAcceptKeys = {
+	["slot1"] = 1,
+	["slot2"] = 2,
+	["slot3"] = 3,
+	["slot4"] = 4,
+	["slot5"] = 5,
+	["slot6"] = 6,
+}
+
+local function GetUpper(Weapons)
+	if #LocalPlayer():GetWeapons() < 1 then return end
+	WS.SelectedSlot = WS.SelectedSlot < 0 and #Weapons or WS.SelectedSlot - 1
+	WS.SelectedSlotPos = Weapons[WS.SelectedSlot] and #Weapons[WS.SelectedSlot] or 0
+	if Weapons[WS.SelectedSlot] == nil or Weapons[WS.SelectedSlot][WS.SelectedSlotPos] == nil then GetUpper(Weapons) end
+end
+
+local function GetDown(Weapons)
+	if #LocalPlayer():GetWeapons() < 1 then return end
+	WS.SelectedSlot = WS.SelectedSlot > #Weapons and 0 or WS.SelectedSlot + 1
+	WS.SelectedSlotPos = 0
+	if Weapons[WS.SelectedSlot] == nil or Weapons[WS.SelectedSlot][WS.SelectedSlotPos] == nil then GetDown(Weapons) end
+end
+
+local LastSelected = 0
+local function canUseSelector(ply)
+	local wep = ply:GetActiveWeapon()
+	return wep.GetAiming and wep:GetAiming() > 0 or ply:IsFlagSet(FL_FROZEN)
+end
+
+local function WS_ChangeSelectWep(ply, key)
+	if not IsValid(ply) or not ply:Alive() then return end
+	if ply.organism and ply.organism.otrub then return end
+	if canUseSelector(ply) then return end
+	local iPos = tAcceptKeys[key]
+	if iPos or key == "invnext" or key == "invprev" or key == "lastinv" then
+		local Weapons = WS_GetWepTable(ply)
+		WS.Show = CurTime() + 4
+		--!! surface.PlaySound("arc9_eft_shared/weapon_generic_rifle_spin" .. math.random(10) .. ".ogg") replace snd
+		if iPos then
+			iPos = iPos - 1
+			if LastSelected ~= iPos then WS.SelectedSlotPos = -1 end
+			WS.SelectedSlotPos = (Weapons[iPos] and LastSelected == iPos and WS.SelectedSlotPos + 1 > #Weapons[iPos] and 0 or math.min(WS.SelectedSlotPos + 1, #Weapons[iPos])) or 0
+			WS.SelectedSlot = iPos
+			LastSelected = iPos
+		elseif key == "invprev" then
+			WS.SelectedSlotPos = WS.SelectedSlotPos - 1
+			if Weapons[WS.SelectedSlot] and WS.SelectedSlotPos < 0 then GetUpper(Weapons) end
+		elseif key == "invnext" then
+			WS.SelectedSlotPos = WS.SelectedSlotPos + 1
+			if Weapons[WS.SelectedSlot] and WS.SelectedSlotPos > #Weapons[WS.SelectedSlot] then GetDown(Weapons) end
+		elseif key == "lastinv" and IsValid(WS.LastInv) then
+			WS.Show = 0
+			WS.LastInv = WS.LastInv or "weapon_hands_sh"
+			local oldwep = ply:GetActiveWeapon()
+			input.SelectWeapon(WS.LastInv)
+			WS.LastInv = oldwep
+		end
+	end
+end
+
+local function WS_SetActuallyWep(ply, cmd)
+	if not IsValid(ply) or not ply:Alive() then return end
+	if (cmd:KeyDown(IN_ATTACK) or cmd:KeyDown(IN_ATTACK2)) and WS.Show > CurTime() then
+		if WS.Selected and WS.Selected > CurTime() then
+			cmd:RemoveKey(IN_ATTACK)
+			cmd:RemoveKey(IN_ATTACK2)
+		else
+			cmd:RemoveKey(IN_ATTACK)
+			cmd:RemoveKey(IN_ATTACK2)
+			if IsValid(WS_GetSelWeapon()) then
+				WS.LastInv = WS.LastInv ~= ply:GetActiveWeapon() and WS.LastInv or ply:GetActiveWeapon()
+				input.SelectWeapon(WS_GetSelWeapon())
+			end
+
+			cmd:RemoveKey(IN_ATTACK)
+			cmd:RemoveKey(IN_ATTACK2)
+			WS.LastSelectedSlot = WS.SelectedSlot
+			WS.LastSelectedSlotPos = WS.SelectedSlotPos
+			WS.Selected = CurTime() + 0.2
+			WS.Show = CurTime() + 0.2
+			--!! surface.PlaySound("arc9_eft_shared/weapon_generic_spin" .. math.random(1, 10) .. ".ogg") replace snd
+		end
+	end
+end
+
+hook.Add("PlayerBindPress", "WeaponSelector_PlayerBindPress", WS_ChangeSelectWep)
+hook.Add("HUDPaint", "WeaponSelector_Draw", function()
+	WS_WepSelectDraw(LocalPlayer())
+end)
+hook.Add("StartCommand", "WeaponSelector_StartCommand", WS_SetActuallyWep)

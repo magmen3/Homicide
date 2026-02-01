@@ -1,7 +1,6 @@
 if SERVER then
 	AddCSLuaFile()
 else
-	killicon.AddFont("wep_jack_hmcd_revolver", "HL2MPTypeDeath", "1", color_white)
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_revolver")
 end
 
@@ -9,13 +8,15 @@ SWEP.Base = "wep_jack_hmcd_firearm_base"
 SWEP.PrintName = translate.weaponrevolver
 SWEP.Instructions = translate.weaponrevolverDesc
 SWEP.Primary.ClipSize = 6
-SWEP.ViewModel = "models/weapons/v_pist_jeagle.mdl"
-SWEP.WorldModel = "models/weapons/w_357.mdl" -- models/weapons/w_pist_jeagle.mdl
+SWEP.ViewModel = "models/weapons/homicide/c_pist_mr96.mdl"
+SWEP.UseHands = true
+SWEP.WorldModel = "models/weapons/homicide/w_mr96.mdl"
+SWEP.FuckedWorldModel = true
 SWEP.ViewModelFlip = false
 SWEP.Damage = 40
 SWEP.SprintPos = Vector(3, 0, -12)
 SWEP.SprintAng = Angle(70, 0, 0)
-SWEP.AimPos = Vector(-1.75, 0, .4)
+SWEP.AimPos = Vector(-2.15, 0, .4) --!! Vector(-1.75, 0, .4) TODO: fix c_model revolver offset
 SWEP.ReloadTime = 5
 SWEP.ReloadRate = .5
 SWEP.ReloadSound = "snd_jack_hmcd_rvreload.wav"
@@ -34,3 +35,7 @@ SWEP.CustomColor = Color(50, 50, 50, 255)
 SWEP.HolsterSlot = 2
 SWEP.DeathDroppable = true
 SWEP.CarryWeight = 1500
+SWEP.DangerLevel = 70
+SWEP.SuicideAng = Angle(110, 30, 30)
+SWEP.SuicidePos = Vector(10, 3, -25)
+SWEP.OneHanded = true

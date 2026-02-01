@@ -14,7 +14,7 @@ dtypes[DMG_SHOCK] = "Shock"
 dtypes[DMG_SONIC] = "Sonic"
 dtypes[DMG_ENERGYBEAM] = "Enery"
 dtypes[DMG_DROWN] = "Hydration"
-dtypes[DMG_PARALYZE] = "Paralyzation" -- you mean PARALYSIS? Fucking moron.
+dtypes[DMG_PARALYZE] = "Paralyzation"
 dtypes[DMG_NERVEGAS] = "Nervegas"
 dtypes[DMG_POISON] = "Poison"
 dtypes[DMG_RADIATION] = "Radiation"
@@ -36,7 +36,7 @@ function PlayerMeta:CreateRagdoll(attacker, dmginfo)
 	ent:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 	if ent.SetPlayerColor then ent:SetPlayerColor(self:GetPlayerColor()) end
 	ent:SetNWEntity("RagdollOwner", self)
-	ent:SetBodyProportions(self.UpperBody, self.CoreBody, self.LowerBody)
+	ent:SetBodyProportions(self.UpperBody, self.CoreBody, self.LowerBody --[[, self.Stature]])
 	ent.ClothingMatIndex = self.ClothingMatIndex
 	ent.ModelSex = self.ModelSex
 	ent:SetClothing(self.ClothingType)
@@ -324,11 +324,13 @@ function EntityMeta:SetClothing(outfit)
 	self.ClothingType = outfit
 end
 
-function EntityMeta:SetBodyProportions(upper, core, lower)
+function EntityMeta:SetBodyProportions(upper, core, lower --[[, stature]])
 	if not (upper and core and lower) then return end
 	self.UpperBody = upper
 	self.CoreBody = core
 	self.LowerBody = lower
+	--self.Stature = stature
+	--!! TODO: Rewrite this using bonematrix
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_R_UpperArm"), Vector(1, upper ^ 1.2, upper ^ 1.2))
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_L_UpperArm"), Vector(1, upper ^ 1.2, upper ^ 1.2))
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_Spine4"), Vector(upper, upper ^ 1.05, upper ^ 1.05))
@@ -336,6 +338,7 @@ function EntityMeta:SetBodyProportions(upper, core, lower)
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_Pelvis"), Vector(core ^ .5, core ^ .5, core ^ .5))
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_R_Thigh"), Vector(1, lower ^ 1.1, lower ^ 1.1))
 	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_L_Thigh"), Vector(1, lower ^ 1.1, lower ^ 1.1))
+	--self:SetModelScale(stature, .001)
 end
 
 function EntityMeta:HideBody(body)
@@ -348,11 +351,12 @@ function EntityMeta:HideBody(body)
 end
 
 function EntityMeta:GenerateBody()
-	local Upper, Core, Lower = math.Rand(.8, 1.3), math.Rand(.75, 1.2), math.Rand(.8, 1.3)
+	local Upper, Core, Lower, Stature = math.Rand(.8, 1.3), math.Rand(.75, 1.2), math.Rand(.8, 1.3), math.Rand(.95, 1.05)
 	if self.CustomUpperBody then Upper = self.CustomUpperBody / 100 end
 	if self.CustomCoreBody then Core = self.CustomCoreBody / 100 end
 	if self.CustomLowerBody then Lower = self.CustomLowerBody / 100 end
-	self:SetBodyProportions(Upper, Core, Lower)
+	if self.CustomStature then Stature = self.CustomStature / 100 end
+	self:SetBodyProportions(Upper, Core, Lower --[[, Stature]])
 end
 
 local Clothes = {
@@ -386,8 +390,9 @@ end
 
 function EntityMeta:GenerateAccessories()
 	local AccTable = table.GetKeys(HMCD_Accessories)
-	table.insert(AccTable, "eyeglasses") -- eyeglasses are the most common accessory
-	table.insert(AccTable, "eyeglasses")
+	for i = 0, 2 do -- eyeglasses are the most common accessory
+		table.insert(AccTable, "eyeglasses")
+	end
 	table.insert(AccTable, "nerd glasses")
 	local AccessoryName = table.Random(AccTable)
 	if math.random(1, 3) == 2 then AccessoryName = "none" end
@@ -398,33 +403,33 @@ end
 function GM:CreateFirstVictim()
 	if self.DEATHMATCH then return end
 	if self.ZOMBIE then return end
-	local ply = ents.Create("prop_ragdoll")
+	local rag = ents.Create("prop_ragdoll")
 	if math.random(1, 2) == 2 then
-		ply:SetModel("models/player/group01/male_0" .. math.random(1, 9) .. ".mdl")
-		ply.ModelSex = "male"
+		rag:SetModel("models/player/group01/male_0" .. math.random(1, 9) .. ".mdl")
+		rag.ModelSex = "male"
 	else
-		ply:SetModel("models/player/group01/female_0" .. math.random(1, 6) .. ".mdl")
-		ply.ModelSex = "female"
+		rag:SetModel("models/player/group01/female_0" .. math.random(1, 6) .. ".mdl")
+		rag.ModelSex = "female"
 	end
 
-	local spawnPoint = self:PlayerSelectTeamSpawn(2, ply)
-	if IsValid(spawnPoint) then ply:SetPos(spawnPoint:GetPos() + vector_up * 20) end
-	--player.GetAll()[1]:SetPos(ply:GetPos())
-	ply:SetAngles(Angle(0, 0, 0))
-	ply:Spawn()
-	ply:Activate()
-	ply:GenerateClothes()
-	ply:GenerateBystanderName()
-	ply:GenerateBody()
-	ply:GenerateColor()
-	ply:GenerateAccessories()
-	ply:SetCollisionGroup(COLLISION_GROUP_WEAPON)
-	ply:SetNWString("KilledWith", math.random(1, 4) == 2 and translate.weaponKnife or translate.weaponAxe)
-	ply:SetNWInt("KillDistance", ply:GetPos():Distance(VectorRand(-2, 2)) * 0.0254)
-	ply:SetNWString("LastWeapon", translate.bodysearchNothing)
-	ply:SetNWInt("LastHitGroup", math.random(0, 7))
+	local spawnPoint = self:PlayerSelectTeamSpawn(2, rag)
+	if IsValid(spawnPoint) then rag:SetPos(spawnPoint:GetPos() + vector_up * 20) end
+	--player.GetAll()[1]:SetPos(rag:GetPos())
+	rag:SetAngles(angle_zero)
+	rag:Spawn()
+	rag:Activate()
+	rag:GenerateClothes()
+	rag:GenerateBystanderName()
+	rag:GenerateBody()
+	rag:GenerateColor()
+	rag:GenerateAccessories()
+	rag:SetCollisionGroup(COLLISION_GROUP_WEAPON)
+	rag:SetNWString("KilledWith", math.random(1, 4) == 2 and translate.weaponKnife or translate.weaponAxe)
+	rag:SetNWInt("KillDistance", rag:GetPos():Distance(VectorRand(-2, 2)) * 0.0254)
+	rag:SetNWString("LastWeapon", translate.bodysearchNothing)
+	rag:SetNWInt("LastHitGroup", math.random(0, 7))
 	for i = 0, 50 do
-		local Ph = ply:GetPhysicsObjectNum(i)
+		local Ph = rag:GetPhysicsObjectNum(i)
 		if Ph then
 			Ph:ApplyForceCenter(VectorRand() * math.Rand(1, 4000))
 			Ph:AddAngleVelocity(VectorRand() * math.Rand(0, 1000))
@@ -432,19 +437,19 @@ function GM:CreateFirstVictim()
 	end
 
 	timer.Simple(10, function()
-		if IsValid(ply) then
-			sound.Play("ambient/creatures/town_child_scream1.wav", ply:GetPos(), 90, pit)
-			sound.Play("ambient/creatures/town_child_scream1.wav", ply:GetPos() + vector_up, 60, pit)
-			sound.Play("ambient/creatures/town_child_scream1.wav", ply:GetPos() + vector_up * 2, 50, pit)
+		if IsValid(rag) then
+			sound.Play("ambient/creatures/town_child_scream1.wav", rag:GetPos(), 90, pit)
+			sound.Play("ambient/creatures/town_child_scream1.wav", rag:GetPos() + vector_up, 60, pit)
+			sound.Play("ambient/creatures/town_child_scream1.wav", rag:GetPos() + vector_up * 2, 50, pit)
 		end
 	end)
 
-	self.FirstVictim = ply
+	self.FirstVictim = rag
 	timer.Simple(.1, function()
 		for i = 1, 5 do
 			local Tr = util.TraceLine({
-				start = ply:GetPos() + vector_up * 50 + VectorRand() * math.Rand(0, 40),
-				endpos = ply:GetPos() - vector_up * 200 + VectorRand() * math.Rand(0, 40)
+				start = rag:GetPos() + vector_up * 50 + VectorRand() * math.Rand(0, 40),
+				endpos = rag:GetPos() - vector_up * 200 + VectorRand() * math.Rand(0, 40)
 			})
 
 			if Tr.Hit then util.Decal("Blood", Tr.HitPos + Tr.HitNormal, Tr.HitPos - Tr.HitNormal) end

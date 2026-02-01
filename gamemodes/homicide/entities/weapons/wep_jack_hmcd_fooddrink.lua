@@ -1,22 +1,11 @@
 if SERVER then
 	AddCSLuaFile()
 elseif CLIENT then
-	SWEP.DrawAmmo = false
-	SWEP.DrawCrosshair = false
-	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 3
 	SWEP.SlotPos = 2
-	killicon.AddFont("wep_jack_hmcd_food", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
-	function SWEP:DrawViewModel()
-		return false
-	end
-
-	function SWEP:DrawWorldModel()
-		self:DrawModel()
-	end
 end
 
-SWEP.Base = "weapon_base"
+SWEP.Base = "wep_jack_hmcd_item_base"
 SWEP.ViewModel = "models/foodnhouseholditems/mcdburgerbox.mdl"
 SWEP.WorldModel = "models/foodnhouseholditems/mcdburgerbox.mdl"
 if CLIENT then
@@ -26,30 +15,18 @@ end
 
 SWEP.PrintName = translate.weaponSmallConsumable
 SWEP.Instructions = translate.weaponConsumableDesc
-SWEP.BobScale = 3
-SWEP.SwayScale = 3
-SWEP.Weight = 3
-SWEP.AutoSwitchTo = true
-SWEP.AutoSwitchFrom = false
-SWEP.CommandDroppable = true
-SWEP.Primary.Delay = 0.5
-SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = true
-SWEP.Primary.Ammo = "none"
-SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.ClipSize = -1
-SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = false
-SWEP.Secondary.Ammo = "none"
 SWEP.ENT = "ent_jack_hmcd_fooddrink"
-SWEP.DownAmt = 0
+SWEP.DownAmt = 20
 SWEP.HomicideSWEP = true
 SWEP.CarryWeight = 500
+SWEP.HoldType = "slam"
+
 function SWEP:Initialize()
-	self:SetHoldType("slam")
+	self:SetHoldType(self.HoldType)
 	self.DownAmt = 20
-	if SERVER then if not self:GetRandomModel() then self:SetRandomModel("models/foodnhouseholditems/mcdburgerbox.mdl") end end
+	if SERVER and not self:GetRandomModel() then
+		self:SetRandomModel("models/foodnhouseholditems/mcdburgerbox.mdl")
+	end
 	self.PrintName = translate.weaponSmallConsumable
 	self.Instructions = translate.weaponConsumableDesc
 end
@@ -58,55 +35,31 @@ function SWEP:SetupDataTables()
 	self:NetworkVar("String", 0, "RandomModel")
 end
 
-function SWEP:PrimaryAttack()
-	if self:GetOwner():IsSprinting() then return end
+function SWEP:UseActivate()
+	if CLIENT then return end
+	if self.Poisoned and self:GetOwner().Murderer then
+		self:GetOwner():PrintMessage(HUD_PRINTCENTER, "This is poisoned!")
+		self:SetNextPrimaryFire(CurTime() + 1)
+		return
+	end
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
-	if SERVER then
-		if self.Poisoned and self:GetOwner().Murderer then
-			self:GetOwner():PrintMessage(HUD_PRINTCENTER, "This is poisoned!")
-			self:SetNextPrimaryFire(CurTime() + 1)
-			return
-		end
 
-		if self.Drink then
-			sound.Play("snd_jack_hmcd_drink" .. math.random(1, 3) .. ".wav", self:GetOwner():GetShootPos(), 60, math.random(100, 110))
-		else
-			sound.Play("snd_jack_hmcd_eat" .. math.random(1, 4) .. ".wav", self:GetOwner():GetShootPos(), 60, math.random(100, 110))
-		end
-
-		local Boost = math.Clamp(self:GetOwner().FoodBoost - CurTime(), 0, 1000)
-		Boost = Boost + 30
-		self:GetOwner().FoodBoost = CurTime() + Boost
-		umsg.Start("HMCD_FoodBoost", self:GetOwner())
-		umsg.Short(Boost)
-		umsg.End()
-		if self.Poisoned then HMCD_Poison(self:GetOwner(), self.Poisoner, true) end
-		self:Remove()
+	if self.Drink then
+		sound.Play("snd_jack_hmcd_drink" .. math.random(1, 3) .. ".wav", self:GetOwner():GetShootPos(), 60, math.random(100, 110))
+	else
+		sound.Play("snd_jack_hmcd_eat" .. math.random(1, 4) .. ".wav", self:GetOwner():GetShootPos(), 60, math.random(100, 110))
 	end
+
+	local Boost = math.Clamp((self:GetOwner().FoodBoost or 0) - CurTime(), 0, 1000)
+	Boost = Boost + 30
+	self:GetOwner().FoodBoost = CurTime() + Boost
+	net.Start("HMCD_FoodBoost")
+	net.WriteFloat(Boost)
+	net.Send(self:GetOwner())
+	if self.Poisoned then HMCD_Poison(self:GetOwner(), self.Poisoner, true) end
+	self:Remove()
 end
 
-function SWEP:Deploy()
-	self:SetNextPrimaryFire(CurTime() + 1)
-	self.DownAmt = 20
-	return true
-end
-
-function SWEP:SecondaryAttack()
-end
-
---
-function SWEP:Think()
-	if SERVER then
-		local HoldType = "slam"
-		if self:GetOwner():IsSprinting() then HoldType = "normal" end
-		self:SetHoldType(HoldType)
-	end
-end
-
-function SWEP:Reload()
-end
-
---
 function SWEP:OnDrop()
 	local Ent = ents.Create(self.ENT)
 	Ent.HmcdSpawned = self.HmcdSpawned
@@ -135,13 +88,9 @@ if CLIENT then
 		vm:SetModel(self:GetRandomModel())
 	end
 
-	function SWEP:GetViewModelPosition(pos, ang)
+	function SWEP:GetVMPos2(pos, ang)
 		if not self.DownAmt then self.DownAmt = 0 end
-		if self:GetOwner():IsSprinting() then
-			self.DownAmt = math.Clamp(self.DownAmt + .2, 0, 20)
-		else
-			self.DownAmt = math.Clamp(self.DownAmt - .2, 0, 20)
-		end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 20 or 0)
 
 		pos = pos - ang:Up() * (self.DownAmt + 10) + ang:Forward() * 25 + ang:Right() * 7
 		ang:RotateAroundAxis(ang:Up(), 90)

@@ -20,9 +20,11 @@ end
 GM.DeathEndTime = 0
 GM.SpectateTime = 0
 
-usermessage.Hook("rp_death", function(um)
-	GAMEMODE.DeathEndTime = CurTime() + um:ReadLong()
-	GAMEMODE.SpectateTime = CurTime() + um:ReadLong()
+net.Receive("rp_death", function()
+	local time1 = net.ReadFloat()
+	local time2 = net.ReadFloat()
+	GAMEMODE.DeathEndTime = CurTime() + time1
+	GAMEMODE.SpectateTime = CurTime() + time2
 end)
 
 function GM:RenderRespawnText()

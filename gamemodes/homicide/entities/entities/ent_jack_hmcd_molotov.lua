@@ -51,7 +51,6 @@ if SERVER then
 	function ENT:Think()
 	end
 
-	--
 	function ENT:NearGround()
 		return util.QuickTrace(self:GetPos() + vector_up * 10, -vector_up * 50, {self}).Hit
 	end
@@ -114,12 +113,10 @@ if SERVER then
 
 	function ENT:StartTouch(ply)
 	end
-	--
 elseif CLIENT then
 	function ENT:Initialize()
 	end
 
-	--
 	function ENT:Draw()
 		self:DrawModel()
 	end
@@ -127,8 +124,6 @@ elseif CLIENT then
 	function ENT:Think()
 	end
 
-	--
 	function ENT:OnRemove()
 	end
 end
---

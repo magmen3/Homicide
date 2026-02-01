@@ -23,36 +23,66 @@ GM.Website = "https://github.com/magmen3/Homicide"
 GM.Version = "1"
 CreateConVar("hmcd_realism", 0, bit.bor(FCVAR_REPLICATED, FCVAR_NOTIFY), "Enable realistic mode?", 0, 1)
 CreateConVar("hmcd_guiltdisable", 0, bit.bor(FCVAR_REPLICATED, FCVAR_NOTIFY), "Disable guilt?", 0, 1)
+CreateConVar("hmcd_developer", 0, bit.bor(FCVAR_REPLICATED, FCVAR_NOTIFY), "Enable developer mode?", 0, 1)
 GM.Realism = GetConVar("hmcd_realism")
-GM.GuiltEnabled = GetConVar("hmcd_guiltdisable")
-GM.Dev = true
+GM.GuiltDisabled = GetConVar("hmcd_guiltdisable")
+GM.Dev = GetConVar("hmcd_developer")
 game.AddParticles("particles/pcfs_jack_muzzleflashes.pcf")
 game.AddParticles("particles/pcfs_jack_explosions_small3.pcf")
 game.AddParticles("particles/pcfs_jack_explosions_incendiary2.pcf")
 game.AddDecal("hmcd_jackanail", "decals/mat_jack_hmcd_nailhead")
 game.AddDecal("hmcd_jackatape", "decals/mat_jack_hmcd_ducttape")
-player_manager.AddValidModel("Homicide Murderer", "models/player/mkx_jajon.mdl")
+player_manager.AddValidModel("Homicide Murderer", "models/player/homicide_jason.mdl")
 player_manager.AddValidHands("Homicide Murderer", "models/weapons/c_arms_refugee.mdl", 2, "11111111")
---player_manager.AddValidHands("Homicide Murderer", "models/player/mkx_jajon_hands.mdl", 0, "10000000")
 player_manager.AddValidModel("Homicide Alpha-Zombie", "models/player/zombie_classic.mdl")
 player_manager.AddValidHands("Homicide Alpha-Zombie", "models/weapons/c_arms_citizen.mdl", 2, "0000000")
+
+local particleSystems = {
+    "pcf_jack_mf_mrifle2",
+	"pcf_jack_mf_spistol",
+	"pcf_jack_mf_mrifle2",
+	"pcf_jack_mf_mrifle1",
+	"pcf_jack_mf_mshotgun",
+	"pcf_jack_mf_suppressed",
+	"pcf_jack_mf_barrelsmoke",
+	"pcf_jack_incendiary_air_sm2",
+	"pcf_jack_groundsplode_small3",
+	"pcf_jack_airsplode_small3",
+	"pcf_jack_smokebomb3",
+	"pcf_jack_incendiary_ground_sm2",
+}
+for k, v in ipairs(particleSystems) do
+    PrecacheParticleSystem(v)
+end
+
 ----!! TODO: ----
 -- the living respawn as cops at coptime
 -- multiple killers when there are enough players
--- stungun
+--!! stungun
 -- peperspray
 --!! vrmod compatibility (50%)
---!! replace weapons when vr player picks it
+--!! replace weapons when vr player picks it if i'm gonna make separate base for vr
 -- maybe port homicide weapons on arcvr base
 --!! fix prop pickup with vrmod
 -- make melee base
--- make item base
--- add weapon models with c_hands from jmod homicide
+-- refactor worldmodel code
+-- rewrite submodes
+-- make equipment menu
+-- rechargeable flashlight with battery ammotype
+-- refactor or remove that strange maplist code
+-- rewrite language system to be CLIENT-BASED
 ----
 HMCD_SkillAwards = {{"pt", 4.6, 999999}, {"au", 3.7, 4.6}, {"pd", 2.9, 3.7}, {"ir", 2.2, 2.9}, {"os", 1.6, 2.2}, {"ru", 1.1, 1.6}, {"ag", .7, 1.1}, {"sn", .4, .7}, {"ni", .2, .4}, {"cu", 0, .2}}
 HMCD_ExperienceAwards = {{"10", 15360, 999999}, {"9", 7680, 15360}, {"8", 3840, 7680}, {"7", 1920, 3840}, {"6", 960, 1920}, {"5", 480, 960}, {"4", 240, 480}, {"3", 120, 240}, {"2", 60, 120}, {"1", 0, 60}}
 HMCD_Tips = translate.table.tips
--- format: multiline
+HMCD_HullVector = {
+	Min = Vector(-12, -12, 0),
+	Max = Vector(12, 12, 64),
+	Duck = Vector(12, 12, 42),
+	Offset = Vector(0, 0, 64),
+	DuckOffset = Vector(0, 0, 42)
+}
+
 HMCD_ValidModels = {
 	"male01",
 	"male02",
@@ -71,7 +101,6 @@ HMCD_ValidModels = {
 	"female06"
 }
 
--- format: multiline
 HMCD_ValidClothes = {
 	"normal",
 	"casual",
@@ -82,7 +111,6 @@ HMCD_ValidClothes = {
 	"plaid"
 }
 
--- format: multiline
 HMCD_AllowedEntities = {
 	"logic_",
 	"phys_",
@@ -193,7 +221,6 @@ HMCD_DamageTypes = {
 	[DMG_DROWN] = translate.attDrown
 }
 
--- format: multiline
 HMCD_FlammableModels = {
 	"models/props_c17/canister01a.mdl",
 	"models/props_c17/canister02a.mdl",
@@ -204,7 +231,6 @@ HMCD_FlammableModels = {
 	"models/props_junk/propanecanister001a.mdl"
 }
 
--- format: multiline
 HMCD_ContainerModels = {
 	"models/props_junk/cardboard_box001a.mdl",
 	"models/props_junk/cardboard_box001b.mdl",
@@ -226,9 +252,9 @@ HMCD_ContainerModels = {
 	"models/props/de_inferno/claypot01.mdl"
 }
 
--- format: multiline
 HMCD_JunkLootModels = {
-	"models/props_junk/cardboard_box001a.mdl", -- breakable containers -- flammable -- frag-able -- good for bombs -- good for construction
+	-- breakable containers
+	"models/props_junk/cardboard_box001a.mdl",
 	"models/props_junk/cardboard_box001b.mdl",
 	"models/props_junk/cardboard_box002a.mdl",
 	"models/props_junk/cardboard_box002b.mdl",
@@ -242,21 +268,25 @@ HMCD_JunkLootModels = {
 	"models/props_c17/furnituredrawer001a.mdl",
 	"models/props_c17/furnituredrawer003a.mdl",
 	"models/props_lab/dogobject_wood_crate001a_damagedmax.mdl",
+	-- flammable
 	"models/props_c17/canister01a.mdl",
 	"models/props_c17/canister02a.mdl",
 	"models/props_junk/gascan001a.mdl",
 	"models/props_junk/metalgascan.mdl",
 	"models/props_junk/propane_tank001a.mdl",
 	"models/props_junk/propanecanister001a.mdl",
+	-- frag-able
 	"models/props_interiors/pot01a.mdl",
 	"models/props_c17/oildrum001.mdl",
 	"models/props_junk/metal_paintcan001a.mdl",
 	"models/props_wasteland/controlroom_filecabinet001a.mdl",
 	"models/props_junk/metal_paintcan001b.mdl",
 	"models/props_trainstation/trashcan_indoor001a.mdl",
+	-- good for bombs
 	"models/props_c17/suitcase001a.mdl",
 	"models/props_c17/suitcase_passenger_physics.mdl",
 	"models/props_c17/briefcase001a.mdl",
+	-- good for construction
 	"models/props_phx/construct/metal_plate1.mdl",
 	"models/props_phx/construct/metal_plate1_tri.mdl",
 	"models/props_phx/construct/glass/glass_plate1x1.mdl",
@@ -270,7 +300,7 @@ HMCD_JunkLootModels = {
 	"models/props_phx/construct/wood/wood_boardx2.mdl"
 }
 
--- format: multiline
+
 HMCD_PersonContainers = {
 	"models/props_junk/wood_crate001a.mdl",
 	"models/props_junk/wood_crate001a_damaged.mdl",
@@ -295,11 +325,6 @@ HMCD_PersonContainers = {
 	"models/props/de_nuke/crate_extrasmall.mdl",
 	"models/props/de_nuke/crate_small.mdl",
 	"models/props/de_prodigy/prodcratesb.mdl",
-	--[[]"models/props_2fort/miningcrate002.mdl",
-	"models/props_2fort/miningcrate001.mdl",
-	"models/props_2fort/oildrum.mdl",
-	"models/props_2fort/locker001.mdl",]]
-	-- нету тф2
 	"models/props_junk/cardboard_box001a.mdl",
 	"models/props_junk/cardboard_box001b.mdl",
 	"models/props_junk/cardboard_box002a.mdl",
@@ -309,9 +334,7 @@ HMCD_PersonContainers = {
 	"models/props_wasteland/cargo_container01.mdl",
 	"models/props_wasteland/laundry_washer001a.mdl",
 	"models/props_c17/furniturefridge001a.mdl"
-}
-
---[[,
+--[[
 	"models/props_junk/trashdumpster01a.mdl",
 	"models/props_trainstation/train003.mdl",
 	"models/props_vehicles/car002a_physics.mdl",
@@ -324,14 +347,17 @@ HMCD_PersonContainers = {
 	"models/props_vehicles/trailer001a.mdl",
 	"models/props_vehicles/car003a_physics.mdl",
 	"models/props_vehicles/car003a.mdl",
-	"models/props_trainstation/train001.mdl"--]]
+	"models/props_trainstation/train001.mdl"
+]]
+}
+
 -- full disclosure: i made a spinoff of homicide called Apocalypse, meant to be my version of Zombie Survival
 -- it got really far and is really cool but ultimately i decided to just make ZS a mini gamemode in homicide
 -- because homicide is already successful and i was having a hard time making a good ZS without rounds
 -- the whole round system stabilizes a game and gives players tangible objectives
 -- so there's a lot of borrowed code in here from Apocalypse. I came up with a lot of cool shit in apoc that i imported to here
 -- My time was not wasted :D
--- format: multiline
+
 HMCD_ProjectileJunkModels = {
 	"models/props_junk/gascan001a.mdl",
 	"models/props_junk/metalgascan.mdl",
@@ -382,7 +408,6 @@ HMCD_ProjectileJunkModels = {
 	"models/props_c17/consolebox03a.mdl",
 }
 
--- format: multiline
 HMCD_BigProjectileJunkModels = {
 	"models/props_borealis/bluebarrel001.mdl",
 	"models/props_c17/canister01a.mdl",
@@ -519,9 +544,10 @@ GM:addModel("female03", "female", 3)
 GM:addModel("female04", "female", 1)
 GM:addModel("female05", "female", 2)
 GM:addModel("female06", "female", 4)
--- name=model, bone, male{pos,ang,scale}, female{pos,ang,scale}, is a hat (optional)
+
 HMCD_Accessories = {
 	["none"] = {},
+	-- name = {model, bone, male{pos, ang, scale}, female{pos, ang, scale}, is a hat (optional), skin}
 	["eyeglasses"] = {"models/captainbigbutt/skeyler/accessories/glasses01.mdl", "ValveBiped.Bip01_Head1", {Vector(2.1, 3, 0), Angle(0, -70, -90), .9}, {Vector(2.75, 2, 0), Angle(0, -70, -90), .8}, false, 0},
 	["bugeye sunglasses"] = {"models/captainbigbutt/skeyler/accessories/glasses02.mdl", "ValveBiped.Bip01_Head1", {Vector(2.9, 2.2, 0), Angle(0, -70, -90), .9}, {Vector(3.5, 1.25, 0), Angle(0, -70, -90), .8}, false, 0},
 	["large sunglasses"] = {"models/captainbigbutt/skeyler/accessories/glasses04.mdl", "ValveBiped.Bip01_Head1", {Vector(3.25, 2.4, 0), Angle(0, -70, -90), .9}, {Vector(3.5, 1.25, 0), Angle(0, -70, -90), .8}, false, 0},
@@ -591,6 +617,11 @@ function table.FullCopy(tab)
 	return res
 end
 
+local clr_red = Color(180, 50, 50)
+function JackaPrint(txt, ...)
+	MsgC(clr_red, "Jack says: ", color_white, txt, "\n")
+end
+
 function GM:GetRoleName(ply)
 	local str = "None"
 	if ply.Murderer then
@@ -624,10 +655,11 @@ function GM:SetupMove(ply, mov, cmd)
 end
 
 -- this is so cool for making videos
+local host_timescale, sv_cheats = GetConVar("host_timescale"), GetConVar("sv_cheats")
 function GM:EntityEmitSound(t)
 	local SoundModded = false
 	-- stupid garry shit
-	if (t.OriginalSoundName == "Weapon_Shotgun.Special1") and IsValid(t.Entity) and t.Entity:IsPlayer() then
+	if t.OriginalSoundName == "Weapon_Shotgun.Special1" and IsValid(t.Entity) and t.Entity:IsPlayer() then
 		t.Volume = .01
 		SoundModded = true
 	end
@@ -640,7 +672,9 @@ function GM:EntityEmitSound(t)
 	--end
 	local p = t.Pitch
 	if game.GetTimeScale() ~= 1 then p = p * game.GetTimeScale() end
-	if GetConVarNumber("host_timescale") ~= 1 and GetConVarNumber("sv_cheats") >= 1 then p = p * GetConVarNumber("host_timescale") end
+	if host_timescale:GetInt() ~= 1 and sv_cheats:GetInt() >= 1 then
+		p = p * host_timescale:GetInt()
+	end
 	if p ~= t.Pitch then
 		t.Pitch = math.Clamp(p, 0, 255)
 		SoundModded = true
@@ -679,7 +713,7 @@ end
 
 local FragMats = {"canister", "chain", "combine_metal", "floating_metal_barrel", "grenade", "metal", "metal_barrel", "metal_bouncy", "Metal_Box", "metal_seafloorcar", "metalgrate", "metalpanel", "metalvent", "metalvehicle", "paintcan", "roller", "slipperymetal", "solidmetal", "weapon", "glass", "combine_glass", "computer"}
 function HMCD_ExplosiveType(self)
-	-- 1=inert (default HE), 2=fragmentary, 3=incendiary
+	-- 1 = inert (default HE), 2 = fragmentary, 3 = incendiary
 	if not IsValid(self) then return 1 end
 	local Phys = self:GetPhysicsObject()
 	if IsValid(Phys) then
@@ -698,18 +732,6 @@ function HMCD_IsDoor(ent)
 	return (Class == "prop_door") or (Class == "prop_door_rotating") or (Class == "func_door") or (Class == "func_door_rotating") or (Class == "func_breakable")
 end
 
-local PlayerMeta = FindMetaTable("Player")
-function PlayerMeta:GetVR()
-	--[[
-	if not IsValid(self) then return false end
-	if not vrmod or vrmod == nil then return false end
-	if not istable(vrmod) then return false end
-	if not vrmod.IsPlayerInVR(self) then return false end
-	return true
-	]]
-	return (vrmod and vrmod ~= nil and istable(vrmod) and IsValid(self) and self:IsPlayer() and vrmod.IsPlayerInVR(self))
-end
-
 function GM:ShouldCollide(ent1, ent2)
 	if ent1.HmcdGas then
 		return ent2:IsWorld() or HMCD_IsDoor(ent2)
@@ -718,6 +740,11 @@ function GM:ShouldCollide(ent1, ent2)
 	end
 end
 
+local crabsMdls = {
+	["models/headcrabclassic.mdl"] = true,
+	["models/headcrabfast.mdl"] = true,
+	["models/headcrabblack.mdl"] = true
+}
 function GM:OnEntityCreated(ent)
 	if self.ZOMBIE then
 		local Class = ent:GetClass()
@@ -749,7 +776,7 @@ function GM:OnEntityCreated(ent)
 		elseif CLIENT then
 			if Class == "class C_ClientRagdoll" then
 				local Mod = ent:GetModel()
-				if (Mod == "models/headcrabclassic.mdl") or (Mod == "models/headcrabfast.mdl") or (Mod == "models/headcrabblack.mdl") then ent:Remove() end
+				if crabsMdls[Mod] then ent:Remove() end
 			end
 		end
 	end

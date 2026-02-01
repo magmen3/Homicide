@@ -1,6 +1,6 @@
 AddCSLuaFile()
 SWEP.Author = "Jackarunda"
-SWEP.Base = "weapon_base"
+SWEP.Base = "weapon_base_hmcd"
 SWEP.Purpose = "The answer? Use a gun. An' if that don't work, use more gun."
 SWEP.Primary.ClipSize = 10
 SWEP.Primary.DefaultClip = 10
@@ -12,7 +12,6 @@ SWEP.Secondary.Ammo = "none"
 SWEP.ShowViewModel = true
 SWEP.ShowWorldModel = false
 SWEP.WorldModel = "models/weapons/w_rif_m4a1.mdl"
-SWEP.ViewModelFOV = 75
 SWEP.Primary.Automatic = false
 SWEP.NextChaseTime = 0
 SWEP.MagSize = 30
@@ -108,11 +107,11 @@ function SWEP:Deploy()
 end
 
 function SWEP:Think()
-	if not self then return end
 	if not IsValid(self) then return end
 	if not IsValid(self:GetOwner()) then return end
 	if CLIENT then return end
-	if SERVER and self:GetOwner():IsPlayer() then self:OnDrop() return end
+	if self:GetOwner():IsPlayer() then self:OnDrop() return end
+
 	local Time = CurTime()
 	if self.NextThinkTime <= Time then
 		self.NextThinkTime = Time + math.Rand(.025, .2)
@@ -215,7 +214,7 @@ function SWEP:Fiah()
 		Damage = math.random(80, 90),
 		Num = 1,
 		Attacker = self:GetOwner(),
-		Spread = Vector(0, 0, 0)
+		Spread = vector_origin
 	})
 
 	self:BallisticSnap(BulletTrajectory)
@@ -277,7 +276,6 @@ if CLIENT then
 	function SWEP:ViewModelDrawn()
 	end
 
-	--
 	function SWEP:DrawWorldModel()
 		self:DrawModel()
 	end

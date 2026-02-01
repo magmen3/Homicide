@@ -4,7 +4,25 @@ ENT.Base = "ent_jack_hmcd_loot_base"
 ENT.PrintName = "Food"
 ENT.SWEP = "wep_jack_hmcd_fooddrinkbig"
 ENT.ImpactSound = "snd_jack_hmcd_foodbounce.wav"
-local FoodModels = {"models/foodnhouseholditems/applejacks.mdl", "models/foodnhouseholditems/cheerios.mdl", "models/foodnhouseholditems/kellogscornflakes.mdl", "models/foodnhouseholditems/miniwheats.mdl", "models/foodnhouseholditems/bagette.mdl", "models/jordfood/atun.mdl", "models/jordfood/cakes.mdl", "models/jordfood/can.mdl", "models/jordfood/canned_burger.mdl", "models/jordfood/capncrunch.mdl", "models/jordfood/chili.mdl", "models/jordfood/girlscout_cookies.mdl", "models/foodnhouseholditems/cola.mdl", "models/foodnhouseholditems/juice.mdl", "models/foodnhouseholditems/milk.mdl", "models/foodnhouseholditems/cola.mdl", "models/jorddrink/the_bottle_of_water.mdl"}
+local FoodModels = {
+	"models/foodnhouseholditems/applejacks.mdl",
+	"models/foodnhouseholditems/cheerios.mdl",
+	"models/foodnhouseholditems/kellogscornflakes.mdl",
+	"models/foodnhouseholditems/miniwheats.mdl",
+	"models/foodnhouseholditems/bagette.mdl",
+	"models/jordfood/atun.mdl",
+	"models/jordfood/cakes.mdl",
+	"models/jordfood/can.mdl",
+	"models/jordfood/canned_burger.mdl",
+	"models/jordfood/capncrunch.mdl",
+	"models/jordfood/chili.mdl",
+	"models/jordfood/girlscout_cookies.mdl",
+	"models/foodnhouseholditems/cola.mdl",
+	"models/foodnhouseholditems/juice.mdl",
+	"models/foodnhouseholditems/milk.mdl",
+	"models/foodnhouseholditems/cola.mdl",
+	"models/jorddrink/the_bottle_of_water.mdl"
+}
 if SERVER then
 	function ENT:Initialize()
 		if not self.RandomModel then self.RandomModel = table.Random(FoodModels) end
@@ -56,4 +74,3 @@ if SERVER then
 		end
 	end
 end
---

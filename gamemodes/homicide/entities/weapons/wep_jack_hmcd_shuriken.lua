@@ -1,22 +1,11 @@
 if SERVER then
 	AddCSLuaFile()
 elseif CLIENT then
-	SWEP.DrawAmmo = false
-	SWEP.DrawCrosshair = false
-	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 2
 	SWEP.SlotPos = 1
-	killicon.AddFont("wep_jack_hmcd_shuriken", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
-	function SWEP:DrawViewModel()
-		return false
-	end
-
-	function SWEP:DrawWorldModel()
-		self:DrawModel()
-	end
 end
 
-SWEP.Base = "weapon_base"
+SWEP.Base = "wep_jack_hmcd_item_base"
 SWEP.ViewModel = "models/jaanus/w_shuriken.mdl"
 SWEP.WorldModel = "models/jaanus/w_shuriken.mdl"
 if CLIENT then
@@ -26,41 +15,25 @@ end
 
 SWEP.PrintName = translate.weaponShuriken
 SWEP.Instructions = translate.weaponShurikenDesc
-SWEP.BobScale = 3
-SWEP.SwayScale = 3
-SWEP.Weight = 3
-SWEP.AutoSwitchTo = true
-SWEP.AutoSwitchFrom = false
-SWEP.Primary.Delay = 0.5
-SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = false
-SWEP.Primary.Ammo = "none"
-SWEP.Secondary.Delay = 0.9
-SWEP.Secondary.ClipSize = -1
-SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = false
-SWEP.Secondary.Ammo = "none"
-SWEP.HomicideSWEP = true
+SWEP.BobScale = 0
+SWEP.SwayScale = 0
 SWEP.Poisonable = true
 SWEP.CarryWeight = 300
+SWEP.HoldType = "grenade"
+SWEP.DownAmt = 10
+SWEP.CommandDroppable = false
+
 function SWEP:Initialize()
-	self:SetHoldType("grenade")
+	self:SetHoldType(self.HoldType)
 	self.Thrown = false
 	self.PrintName = translate.weaponShuriken
 	self.Instructions = translate.weaponShurikenDesc
+	self.DownAmt = 10
 end
 
-function SWEP:SetupDataTables()
-end
-
---
-function SWEP:PrimaryAttack()
-	if not IsFirstTimePredicted() then return end
-	if self:GetOwner():IsSprinting() then return end
+function SWEP:UseActivate()
 	if self.Thrown then return end
 	self:ThrowStar()
-	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 end
 
 function SWEP:Deploy()
@@ -72,10 +45,6 @@ function SWEP:Deploy()
 	return true
 end
 
-function SWEP:SecondaryAttack()
-end
-
---
 function SWEP:ThrowStar(force)
 	if SERVER then self:GetOwner():SetLagCompensated(true) end
 	self.Thrown = true
@@ -100,26 +69,11 @@ function SWEP:ThrowStar(force)
 	if SERVER then self:GetOwner():SetLagCompensated(false) end
 end
 
-function SWEP:Think()
-	if SERVER then
-		local HoldType = "grenade"
-		if self:GetOwner():IsSprinting() then HoldType = "normal" end
-		self:SetHoldType(HoldType)
-	end
-end
-
-function SWEP:Reload()
-end
-
---
 if CLIENT then
-	function SWEP:GetViewModelPosition(pos, ang)
+	function SWEP:GetVMPos2(pos, ang)
 		if not self.DownAmt then self.DownAmt = 8 end
-		if self:GetOwner():IsSprinting() then
-			self.DownAmt = math.Clamp(self.DownAmt + .1, 0, 8)
-		else
-			self.DownAmt = math.Clamp(self.DownAmt - .1, 0, 8)
-		end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 8 or 0)
+
 		--ang:RotateAroundAxis(ang:Right(),40)
 		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		return pos + ang:Forward() * 20 + ang:Right() * 10 - ang:Up() * (7 + self.DownAmt), ang

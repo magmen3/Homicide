@@ -5,11 +5,12 @@ ENT.PrintName = "Duct Tape"
 ENT.SWEP = "wep_jack_hmcd_ducttape"
 ENT.ImpactSound = "physics/body/body_medium_impact_soft5.wav"
 if SERVER then
+	local clr = Color(100, 100, 100, 255)
 	function ENT:Initialize()
 		self:SetModel("models/props_phx/wheels/drugster_front.mdl")
 		self:SetModelScale(.2, 0)
 		self:SetMaterial("models/shiny")
-		self:SetColor(Color(100, 100, 100, 255))
+		self:SetColor(clr)
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetMoveType(MOVETYPE_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)
@@ -38,4 +39,3 @@ if SERVER then
 		end
 	end
 end
---

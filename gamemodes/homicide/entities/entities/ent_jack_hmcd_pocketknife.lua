@@ -6,8 +6,8 @@ ENT.SWEP = "wep_jack_hmcd_pocketknife"
 ENT.ImpactSound = "physics/metal/metal_grenade_impact_hard1.wav"
 if SERVER then
 	function ENT:Initialize()
-		self:SetModel("models/weapons/w_jnife_jj.mdl")
-		self:PhysicsInitBox(Vector(-4, -4, -4), Vector(4, 4, 4))
+		self:SetModel("models/weapons/homicide/w_pocketknife.mdl")
+		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetMoveType(MOVETYPE_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)
 		self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
@@ -34,4 +34,3 @@ if SERVER then
 		end
 	end
 end
---

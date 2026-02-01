@@ -100,7 +100,7 @@ if SERVER then
 					Dir = Dir,
 					Damage = 1,
 					Attacker = self:GetOwner(),
-					Spread = Vector(0, 0, 0),
+					Spread = vector_origin,
 					Num = 1
 				})
 

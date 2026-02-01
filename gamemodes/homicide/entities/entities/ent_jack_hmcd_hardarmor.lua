@@ -5,10 +5,11 @@ ENT.PrintName = "Hard Body Armor"
 ENT.ImpactSound = "physics/body/body_medium_impact_soft5.wav"
 ENT.SecondSound = "physics/metal/metal_canister_impact_hard3.wav"
 if SERVER then
+	local clr = Color(50, 50, 50, 255)
 	function ENT:Initialize()
 		self:SetModel("models/jworld_equipment/kevlar.mdl")
 		self:SetMaterial("models/mat_jack_hmcd_armor")
-		self:SetColor(Color(50, 50, 50, 255))
+		self:SetColor(clr)
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetMoveType(MOVETYPE_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)
@@ -42,4 +43,3 @@ if SERVER then
 		end
 	end
 end
---

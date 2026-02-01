@@ -6,7 +6,6 @@ elseif CLIENT then
 	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 2
 	SWEP.SlotPos = 1
-	killicon.AddFont("wep_jack_hmcd_grapl", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
 	function SWEP:DrawViewModel()
 		return false
 	end
@@ -19,15 +18,15 @@ end
 SWEP.PrintName = translate.weaponGrapl
 -- This was imported from BFS2114
 SWEP.Instructions = translate.weaponGraplDesc
-SWEP.Base = "weapon_base"
+SWEP.Base = "weapon_base_hmcd"
 if CLIENT then
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_grapl")
 	SWEP.BounceWeaponIcon = false
 end
 
 SWEP.ViewModel = "models/weapons/c_models/c_grappling_hook/c_grappling_hook.mdl"
-SWEP.BobScale = 3
-SWEP.SwayScale = 3
+SWEP.BobScale = 0
+SWEP.SwayScale = 0
 SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
@@ -56,6 +55,7 @@ SWEP.NextSpinWhooshTime = 0
 SWEP.CommandDroppable = true
 SWEP.ENT = "ent_jack_hmcd_grapl"
 SWEP.CarryWeight = 2500
+SWEP.DownAmt = 0
 function SWEP:SetupDataTables()
 	self:NetworkVar("String", 0, "CurrentState")
 	self:NetworkVar("Float", 0, "Hidden")
@@ -226,7 +226,7 @@ function SWEP:Throw()
 	Gr:SetPhysicsAttacker(self:GetOwner())
 	timer.Simple(.5, function() if IsValid(self) then self:SetHoldType("melee2") end end)
 	if self.Rope and self.Rope.Remove and SERVER then self.Rope:Remove() end
-	self.Rope = self:CollisionlessKeyFrameRope(self:GetOwner(), self.GrapplinHook, Vector(0, 0, 10), Vector(0, 0, 0), 1000, 2, "cable/rope")
+	self.Rope = self:CollisionlessKeyFrameRope(self:GetOwner(), self.GrapplinHook, Vector(0, 0, 10), vector_origin, 1000, 2, "cable/rope")
 end
 
 function SWEP:CollisionlessKeyFrameRope(Ent1, Ent2, LPos1, LPos2, length, width, material)
@@ -309,7 +309,6 @@ end
 function SWEP:CustomFinishedDrawing()
 end
 
--- wat
 function SWEP:Fail()
 	sound.Play("weapons/slam/throw.wav", self:GetPos(), 75, 110)
 	sound.Play("weapons/slam/throw.wav", self:GetPos(), 70, 110)
@@ -366,13 +365,9 @@ if CLIENT then
 		vm:SetColor(clr)
 	end
 
-	local DownAmt = 10
-	function SWEP:GetViewModelPosition(pos, ang)
-		if self:GetOwner():IsSprinting() then
-			DownAmt = math.Clamp(DownAmt + .6, 0, 50)
-		else
-			DownAmt = math.Clamp(DownAmt - .6, 0, 50)
-		end
+	function SWEP:GetVMPos2(pos, ang)
+		if not self.DownAmt then self.DownAmt = 0 end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 50 or 0)
 
 		if (self:GetCurrentState() == "Nothing") or (self:GetCurrentState() == "Winding") then DownAmt = DownAmt + 10 end
 		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)

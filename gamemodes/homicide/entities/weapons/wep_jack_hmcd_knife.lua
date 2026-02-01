@@ -8,7 +8,6 @@ elseif CLIENT then
 	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 1
 	SWEP.SlotPos = 1
-	killicon.AddFont("wep_jack_hmcd_knife", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
 	function SWEP:DrawViewModel()
 		return false
 	end
@@ -18,8 +17,9 @@ elseif CLIENT then
 	end
 end
 
-SWEP.Base = "weapon_base"
-SWEP.ViewModel = "models/weapons/v_jnife_t.mdl"
+SWEP.Base = "weapon_base_hmcd"
+SWEP.ViewModel = "models/weapons/homicide/c_sog_knife.mdl"
+SWEP.UseHands = true
 SWEP.WorldModel = "models/weapons/w_knife_t.mdl"
 if CLIENT then
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_knife")
@@ -28,8 +28,8 @@ end
 
 SWEP.PrintName = translate.weaponKnife
 SWEP.Instructions = translate.weaponKnifeDesc
-SWEP.BobScale = 3
-SWEP.SwayScale = 3
+SWEP.BobScale = 0
+SWEP.SwayScale = 0
 SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
@@ -47,6 +47,7 @@ SWEP.Secondary.Ammo = "none"
 SWEP.HomicideSWEP = true
 SWEP.Poisonable = true
 SWEP.CarryWeight = 500
+SWEP.DownAmt = 0
 function SWEP:Initialize()
 	self:SetNextIdle(CurTime() + 1)
 	self:SetHoldType("knife")
@@ -98,7 +99,6 @@ end
 function SWEP:SecondaryAttack()
 end
 
---
 function SWEP:Think()
 	local Time = CurTime()
 	if self:GetNextIdle() < Time then
@@ -194,7 +194,6 @@ end
 function SWEP:Reload()
 end
 
---
 function SWEP:DoBFSAnimation(anim)
 	local vm = self:GetOwner():GetViewModel()
 	vm:SendViewModelMatchingSequence(vm:LookupSequence(anim))
@@ -224,17 +223,13 @@ function SWEP:CanBackStab(ent)
 end
 
 if CLIENT then
-	local DownAmt = 0
-	function SWEP:GetViewModelPosition(pos, ang)
-		if self:GetOwner():IsSprinting() then
-			DownAmt = math.Clamp(DownAmt + .1, 0, 8)
-		else
-			DownAmt = math.Clamp(DownAmt - .1, 0, 8)
-		end
+	function SWEP:GetVMPos2(pos, ang)
+		if not self.DownAmt then self.DownAmt = 0 end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 8 or 0)
 
 		ang = ang + (self:GetOwner():GetViewPunchAngles() * 1.5)
 		ang:RotateAroundAxis(ang:Right(), 40)
-		return pos - ang:Up() * 7 - ang:Forward() * (3 + DownAmt) - ang:Up() * DownAmt, ang
+		return pos - ang:Up() * 7 - ang:Forward() * (3 + self.DownAmt) - ang:Up() * self.DownAmt, ang
 	end
 
 	function SWEP:DrawWorldModel()

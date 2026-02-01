@@ -6,7 +6,6 @@ elseif CLIENT then
 	SWEP.ViewModelFOV = 75
 	SWEP.Slot = 4
 	SWEP.SlotPos = 3
-	killicon.AddFont("wep_jack_hmcd_molotov", "HL2MPTypeDeath", "5", Color(0, 0, 255, 255))
 	function SWEP:DrawViewModel()
 		return false
 	end
@@ -16,7 +15,7 @@ elseif CLIENT then
 	end
 end
 
-SWEP.Base = "weapon_base"
+SWEP.Base = "weapon_base_hmcd"
 SWEP.ViewModel = "models/w_models/weapons/w_eq_molotov.mdl"
 SWEP.WorldModel = "models/w_models/weapons/w_eq_molotov.mdl"
 if CLIENT then
@@ -26,8 +25,8 @@ end
 
 SWEP.PrintName = translate.weaponMolotov
 SWEP.Instructions = translate.weaponMolotovDesc
-SWEP.BobScale = 3
-SWEP.SwayScale = 3
+SWEP.BobScale = 0
+SWEP.SwayScale = 0
 SWEP.Weight = 3
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false
@@ -46,8 +45,7 @@ SWEP.HomicideSWEP = true
 SWEP.CommandDroppable = true
 SWEP.ENT = "ent_jack_hmcd_molotov"
 SWEP.CarryWeight = 1000
---models/w_models/weapons/w_eq_pipebomb.mdl
---models/w_models/weapons/w_eq_painpills.mdl
+
 function SWEP:Initialize()
 	self:SetHoldType("grenade")
 	self.Thrown = false
@@ -58,7 +56,6 @@ end
 function SWEP:SetupDataTables()
 end
 
---
 function SWEP:PrimaryAttack()
 	if not IsFirstTimePredicted() then return end
 	if self:GetOwner():IsSprinting() then return end
@@ -110,7 +107,6 @@ end
 function SWEP:SecondaryAttack()
 end
 
---
 function SWEP:Think()
 	if SERVER then
 		local HoldType = "grenade"
@@ -122,7 +118,6 @@ end
 function SWEP:Reload()
 end
 
---
 function SWEP:OnDrop()
 	local Ent = ents.Create(self.ENT)
 	Ent.HmcdSpawned = self.HmcdSpawned
@@ -135,13 +130,9 @@ function SWEP:OnDrop()
 end
 
 if CLIENT then
-	function SWEP:GetViewModelPosition(pos, ang)
+	function SWEP:GetVMPos2(pos, ang)
 		if not self.DownAmt then self.DownAmt = 0 end
-		if self:GetOwner():IsSprinting() then
-			self.DownAmt = math.Clamp(self.DownAmt + .2, 0, 60)
-		else
-			self.DownAmt = math.Clamp(self.DownAmt - .2, 0, 60)
-		end
+		self.DownAmt = Lerp(FrameTime() * 2, self.DownAmt, self:GetOwner():IsSprinting() and 60 or 0)
 
 		pos = pos - ang:Up() * (self.DownAmt + 10) + ang:Forward() * 25 - ang:Right() * 14
 		ang:RotateAroundAxis(ang:Up(), 90)

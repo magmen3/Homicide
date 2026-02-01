@@ -7,7 +7,7 @@ ENT.ImpactSound = "physics/metal/metal_solid_impact_soft1.wav"
 ENT.MurdererLoot = true
 if SERVER then
 	function ENT:Initialize()
-		self:SetModel("models/props/cs_militia/axe.mdl")
+		self:SetModel("models/weapons/homicide/w_hatchet.mdl")
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetMoveType(MOVETYPE_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)
@@ -86,13 +86,7 @@ if SERVER then
 		end
 	end
 elseif CLIENT then
-	function ENT:Initialize()
-	end
-
 	function ENT:Draw()
-		local Mat = Matrix()
-		Mat:Scale(Vector(.9, .4, .9))
-		self:EnableMatrix("RenderMultiply", Mat)
 		self:DrawModel()
 	end
 end

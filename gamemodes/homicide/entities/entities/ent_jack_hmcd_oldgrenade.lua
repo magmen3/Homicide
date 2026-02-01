@@ -4,10 +4,12 @@ ENT.Base = "base_anim"
 ENT.PrintName = "Grenade"
 if SERVER then
 	function ENT:Initialize()
-		if self.Rigged then
-			self:SetModel("models/weapons/w_jj_fraggrenade.mdl")
-		else
+		if self.Rigged or self.DetTime then
 			self:SetModel("models/weapons/w_jj_fraggrenade_thrown.mdl")
+		elseif self.Armed then
+			self:SetModel("models/weapons/homicide/w_oldgrenade_thrown.mdl")
+		else
+			self:SetModel("models/weapons/w_jj_fraggrenade.mdl")
 		end
 
 		self:PhysicsInit(SOLID_VPHYSICS)
@@ -63,23 +65,27 @@ if SERVER then
 		return true
 	end
 
+	local spoonclr = Color(50, 40, 0)
 	function ENT:Arm()
 		if self.Armed then return end
 		self.Armed = true
 		constraint.RemoveAll(self)
 		sound.Play("snd_jack_hmcd_spoonfling.wav", self:GetPos(), 65, 100)
+		self:SetModel("models/weapons/homicide/w_oldgrenade_thrown.mdl")
+
 		local Spoon = ents.Create("prop_physics")
 		Spoon.HmcdSpawned = self.HmcdSpawned
 		Spoon:SetModel("models/shells/shell_gndspoon.mdl")
 		Spoon:SetPos(self:GetPos() + VectorRand())
 		Spoon:SetAngles(self:GetAngles())
 		Spoon:SetMaterial("models/shiny")
-		Spoon:SetColor(Color(50, 40, 0))
+		Spoon:SetColor(spoonclr)
 		Spoon:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 		Spoon:Spawn()
 		Spoon:Activate()
 		Spoon:GetPhysicsObject():SetMaterial("metal_bouncy")
 		Spoon:GetPhysicsObject():SetVelocity(self:GetPhysicsObject():GetVelocity() + VectorRand() * 300)
+
 		if self.Rigged then
 			self.DetTime = CurTime() + 1
 		else

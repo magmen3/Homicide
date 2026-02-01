@@ -4,7 +4,7 @@
 function EFFECT:Init(data)
 	local SelfPos = data:GetOrigin()
 	local Radius = data:GetRadius()
-	if self:WaterLevel() == 3 then return end
+	if self:WaterLevel() >= 2 then return end
 	local dlight = DynamicLight(self:EntIndex())
 	if dlight then
 		dlight.Pos = SelfPos

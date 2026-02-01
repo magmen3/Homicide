@@ -94,17 +94,28 @@ function GM:PlayerSpawn(ply)
 	ply:SetDSP(0, false)
 	ply:SetNWInt("Specmode", 1)
 	ply:SetNWBool("Suiciding", false)
-	umsg.Start("HMCD_FoodBoost", ply)
-	umsg.Short(0)
-	umsg.End()
-	umsg.Start("HMCD_PainBoost", ply)
-	umsg.Short(0)
-	umsg.End()
+
+	net.Start("HMCD_FoodBoost")
+	net.WriteFloat(0)
+	net.Send(ply)
+
+	net.Start("HMCD_PainBoost")
+	net.WriteFloat(0)
+	net.Send(ply)
+
 	if not ply.Murderer then
 		ply.Innocent = true
 	else
 		ply.Innocent = false
 	end
+
+	ply:SetHull(HMCD_HullVector.Min, HMCD_HullVector.Max)
+	ply:SetHullDuck(HMCD_HullVector.Min, HMCD_HullVector.Duck)
+	ply:SetViewOffset(HMCD_HullVector.Offset)
+	ply:SetViewOffsetDucked(HMCD_HullVector.DuckOffset)
+	net.Start("HMCD_SetHull")
+	net.WritePlayer(ply)
+	net.Send(ply)
 
 	player_manager.OnPlayerSpawn(ply)
 	player_manager.RunClass(ply, "Spawn")
@@ -130,13 +141,6 @@ function GM:PlayerSpawn(ply)
 			end
 		end)
 	end
-
-	timer.Simple(1, function()
-		if IsValid(ply) and ply:Alive() then
-			umsg.Start("HMCD_FixViewModelGlitch", ply)
-			umsg.End()
-		end
-	end)
 
 	timer.Simple(10, function()
 		if ply and IsValid(ply) and ply:Alive() and ply.Murderer then
@@ -182,6 +186,17 @@ function GM:PlayerSpawn(ply)
 		if not IsValid(ply) or not ply:Alive() then return end
 		ply:SetupHands() -- Create the hands and call GM:PlayerSetHandsModel
 	end)
+end
+
+function PlayerMeta:GetVR()
+	--[[
+	if not IsValid(self) then return false end
+	if not vrmod or vrmod == nil then return false end
+	if not istable(vrmod) then return false end
+	if not vrmod.IsPlayerInVR(self) then return false end
+	return true
+	]]
+	return (vrmod and vrmod ~= nil and istable(vrmod) and IsValid(self) and self:IsPlayer() and vrmod.IsPlayerInVR(self))
 end
 
 -- Choose the model for hands according to their player model.
@@ -230,6 +245,7 @@ function GM:GiveLoadout(ply) --!! TODO: Make loadout function that will use a ta
 		ply.Core = 1
 		ply.UpperBody = 1
 		ply.LowerBody = 1
+		--ply.Stature = 1
 		ply.ModelSex = "male"
 		ply.ClothingMatIndex = 0
 		timer.Simple(math.random(1, 5), function()
@@ -339,17 +355,18 @@ function GM:GiveLoadout(ply) --!! TODO: Make loadout function that will use a ta
 		end
 	end
 
-	if self.Dev then
+	--[[if self.Dev:GetBool() then
 		ply:Give("wep_jack_hmcd_knife")
+		ply:Give("wep_jack_hmcd_hammer")
 		ply:Give("wep_jack_hmcd_oldgrenade")
-		ply:Give("wep_jack_hmcd_pistol")
-		ply:GetWeapon("wep_jack_hmcd_pistol"):SetClip1(13)
-		ply:GiveAmmo(60, "Pistol", true)
+		ply:Give("wep_jack_hmcd_revolver")
+		ply:GetWeapon("wep_jack_hmcd_revolver"):SetClip1(6)
+		ply:GiveAmmo(60, "357", true)
 
-		ply:Give("wep_jack_hmcd_shotgun")
-		ply:GetWeapon("wep_jack_hmcd_shotgun"):SetClip1(6)
-		ply:GiveAmmo(60, "Buckshot", true)
-	end
+		ply:Give("wep_jack_hmcd_lightrifle")
+		ply:GetWeapon("wep_jack_hmcd_lightrifle"):SetClip1(30)
+		ply:GiveAmmo(120, "Pistol", true)
+	end]]
 
 	ply:SetupHands()
 end
@@ -441,9 +458,9 @@ function GM:DoPlayerDeath(ply, attacker, dmginfo)
 						local KillNum = attacker.MultiKill
 						timer.Simple(.5, function()
 							if IsValid(attacker) and (KillNum == attacker.MultiKill) then
-								umsg.Start("HMCD_SurfaceSound", attacker)
-								umsg.String("snd_jack_hmcd_mk_" .. KillNum .. ".wav")
-								umsg.End()
+								net.Start("HMCD_SurfaceSound")
+								net.WriteString("snd_jack_hmcd_mk_" .. KillNum .. ".wav")
+								net.Send(attacker)
 							end
 						end)
 
@@ -552,7 +569,7 @@ function plyMeta:CalculateSpeed()
 			if wep.CarryWeight then Weight = Weight + wep.CarryWeight end
 		end
 
-		for typ, wght in ipairs(HMCD_AmmoWeights) do
+		for typ, wght in pairs(HMCD_AmmoWeights) do
 			local Amt = self:GetAmmoCount(typ)
 			if Amt > 0 then Weight = Weight + Amt * wght end
 		end
@@ -671,9 +688,9 @@ function GM:ScalePlayerDamage(ply, hitgroup, dmginfo)
 			if IsValid(Att) and Att:IsPlayer() then
 				local Wep = Att:GetActiveWeapon()
 				if IsValid(Wep) and Wep.GetAiming and (Wep:GetAiming() > 90) and not Protected then
-					umsg.Start("HMCD_SurfaceSound", dmginfo:GetAttacker())
-					umsg.String("snd_jack_hmcd_hedshott.wav")
-					umsg.End()
+					net.Start("HMCD_SurfaceSound")
+					net.WriteString("snd_jack_hmcd_hedshott.wav")
+					net.Send(Att)
 				end
 			end
 		end
@@ -686,15 +703,15 @@ function GM:ScalePlayerDamage(ply, hitgroup, dmginfo)
 	elseif (hitgroup == HITGROUP_LEFTLEG) or (hitgroup == HITGROUP_RIGHTLEG) then
 		Mul = Mul * .2
 		ply.TempSpeedMul = .1
-		umsg.Start("HMCD_StatusEffect", ply)
-		umsg.String(translate.statusEffectImmobilized)
-		umsg.End()
+		net.Start("HMCD_StatusEffect")
+		net.WriteString(translate.statusEffectImmobilized)
+		net.Send(ply)
 	elseif (hitgroup == HITGROUP_RIGHTARM) or (hitgroup == HITGROUP_LEFTARM) or (hitgroup == HITGROUP_GEAR) then
 		Mul = Mul * .2
 		ply:SelectWeapon("wep_jack_hmcd_hands")
-		umsg.Start("HMCD_StatusEffect", ply)
-		umsg.String(translate.statusEffectDisarmed)
-		umsg.End()
+		net.Start("HMCD_StatusEffect")
+		net.WriteString(translate.statusEffectDisarmed)
+		net.Send(ply)
 	elseif hitgroup == HITGROUP_STOMACH then
 		Mul = Mul * .5
 	elseif hitgroup == HITGROUP_CHEST then
@@ -763,38 +780,41 @@ function GM:PlayerDeath(ply, Inflictor, attacker)
 		if IsValid(attacker) and attacker:IsPlayer() and attacker ~= ply then
 			-- self:SendMessageAll("The murderer has struck again")
 			local col, msgs, col2 = attacker:GetPlayerColor(), nil, ply:GetPlayerColor()
-			if ply.Innocent then --!!
-				--[[if self.SHTF then
-						msgs = Translator:AdvVarTranslate(translate.killedTeamKillInnocent, {
-							player = {
-								text = attacker:GetBystanderName(),
-								color = Color(col.x * 255, col.y * 255, col.z * 255)
-							},
-							s = {
-								text = s
-							}
-						})
-					else
-						msgs = Translator:AdvVarTranslate(translate.killedTeamKill, {
-							player = {
-								text = attacker:GetBystanderName(),
-								color = Color(col.x * 255, col.y * 255, col.z * 255)
-							},
-							s = {
-								text = s
-							}
-						})
-					end]]
+			if ply.Innocent then
+				if self.Realism:GetBool() then return end
+				if self.SHTF then
+					msgs = Translator:AdvVarTranslate(translate.killedTeamKillInnocent, {
+						player = {
+							text = attacker:GetBystanderName(),
+							color = Color(col.x * 255, col.y * 255, col.z * 255)
+						},
+						s = {
+							text = s
+						}
+					})
+				else
+					msgs = Translator:AdvVarTranslate(translate.killedTeamKill, {
+						player = {
+							text = attacker:GetBystanderName(),
+							color = Color(col.x * 255, col.y * 255, col.z * 255)
+						},
+						s = {
+							text = s
+						}
+					})
+				end
 			elseif not attacker.Murderer then
-				msgs = Translator:AdvVarTranslate(translate.killedTeamKillAggressive, {
-					player = {
-						text = attacker:GetBystanderName(),
-						color = Color(col.x * 255, col.y * 255, col.z * 255)
-					},
-					s = {
-						text = s
-					}
-				})
+				if not self.Realism:GetBool() then
+					msgs = Translator:AdvVarTranslate(translate.killedTeamKillAggressive, {
+						player = {
+							text = attacker:GetBystanderName(),
+							color = Color(col.x * 255, col.y * 255, col.z * 255)
+						},
+						s = {
+							text = s
+						}
+					})
+				end
 
 				--end
 				if self.DEATHMATCH then
@@ -925,10 +945,10 @@ function GM:PlayerDeath(ply, Inflictor, attacker)
 	ply.NextSpawnTime = CurTime() + 6
 	ply.DeathTime = CurTime()
 	ply.SpectateTime = CurTime() + 5
-	umsg.Start("rp_death", ply)
-	umsg.Long(6)
-	umsg.Long(5)
-	umsg.End()
+	net.Start("rp_death")
+	net.WriteFloat(6)
+	net.WriteFloat(5)
+	net.Send(ply)
 	if Inflictor and Inflictor == attacker and (Inflictor:IsPlayer() or Inflictor:IsNPC()) then
 		Inflictor = Inflictor:GetActiveWeapon()
 		if not Inflictor or Inflictor == NULL then Inflictor = attacker end
@@ -1147,7 +1167,7 @@ function GM:PlayerSay(ply, text, teem)
 			else
 				ply:ChatPrint(translate.stuckAlready)
 			end
-		elseif ply.Seizuring then
+		elseif ply.Seizuring and not self.GuiltDisabled:GetBool() then
 			local Chars = string.Explode("", string.lower(text))
 			for key, characta in pairs(Chars) do
 				local Fric = nil
@@ -1416,9 +1436,9 @@ end
 function PlayerMeta:SetHighOnDrugs(high)
 	self.HighOnDrugs = high
 	if high then self.Stamina = 100 end
-	umsg.Start("HMCD_DrugsHigh", self)
-	umsg.Bool(high)
-	umsg.End()
+	net.Start("HMCD_DrugsHigh")
+	net.WriteBool(high)
+	net.Send(self)
 end
 
 function PlayerMeta:InvoluntaryEvent()
@@ -1458,14 +1478,35 @@ function PlayerMeta:InvoluntaryEvent()
 end
 
 local hideclr = Vector(.25, 0, 0)
+local boneShit = {
+	["ValveBiped.Bip01_R_UpperArm"] = Vector(1, .8, .8),
+	["ValveBiped.Bip01_L_UpperArm"] = Vector(1, .8, .8),
+	["ValveBiped.Bip01_Spine4"] = Vector(1, 1, 1),
+	["ValveBiped.Bip01_Spine1"] = Vector(1, .7, .7),
+	["ValveBiped.Bip01_Pelvis"] = Vector(.8, .8, .8),
+	["ValveBiped.Bip01_R_Thigh"] = Vector(.9, .9, .9),
+	["ValveBiped.Bip01_L_Thigh"] = Vector(.9, .9, .9)
+}
 function PlayerMeta:MurdererHideIdentity()
 	if self.MurdererIdentityHidden then return end
-	self.TrueIdentity = {self.ClothingType, self.UpperBody, self.Core, self.LowerBody, self:GetBystanderName(), self:GetModel(), self:GetPlayerColor(), self.ModelSex, self.ClothingMatIndex}
-	self:SetModel("models/player/mkx_jajon.mdl")
+	self.TrueIdentity = {
+		self.ClothingType,
+		self.UpperBody,
+		self.Core,
+		self.LowerBody,
+		self:GetBystanderName(),
+		self:GetModel(),
+		self:GetPlayerColor(),
+		self.ModelSex,
+		self.ClothingMatIndex,
+		--self.Stature
+	}
+	self:SetModel("models/player/homicide_jason.mdl")
 	self:SetClothing()
 	self.Core = 1
 	self.UpperBody = 1
 	self.LowerBody = 1
+	--self.Stature = 1
 	self.ModelSex = "male" -- i just
 	self.ClothingMatIndex = 0
 	if GAMEMODE.SHTF then
@@ -1475,13 +1516,15 @@ function PlayerMeta:MurdererHideIdentity()
 	end
 
 	self:SetPlayerColor(hideclr)
-	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_R_UpperArm"), Vector(1, .8, .8))
-	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_L_UpperArm"), Vector(1, .8, .8))
-	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_Spine4"), Vector(1, 1, 1))
-	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_Spine1"), Vector(1, .7, .7))
-	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_Pelvis"), Vector(.8, .8, .8))
-	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_R_Thigh"), Vector(.9, .9, .9))
-	self:ManipulateBoneScale(self:LookupBone("ValveBiped.Bip01_L_Thigh"), Vector(.9, .9, .9))
+	for i = 0, self:GetBoneCount() do
+		if boneShit[self:GetBoneName(i)] then
+			local matrix = self:GetBoneMatrix(i)
+			if matrix then
+				matrix:SetScale(boneShit[self:GetBoneName(i)])
+				self:SetBoneMatrix(i, matrix)
+			end
+		end
+	end
 	sound.Play("snd_jack_hmcd_disguise.wav", self:GetPos(), 60, 110)
 	self.MurdererIdentityHidden = true
 	self:SetupHands()
@@ -1494,8 +1537,8 @@ function PlayerMeta:MurdererShowIdentity()
 	self.ModelSex = Orig[8]
 	self.ClothingMatIndex = Orig[9]
 	self:SetClothing(Orig[1])
-	-- print(Orig[2],Orig[3],Orig[4])
-	self:SetBodyProportions(Orig[2], Orig[3], Orig[4])
+	-- print(Orig[2], Orig[3], Orig[4], Orig[5])
+	self:SetBodyProportions(Orig[2], Orig[3], Orig[4], Orig[10])
 	self:SetBystanderName(Orig[5])
 	self:SetPlayerColor(Orig[7])
 	sound.Play("snd_jack_hmcd_disguise.wav", self:GetPos(), 60, 90)
@@ -1555,6 +1598,7 @@ local function SpawnDeathProp(ply, tab, pos, vel)
 end
 
 function PlayerMeta:GodCheck()
+	if GAMEMODE.GuiltDisabled:GetBool() then return end
 	if not self.HMCD_MarkedForDeath then return end
 	if self:IsBot() then return end
 	if not self:Alive() then return end
@@ -1652,7 +1696,11 @@ function PlayerMeta:GodCheck()
 				self:PrintMessage(HUD_PRINTCENTER, translate.seizure)
 				local LifeID = self.LifeID
 				timer.Simple(30, function()
-					if self then
+					if GAMEMODE.GuiltDisabled:GetBool() then
+						self.Seizuring = false
+						return
+					end
+					if self and not GAMEMODE.GuiltDisabled:GetBool() then
 						net.Start("hmcd_seizure")
 						net.WriteBit(false)
 						net.Send(self)
@@ -1676,17 +1724,43 @@ function PlayerMeta:GodCheck()
 	end
 end
 
-concommand.Add("hmcd_dropwep", function(ply, cmd, args)
-	if not ply then return end
-	local Wep = ply:GetActiveWeapon()
-	if IsValid(Wep) and Wep.CommandDroppable and not (GAMEMODE.SHTF and Wep.SHTF_NoDrop) then
-		ply:DropWeapon(Wep)
+local vpangdrop = Angle(-2, 5, -2)
+local function DropWep(ply)
+	if not IsValid(ply) or not ply:Alive() then return end
+	local wep = ply:GetActiveWeapon()
+	if wep ~= nil and wep ~= NULL and wep.CommandDroppable and not (GAMEMODE.SHTF and wep.SHTF_NoDrop) then
+		ply:DoAnimationEvent(ACT_GMOD_GESTURE_MELEE_SHOVE_1HAND)
+		ply:ViewPunch(vpangdrop)
+		ply:DropWeapon(wep)
 		return ""
+	end
+end
+
+concommand.Add("hmcd_dropwep", function(ply, cmd, args)
+	DropWep(ply)
+end)
+
+local dropstrings = {
+	["*drop"] = true,
+	["/drop"] = true,
+	["!drop"] = true,
+	["/dropweapon"] = true,
+	["!dropweapon"] = true
+}
+
+concommand.Add("drop", DropWep)
+concommand.Add("dropweapon", DropWep)
+concommand.Add("-drop", DropWep)
+concommand.Add("-dropweapon", DropWep)
+hook.Add("PlayerSay", "HMCD_DropWeapon", function(ply, text)
+	if dropstrings[text] then
+		DropWep(ply)
+		return false
 	end
 end)
 
-concommand.Add("hmcd_dropequipment", function(ply, cmd, args)
-	if not ply then return end
+concommand.Add("hmcd_dropequipment", function(ply, cmd, args) --!! TODO: make equipment menu
+	if not IsValid(ply) then return end
 	sound.Play("snd_jack_hmcd_disguise.wav", ply:GetPos(), 65, 80)
 	if ply.HeadArmor and (ply.HeadArmor ~= "") then
 		ply:DoAnimationEvent(ACT_GMOD_GESTURE_ITEM_DROP)
@@ -1732,9 +1806,9 @@ concommand.Add("hmcd_dropequipment", function(ply, cmd, args)
 end)
 
 concommand.Add("hmcd_dropammo", function(ply, cmd, args)
-	if not ply then return end
+	if not IsValid(ply) then return end
 	local Num = 0
-	for amm, fuck in ipairs(HMCD_AmmoWeights) do
+	for amm, fuck in pairs(HMCD_AmmoWeights) do
 		local Amt = ply:GetAmmoCount(amm) or 0
 		Num = Num + Amt
 	end
@@ -1746,7 +1820,7 @@ concommand.Add("hmcd_dropammo", function(ply, cmd, args)
 end)
 
 concommand.Add("hmcd_droprequest_ammo", function(ply, cmd, args)
-	if not ply then return end
+	if not IsValid(ply) then return end
 	local Type, Amount = args[1], tonumber(args[2])
 	local Amm = ply:GetAmmoCount(Type)
 	if Amm < Amount then Amount = Amm end
@@ -1754,7 +1828,7 @@ concommand.Add("hmcd_droprequest_ammo", function(ply, cmd, args)
 end)
 
 concommand.Add("hmcd_lockedcontrols", function(ply, cmd, args)
-	if not ply then return end
+	if not IsValid(ply) then return end
 	if ply.ContainingContainer then
 		if not ply.NextContainerShove then ply.NextContainerShove = 0 end
 		if args[1] == "+use" then
@@ -1798,20 +1872,20 @@ function PlayerMeta:DropAmmo(typ, amt)
 end
 
 function PlayerMeta:AddMerit(amt)
-	if GAMEMODE.GuiltEnabled:GetBool() then return end
+	if GAMEMODE.GuiltDisabled:GetBool() then return end
 	local Old = tonumber(self:GetPData("JackHMCD_TotalMerit")) or 0
 	self:SetPData("JackHMCD_TotalMerit", math.abs(Old + amt))
 end
 
 function PlayerMeta:AddDemerit(amt)
-	if GAMEMODE.GuiltEnabled:GetBool() then return end
+	if GAMEMODE.GuiltDisabled:GetBool() then return end
 	local Old = tonumber(self:GetPData("JackHMCD_TotalDemerit")) or 0
 	self:SetPData("JackHMCD_TotalDemerit", math.abs(Old + amt))
 end
 
 function PlayerMeta:AddExperience(amt)
 	--print("EXPERIENCE",self,amt)
-	if GAMEMODE.GuiltEnabled:GetBool() then return end
+	if GAMEMODE.GuiltDisabled:GetBool() then return end
 	local Num = 0
 	for key, playah in pairs(team.GetPlayers(2)) do
 		if not playah:IsBot() then Num = Num + 1 end

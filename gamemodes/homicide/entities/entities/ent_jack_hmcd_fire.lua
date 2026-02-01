@@ -36,7 +36,7 @@ if SERVER then
 					Dmg:SetInflictor(self)
 					Dmg:SetDamageType(DMG_BURN)
 					Dmg:SetDamagePosition(SelfPos)
-					Dmg:SetDamageForce(Vector(0, 0, 0))
+					Dmg:SetDamageForce(vector_origin)
 					Dmg:SetDamage(Frac * 3)
 					obj:TakeDamageInfo(Dmg)
 					local SpectPly = obj:IsPlayer() and obj:IsCSpectating()
@@ -60,4 +60,3 @@ if SERVER then
 		return true
 	end
 end
---

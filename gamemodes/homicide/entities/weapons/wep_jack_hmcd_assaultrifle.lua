@@ -1,7 +1,6 @@
 if SERVER then
 	AddCSLuaFile()
 else
-	killicon.AddFont("wep_jack_hmcd_assaultrifle", "HL2MPTypeDeath", "1", color_white)
 	SWEP.WepSelectIcon = surface.GetTextureID("vgui/wep_jack_hmcd_assaultrifle")
 end
 
@@ -9,7 +8,8 @@ SWEP.Base = "wep_jack_hmcd_firearm_base"
 SWEP.PrintName = translate.weaponassaultrifle
 SWEP.Instructions = translate.weaponassaultrifleDesc
 SWEP.Primary.ClipSize = 30
-SWEP.ViewModel = "models/weapons/v_rif_j4a1.mdl"
+SWEP.ViewModel = "models/weapons/homicide/c_rif_ar15.mdl"
+SWEP.UseHands = true
 SWEP.WorldModel = "models/weapons/w_rif_m4a1.mdl"
 SWEP.ViewModelFlip = false
 SWEP.Damage = 90
@@ -53,3 +53,4 @@ SWEP.HolsterAng = Angle(160, 5, 180)
 SWEP.CarryWeight = 4500
 SWEP.SuicidePos = Vector(3, 6.75, -22)
 SWEP.SuicideAng = Angle(110, 2, 90)
+SWEP.ShitHands = true

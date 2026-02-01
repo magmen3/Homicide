@@ -5,9 +5,10 @@ ENT.PrintName = "Pistol"
 ENT.SWEP = "wep_jack_hmcd_smallpistol"
 ENT.ImpactSound = "physics/metal/weapon_impact_soft3.wav"
 if SERVER then
+	local clr = Color(50, 50, 50, 255)
 	function ENT:Initialize()
-		self:SetModel("models/weapons/w_pist_usp.mdl")
-		self:SetColor(Color(50, 50, 50, 255))
+		self:SetModel("models/weapons/homicide/w_px4.mdl")
+		self:SetColor(clr)
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetMoveType(MOVETYPE_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)
@@ -47,4 +48,3 @@ if SERVER then
 		end
 	end
 end
---

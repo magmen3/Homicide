@@ -349,6 +349,7 @@ concommand.Add("hmcd_taunt", function(ply, com, args, full)
 	if taunt.act and not ply:InVehicle() and not ply.ContainingContainer then
 		net.Start("HMCD_PlayerAct")
 		net.WriteString(taunt.act)
+		net.WritePlayer(ply)
 		net.Send(ply)
 	end
 

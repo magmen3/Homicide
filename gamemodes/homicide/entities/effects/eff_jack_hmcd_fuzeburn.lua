@@ -5,7 +5,7 @@ function EFFECT:Init(data)
 	local vOffset = data:GetOrigin()
 	local Scayul = data:GetScale()
 	local Dir = data:GetNormal()
-	if self:WaterLevel() == 3 then
+	if self:WaterLevel() >= 2 then
 		local Splach = EffectData()
 		Splach:SetOrigin(vOffset)
 		Splach:SetNormal(Vector(0, 0, 1))

@@ -6,7 +6,7 @@ ENT.IsLoot = true
 if SERVER then
 	ENT.ImpactSound = "Drywall.ImpactHard"
 	function ENT:Initialize()
-		self:SetModel("models/weapons/w_pist_usp.mdl")
+		self:SetModel("models/weapons/homicide/w_px4.mdl")
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetMoveType(MOVETYPE_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)
@@ -34,7 +34,10 @@ if SERVER then
 		end
 
 		self.Touched = true
-		self:PickUp(ply)
+
+		if not self:IsConstrained() then
+			self:PickUp(ply)
+		end
 	end
 
 	function ENT:Think()
@@ -75,7 +78,6 @@ elseif CLIENT then
 	function ENT:Initialize()
 	end
 
-	--
 	function ENT:Draw()
 		self:DrawModel()
 	end

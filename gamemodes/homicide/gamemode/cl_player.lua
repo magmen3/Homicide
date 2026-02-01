@@ -1,4 +1,5 @@
 local EntityMeta = FindMetaTable("Entity")
+local PlayerMeta = FindMetaTable("Player")
 net.Receive("hmcd_playersilent", function()
 	local Ply = net.ReadEntity()
 	Ply.SilentStepping = tobool(net.ReadBit())
@@ -22,7 +23,19 @@ net.Receive("hmcd_player_accessory", function()
 	Ply.AccessoryModel = nil
 end)
 
+function PlayerMeta:GetVR()
+	--[[
+	if not IsValid(self) then return false end
+	if not vrmod or vrmod == nil then return false end
+	if not istable(vrmod) then return false end
+	if not vrmod.IsPlayerInVR(self) then return false end
+	return true
+	]]
+	return (vrmod and vrmod ~= nil and istable(vrmod) and IsValid(self) and self:IsPlayer() and vrmod.IsPlayerInVR(self))
+end
+
 local AppearanceMenuOpen, Frame = false, nil
+local clrgray = Color(128, 128, 128)
 local function OpenMenu()
 	if AppearanceMenuOpen then return end
 	AppearanceMenuOpen = true
@@ -45,14 +58,14 @@ local function OpenMenu()
 	end
 
 	local TLabel = vgui.Create("DLabel", MainPanel)
-	TLabel:SetPos(10, 0)
+	TLabel:SetPos(10, -5)
 	TLabel:SetSize(100, 40)
 	TLabel:SetText(translate.appearanceName)
 	local Text = vgui.Create("DTextEntry", MainPanel)
-	Text:SetPos(10, 30)
+	Text:SetPos(10, 25)
 	Text:SetSize(270, 20)
 	local MdlSelect = vgui.Create("DComboBox", MainPanel)
-	MdlSelect:SetPos(10, 60)
+	MdlSelect:SetPos(10, 50)
 	MdlSelect:SetSize(150, 20)
 	MdlSelect:SetValue(translate.appearanceModel)
 	for k, v in pairs(HMCD_ValidModels) do
@@ -61,7 +74,7 @@ local function OpenMenu()
 
 	MdlSelect.OnSelect = function(panel, index, value) end
 	local upsback = vgui.Create("DPanel", MainPanel)
-	upsback:SetPos(115, 85)
+	upsback:SetPos(115, 75)
 	upsback:SetSize(125, 20)
 	upsback.Paint = function()
 		surface.SetDrawColor(128, 128, 128, 255)
@@ -69,7 +82,7 @@ local function OpenMenu()
 	end
 
 	local uppselect = vgui.Create("DNumSlider", MainPanel)
-	uppselect:SetPos(10, 78)
+	uppselect:SetPos(10, 68)
 	uppselect:SetWide(250)
 	uppselect:SetText(translate.appearanceUBodySize)
 	uppselect:SetMin(80)
@@ -78,7 +91,7 @@ local function OpenMenu()
 	uppselect:SetValue(100)
 	uppselect.OnValueChanged = function(panel, val) end
 	local mdsback = vgui.Create("DPanel", MainPanel)
-	mdsback:SetPos(115, 110)
+	mdsback:SetPos(115, 100)
 	mdsback:SetSize(125, 20)
 	mdsback.Paint = function()
 		surface.SetDrawColor(128, 128, 128, 255)
@@ -86,7 +99,7 @@ local function OpenMenu()
 	end
 
 	local midselect = vgui.Create("DNumSlider", MainPanel)
-	midselect:SetPos(10, 103)
+	midselect:SetPos(10, 93)
 	midselect:SetWide(250)
 	midselect:SetText(translate.appearanceWaistSize)
 	midselect:SetMin(80)
@@ -95,7 +108,7 @@ local function OpenMenu()
 	midselect:SetValue(100)
 	midselect.OnValueChanged = function(panel, val) end
 	local lwsback = vgui.Create("DPanel", MainPanel)
-	lwsback:SetPos(115, 135)
+	lwsback:SetPos(115, 125)
 	lwsback:SetSize(125, 20)
 	lwsback.Paint = function()
 		surface.SetDrawColor(128, 128, 128, 255)
@@ -103,7 +116,7 @@ local function OpenMenu()
 	end
 
 	local lowselect = vgui.Create("DNumSlider", MainPanel)
-	lowselect:SetPos(10, 128)
+	lowselect:SetPos(10, 118)
 	lowselect:SetWide(250)
 	lowselect:SetText(translate.appearanceLBodySize)
 	lowselect:SetMin(80)
@@ -111,17 +124,37 @@ local function OpenMenu()
 	lowselect:SetDecimals(0)
 	lowselect:SetValue(100)
 	lowselect.OnValueChanged = function(panel, val) end
+
+	--[[local strback = vgui.Create("DPanel", MainPanel)
+	strback:SetPos(115, 150)
+	strback:SetSize(125, 20)
+	strback.Paint = function()
+		surface.SetDrawColor(128, 128, 128, 255)
+		surface.DrawRect(0, 0, strback:GetWide(), strback:GetTall() + 3)
+	end
+	local stature = vgui.Create("DNumSlider", MainPanel)
+	stature:SetPos(10, 142)
+	stature:SetWide(250)
+	stature:SetText(translate.appearanceStature)
+	stature:SetMin(95)
+	stature:SetMax(105)
+	stature:SetDecimals(0)
+	stature:SetValue(100)
+	stature.OnValueChanged = function(panel, val) end]]
+
 	local CLabel = vgui.Create("DLabel", MainPanel)
 	CLabel:SetPos(10, 160)
 	CLabel:SetSize(100, 40)
 	CLabel:SetText(translate.appearanceCColor)
+
 	local Mixer = vgui.Create("DColorMixer", MainPanel)
 	Mixer:SetPos(10, 190)
 	Mixer:SetSize(200, 100)
 	Mixer:SetPalette(false)
 	Mixer:SetAlphaBar(false)
 	Mixer:SetWangs(false)
-	Mixer:SetColor(Color(128, 128, 128))
+	Mixer:SetColor(clrgray)
+
 	local CSelect = vgui.Create("DComboBox", MainPanel)
 	CSelect:SetPos(10, 300)
 	CSelect:SetSize(150, 20)
@@ -143,9 +176,9 @@ local function OpenMenu()
 	DermaButton:SetPos(10, 370)
 	DermaButton:SetSize(270, 40)
 	DermaButton.DoClick = function()
-		local Name, Maudel, R, G, B, Upper, Core, Lower, Clothes, Accessory = Text:GetValue(), MdlSelect:GetValue(), Mixer:GetColor().r / 255, Mixer:GetColor().g / 255, Mixer:GetColor().b / 255, uppselect:GetValue(), midselect:GetValue(), lowselect:GetValue(), CSelect:GetValue(), ASelect:GetValue()
-		RunConsoleCommand("homicide_identity", Name, Maudel, R, G, B, Upper, Core, Lower, Clothes, Accessory)
-		local RawData = tostring(Name) .. "\n" .. tostring(Maudel) .. "\n" .. tostring(R) .. "\n" .. tostring(G) .. "\n" .. tostring(B) .. "\n" .. tostring(Upper) .. "\n" .. tostring(Core) .. "\n" .. tostring(Lower) .. "\n" .. tostring(Clothes) .. "\n" .. tostring(Accessory)
+		local Name, Maudel, R, G, B, Upper, Core, Lower, Clothes, Accessory, Stature = Text:GetValue(), MdlSelect:GetValue(), Mixer:GetColor().r / 255, Mixer:GetColor().g / 255, Mixer:GetColor().b / 255, uppselect:GetValue(), midselect:GetValue(), lowselect:GetValue(), CSelect:GetValue(), ASelect:GetValue(), stature:GetValue()
+		RunConsoleCommand("homicide_identity", Name, Maudel, R, G, B, Upper, Core, Lower, Clothes, Accessory --[[, Stature]])
+		local RawData = tostring(Name) .. "\n" .. tostring(Maudel) .. "\n" .. tostring(R) .. "\n" .. tostring(G) .. "\n" .. tostring(B) .. "\n" .. tostring(Upper) .. "\n" .. tostring(Core) .. "\n" .. tostring(Lower) .. "\n" .. tostring(Clothes) .. "\n" .. tostring(Accessory) --[[.. "\n" .. tostring(Stature)]]
 		file.Write("homicide_identity.txt", RawData)
 		Frame:Close()
 		AppearanceMenuOpen = false
@@ -193,7 +226,7 @@ function GM:PlayerFootstep(ply, pos, foot, snd, volume, filter)
 		return true
 	end
 
-	if ply:GetModel() == "models/player/zombie_classic.mdl" then
+	if string.find(ply:GetModel(), "zombie") then
 		if math.random(1, 2) == 1 then
 			sound.Play("npc/zombie/foot" .. math.random(3) .. ".wav", pos, 70, math.random(90, 110))
 		else
@@ -214,11 +247,13 @@ function EntityMeta:GetBystanderName()
 end
 
 net.Receive("hmcd_tempspeedmul", function(len, pl) LocalPlayer().TempSpeedMul = net.ReadFloat() end)
+
+local finalMul = 1
 function GM:AdjustMouseSensitivity(num)
 	local Mul, Ply = 1, LocalPlayer()
 	if not Ply.TempSpeedMul then return -1 end
 	local Wep = Ply:GetActiveWeapon()
-	if Ply:IsSprinting() then
+	if Ply:IsSprinting() and Ply:GetVelocity():LengthSqr() >= 10000 then
 		Mul = Mul * .25
 	elseif IsValid(Wep) and Wep.GetAiming then
 		if Wep:GetAiming() > 99 then
@@ -230,6 +265,7 @@ function GM:AdjustMouseSensitivity(num)
 		end
 	end
 
+
 	Mul = Mul * Ply.TempSpeedMul
 	if Ply:Alive() then
 		local Helth = 100
@@ -237,7 +273,9 @@ function GM:AdjustMouseSensitivity(num)
 			Helth = Ply:Health()
 			if (Helth and tonumber(Helth)) and (Helth > 0) then
 				Mul = Mul * math.Clamp((Helth * .5 + 50) / 100, .01, 1)
-				return Mul
+				local ft = FrameTime()
+				finalMul = Lerp(ft * 5, finalMul, Mul)
+				return finalMul
 			end
 		end
 	end
@@ -250,12 +288,12 @@ function GM:CreateMove(cmd)
 	local Wep = ply:GetActiveWeapon()
 	if ply:Crouching() or LocalPlayer().Murderer or ply.Cop then Amt = Amt / 2 end
 	if prone and ply:IsProne() then Amt = Amt / 4 end
-	if ply.Seizuring then
+	if ply.Seizuring and not self.GuiltDisabled:GetBool() then
 		Amt = 1500
 		Sporadicness = 20
 	end
 
-	if (Wep and IsValid(Wep) and Wep.GetAiming and (Wep:GetAiming() >= 99)) or ply.Seizuring then
+	if (Wep and IsValid(Wep) and Wep.GetAiming and (Wep:GetAiming() >= 99)) or (ply.Seizuring and not self.GuiltDisabled:GetBool()) then
 		if Wep.Scoped and (ply:KeyDown(IN_FORWARD) or ply:KeyDown(IN_BACK) or ply:KeyDown(IN_MOVELEFT) or ply:KeyDown(IN_MOVERIGHT)) then
 			Sporadicness = Sporadicness * 2
 			Amt = Amt * 2
@@ -270,7 +308,7 @@ function GM:CreateMove(cmd)
 		cmd:SetViewAngles(EAng)
 	end
 
-	if ply.Seizuring then
+	if ply.Seizuring and not self.GuiltDisabled:GetBool() then
 		if math.random(1, 100) == 2 then Overriding = not Overriding end
 		if math.random(1, 100) == 8 then MovDir = -MovDir end
 		if Overriding then
@@ -300,10 +338,10 @@ hook.Add("VRUtilExit", "HMCD_VRClientAimRemove", function(ply)
 end)
 
 hook.Add("EntityFireBullets", "HMCD_VRSuicide", function(ply, bullet)
-	--[[if IsValid(ply) and ply:IsPlayer() and ply:GetVR() then
+	if IsValid(ply) and ply:IsPlayer() and ply:GetVR() then
 		-- check if the shot hits the player's own head using a box 1.3x the size of their head hitbox so it's not difficult to trigger
 		local mins, maxs = ply:GetHitBoxBounds(0, 0)
-		local pos, normal, frac = util.IntersectRayWithOBB(bullet.Src, bullet.Dir*100, vrmod.GetHMDPos(ply), vrmod.GetHMDAng(ply), mins*1.3, maxs*1.3)
+		local pos, normal, frac = util.IntersectRayWithOBB(bullet.Src, bullet.Dir * 100, vrmod.GetHMDPos(ply), vrmod.GetHMDAng(ply), mins * 1.3, maxs * 1.3)
 
 		-- if it does, kill the person as if they were shot
 		if pos then
@@ -324,8 +362,20 @@ hook.Add("EntityFireBullets", "HMCD_VRSuicide", function(ply, bullet)
 				ply:TakeDamageInfo(suicide)
 			end)
 
-			-- block the default shot so that the bullet can't also kill another person
-			return false
+			-- DO NOT block the default shot so that the bullet can't also kill another person
+			-- return false
 		end
-	end]]
+	end
+end)
+
+net.Receive("HMCD_SetHull", function()
+	local ply = net.ReadPlayer()
+	timer.Simple(1, function()
+		if IsValid(ply) and ply:Alive() then
+			ply:SetHull(HMCD_HullVector.Min, HMCD_HullVector.Max)
+			ply:SetHullDuck(HMCD_HullVector.Min, HMCD_HullVector.Duck)
+			ply:SetViewOffset(HMCD_HullVector.Offset)
+			ply:SetViewOffsetDucked(HMCD_HullVector.DuckOffset)
+		end
+	end)
 end)
